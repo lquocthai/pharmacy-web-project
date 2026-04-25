@@ -1,0 +1,258 @@
+@use "sass:color";
+$blue: #1250dc;
+$blue-dark: #0d3fad;
+$orange: #f97316;
+
+.bg-blue-5 {
+  background-color: #1250dc;
+}
+
+
+// Main
+.header-bg {
+  background-image: url("../../assets/header-img.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+// Logo
+.header-logo {
+  min-width: 130px;
+  line-height: 1.15;
+
+  .logo-retail {
+    font-size: 10px;
+    opacity: .7;
+    letter-spacing: .8px;
+  }
+
+  .logo-name {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+  }
+
+  .logo-brand {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+}
+
+// Search
+.header-search {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
+
+  &:focus-within {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, .35);
+  }
+
+  .form-control {
+    font-size: 14px;
+
+    &::placeholder {
+      color: #aaa;
+    }
+  }
+
+  .btn-search {
+    background: $blue-dark;
+    border-color: $blue-dark;
+
+    &:hover {
+      background: color.adjust($blue-dark, $lightness: -8%);
+    }
+  }
+}
+
+// Action buttons
+.header-action-btn:hover {
+  background: rgba(255, 255, 255, .15);
+}
+
+.btn-cart {
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  padding: 7px 16px;
+  border: none;
+}
+
+.cart-badge {
+  top: -7px;
+  right: -7px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid $blue;
+}
+
+// Nav
+.header-nav {
+  background: $blue;
+  border-top: 1px solid rgba(255, 255, 255, .18);
+  display: block;
+
+  .nav-pill {
+    transition: background .18s;
+
+    &:hover {
+      background: rgba(255, 255, 255, .18);
+    }
+  }
+
+  @media (max-width: 991px) {
+    display: none;
+
+    &--open {
+      display: block;
+    }
+
+    .container-xl {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .nav-pill {
+      width: 100%;
+      border-radius: 0 !important;
+      padding: 10px 16px !important;
+    }
+  }
+}
+
+.header-nav {
+  height: 48px; // Độ cao chuẩn của dải menu
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+
+  .nav-list {
+    width: 100%;
+  }
+
+  .nav-item {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    position: relative;
+
+    .nav-link {
+      color: #333;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 0 4px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+
+      &:hover {
+        color: #0055aa; // Màu primary của nhà thuốc
+      }
+
+      .dropdown-icon {
+        font-size: 8px;
+        color: #999;
+        transform: translateY(1px);
+      }
+    }
+
+    // Hiệu ứng thanh gạch chân khi hover giống các trang TMĐT chuyên nghiệp
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: #0055aa;
+      transition: width 0.3s ease;
+    }
+
+    &:hover::after {
+      width: 100%;
+    }
+  }
+}
+
+// Khi dùng text-primary cho "Hệ thống nhà thuốc"
+.text-primary {
+  color: #0055aa !important;
+}
+
+.user-profile-dropdown {
+
+  // Menu mặc định ẩn
+  .custom-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%; // Nằm ngay dưới nút user
+    right: 0;
+    background-color: white;
+    min-width: 160px;
+    z-index: 1000;
+    list-style: none;
+    padding: 8px 0;
+    border-radius: 8px;
+    margin-top: 0; // Quan trọng: Để không có khoảng trống khi di chuột xuống
+
+    // Tạo một "vùng đệm" giả để khi di chuột từ nút xuống menu không bị mất hover
+    &::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 0;
+      width: 100%;
+      height: 10px;
+    }
+  }
+
+  // Khi hover vào container thì hiện menu
+  &:hover {
+    .custom-dropdown-menu {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+  }
+}
+
+// Hiệu ứng mượt mà
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Style cho các item trong menu
+.custom-dropdown-menu {
+  .dropdown-item {
+    color: #333;
+    text-decoration: none;
+    display: block;
+    padding: 8px 16px;
+    transition: background 0.2s;
+
+    &:hover {
+      background-color: #f8f9fa;
+      color: #007bff; // Màu xanh thương hiệu của bạn
+    }
+  }
+}

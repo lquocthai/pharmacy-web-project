@@ -1,0 +1,115 @@
+$blue: #1250dc;
+
+// Banner
+.footer-banner {
+  background: $blue;
+}
+
+// Main
+.footer-main {
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.footer-col-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.footer-link {
+  color: $blue;
+  text-decoration: none;
+  line-height: 1.5;
+
+  &:hover {
+    text-decoration: underline;
+    color: darken($blue, 12%);
+  }
+}
+
+.footer-hotline {
+  font-size: 15px;
+  font-weight: 700;
+  color: $blue;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Certs
+.cert-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+// Socials
+.social-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 16px;
+  text-decoration: none;
+  transition: opacity .2s, transform .15s;
+
+  &:hover {
+    opacity: .85;
+    transform: translateY(-2px);
+    color: #fff;
+  }
+
+  &--fb {
+    background: #1877f2;
+  }
+
+  &--zalo {
+    background: #0068ff;
+  }
+}
+
+// QR
+.qr-box {
+  width: 90px;
+  height: 90px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+// Payments
+.payment-badge {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  transition: border-color .15s;
+
+  &:hover {
+    border-color: $blue;
+  }
+}
+
+// Bottom
+.footer-bottom {
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+}

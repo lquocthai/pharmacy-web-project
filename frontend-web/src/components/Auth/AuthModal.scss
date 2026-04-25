@@ -1,0 +1,154 @@
+// 1. Import module color của Sass để xử lý màu sắc chuẩn hiện đại
+@use "sass:color";
+
+// Variables - Tùy chỉnh màu sắc chủ đạo
+$primary-pharmacy: #0055aa;
+$primary-hover: #004488;
+$border-color: #dee2e6;
+$otp-border: #cfd6e4;
+$otp-focus: #2f6bff;
+$white: #fff;
+
+// Mixins - Tái sử dụng code cho các thuộc tính lặp lại
+@mixin flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// Root Styles
+.auth-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1060; // Cao hơn header của Bootstrap
+    @include flex-center;
+}
+
+.custom-modal-size {
+    width: 100%;
+    max-width: 450px;
+    margin: 1.75rem;
+}
+
+.modal-content {
+    background-color: $white;
+
+    .modal-header {
+        .btn-close {
+            padding: 20px;
+
+            &:focus {
+                box-shadow: none;
+            }
+        }
+    }
+}
+
+// Utility classes
+.cursor-pointer {
+    cursor: pointer;
+}
+
+// Divider Line (Đường kẻ "Hoặc đăng nhập với")
+.divider-container {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background-color: $border-color;
+        z-index: 1;
+    }
+
+    .divider-text {
+        position: relative;
+        z-index: 2;
+        background-color: $white;
+        padding: 0 0.75rem;
+    }
+}
+
+// OTP Input Styles
+.otp-input {
+    width: 55px;
+    height: 55px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    border: 1px solid $otp-border;
+    border-radius: 10px;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+
+    &:focus {
+        border-color: $otp-focus;
+        box-shadow: 0 0 0 2px rgba($otp-focus, 0.15);
+    }
+
+    &:disabled {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+}
+
+// Bootstrap Overrides
+.btn-primary {
+    background-color: $primary-pharmacy;
+    border-color: $primary-pharmacy;
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: $primary-hover !important;
+        border-color: $primary-hover !important;
+        filter: brightness(1.1);
+    }
+
+    &:disabled {
+        // Sửa lỗi lighten() bằng color.adjust()
+        background-color: color.adjust($primary-pharmacy, $lightness: 20%) !important;
+        border-color: color.adjust($primary-pharmacy, $lightness: 20%) !important;
+        opacity: 0.7;
+    }
+}
+
+.text-primary {
+    color: $primary-pharmacy !important;
+}
+
+// Animation
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Responsive cho màn hình nhỏ (Mobile)
+@media (max-width: 576px) {
+    .otp-input {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+}
