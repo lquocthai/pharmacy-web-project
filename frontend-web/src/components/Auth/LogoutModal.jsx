@@ -1,9 +1,9 @@
-import React from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { X } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { setLogout } from '../../redux/slices/authSlice';
+import { clearCart } from '../../redux/slices/cartSlice';
 import authService from '../../services/authService';
 
 const LogoutModal = ({ show, handleClose }) => {
@@ -16,10 +16,10 @@ const LogoutModal = ({ show, handleClose }) => {
         } catch (error) {
             console.error('Logout API error:', error);
         } finally {
-
-            dispatch(setLogout());   // clear Redux + localStorage
-            handleClose();           // đóng modal
-            navigate('/');           // redirect
+            dispatch(setLogout());   // clear auth Redux + localStorage
+            dispatch(clearCart());   // clear cart Redux
+            handleClose();
+            navigate('/');
         }
     };
     return (

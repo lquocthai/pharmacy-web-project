@@ -1,0 +1,115 @@
+.cart-page {
+    .cart-left {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+
+        .cart-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #eee;
+
+            .item-checkbox {
+                width: 40px;
+                text-align: center;
+            }
+
+            .item-image {
+                width: 80px;
+
+                img {
+                    width: 64px;
+                    height: 64px;
+                    object-fit: cover;
+                    border-radius: 8px;
+                }
+            }
+
+            .item-info {
+                flex: 1;
+
+                .name {
+                    font-size: 14px;
+                    font-weight: 500;
+                    margin-bottom: 4px;
+                }
+            }
+
+            .item-price {
+                width: 120px;
+                color: #1a73e8;
+                font-weight: 600;
+                text-align: right;
+            }
+
+            .item-quantity {
+                width: 140px;
+
+                .input-group {
+                    border: 1px solid #ddd;
+                    border-radius: 20px;
+                    overflow: hidden;
+
+                    button {
+                        border: none;
+                        background: #f5f5f5;
+                        width: 32px;
+                    }
+
+                    input {
+                        border: none;
+                        text-align: center;
+                        width: 40px;
+                    }
+                }
+            }
+
+            .item-remove {
+                width: 40px;
+                text-align: center;
+                color: #999;
+                cursor: pointer;
+
+                &:hover {
+                    color: red;
+                }
+            }
+        }
+    }
+
+    .cart-right {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+
+            &.total {
+                font-size: 18px;
+                font-weight: 600;
+                color: #1a73e8;
+            }
+        }
+
+        button {
+            margin-top: 12px;
+            border-radius: 24px;
+            padding: 10px;
+            font-weight: 500;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            border: none;
+        }
+    }
+}

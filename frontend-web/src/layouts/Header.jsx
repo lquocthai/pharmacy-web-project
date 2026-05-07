@@ -20,6 +20,9 @@ export default function Header() {
 
 
     // 2. Lấy dữ liệu từ Redux Store
+    const { totalItems } = useSelector((state) => state.cart);
+    const cart = useSelector((state) => state.cart);
+    console.log('Cart in Header:', cart); // Debug: kiểm tra dữ liệu cart
     const { isAuthenticated, user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -33,20 +36,6 @@ export default function Header() {
         }
     };
 
-    // // 4. Xử lý đăng xuất
-    // const handleLogout = async (e) => {
-    //     e.preventDefault();
-    //     try {
-    //         // Gửi cả accessToken + refreshToken để backend blacklist cả 2
-    //         await authService.logout();
-    //     } catch (error) {
-    //         // Dù API lỗi vẫn xóa state local
-    //         console.error('Logout API error:', error);
-    //     } finally {
-    //         dispatch(setLogout());
-    //         navigate('/');
-    //     }
-    // };
 
     return (
         <header className="main-header">
@@ -144,11 +133,39 @@ export default function Header() {
                                     <span className="small fw-bold">Đăng nhập</span>
                                 </button>
                             )}
+                            {/* giỏ hàng */}
+                            {/* Thay đoạn Link giỏ hàng cũ bằng đoạn này */}
+                            <div className="cart-container position-relative ms-2">
+                                <Link to="/cart" className="btn btn-cart text-white d-flex align-items-center gap-2 px-3 rounded-pill bg-blue-5">
+                                    <div className="position-relative">
+                                        <FaShoppingCart size={18} />
+                                        {totalItems > 0 && (
+                                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-circle"
+                                                style={{ backgroundColor: '#fa8c16', fontSize: '9px', padding: '2px 5px', marginTop: '5px' }}>
+                                                {totalItems}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="small fw-bold">Giỏ hàng</span>
+                                </Link>
 
-                            <Link to="/cart" className="btn btn-cart text-white d-flex align-items-center gap-2 px-3 rounded-pill bg-blue-5 position-relative ms-2">
-                                <FaShoppingCart size={18} />
-                                <span className="small fw-bold">Giỏ hàng</span>
-                            </Link>
+                                {/* Danh sách sản phẩm khi hover */}
+                                {totalItems > 0 && (
+                                    <div className="cart-dropdown shadow-sm border rounded p-3 bg-white position-absolute">
+                                        <h6 className="mb-3 text-secondary">Sản phẩm mới thêm</h6>
+                                        {cart.items.slice(0, 4).map(item => (
+                                            <div key={item.id} className="d-flex align-items-center gap-2 mb-3">
+                                                <img src={item.imageUrl} alt={item.productName} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
+                                                <div className="flex-grow-1" style={{ fontSize: '12px' }}>
+                                                    <div className="text-truncate" style={{ maxWidth: '150px' }}>{item.productName}</div>
+                                                    <div className="text-primary fw-bold">{item.price.toLocaleString()}đ</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <Link to="/cart" className="btn btn-primary w-100 btn-sm">Xem giỏ hàng</Link>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Mobile Toggle Nút này dùng navOpen */}

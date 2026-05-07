@@ -1,22 +1,30 @@
 @use "sass:color";
+
+// --- Variables ---
 $blue: #1250dc;
 $blue-dark: #0d3fad;
 $orange: #f97316;
+$primary-color: #0055aa;
 
-.bg-blue-5 {
-  background-color: #1250dc;
+// --- Keyframes ---
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-
-// Main
+// --- Main Layout ---
 .header-bg {
-  background-image: url("../../assets/header-img.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: url("../../assets/header-img.png") center/cover no-repeat;
 }
 
-// Logo
+// --- Logo ---
 .header-logo {
   min-width: 130px;
   line-height: 1.15;
@@ -41,7 +49,7 @@ $orange: #f97316;
   }
 }
 
-// Search
+// --- Search ---
 .header-search {
   border-radius: 8px;
   overflow: hidden;
@@ -58,89 +66,15 @@ $orange: #f97316;
       color: #aaa;
     }
   }
-
-  .btn-search {
-    background: $blue-dark;
-    border-color: $blue-dark;
-
-    &:hover {
-      background: color.adjust($blue-dark, $lightness: -8%);
-    }
-  }
 }
 
-// Action buttons
-.header-action-btn:hover {
-  background: rgba(255, 255, 255, .15);
-}
-
-.btn-cart {
-  border: none;
-  color: #fff;
-  border-radius: 8px;
-  padding: 7px 16px;
-  border: none;
-}
-
-.cart-badge {
-  top: -7px;
-  right: -7px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid $blue;
-}
-
-// Nav
+// --- Navigation ---
 .header-nav {
-  background: $blue;
-  border-top: 1px solid rgba(255, 255, 255, .18);
-  display: block;
-
-  .nav-pill {
-    transition: background .18s;
-
-    &:hover {
-      background: rgba(255, 255, 255, .18);
-    }
-  }
-
-  @media (max-width: 991px) {
-    display: none;
-
-    &--open {
-      display: block;
-    }
-
-    .container-xl {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .nav-pill {
-      width: 100%;
-      border-radius: 0 !important;
-      padding: 10px 16px !important;
-    }
-  }
-}
-
-.header-nav {
-  height: 48px; // Độ cao chuẩn của dải menu
+  height: 48px;
   display: flex;
   align-items: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-
-  .nav-list {
-    width: 100%;
-  }
+  background: white;
 
   .nav-item {
     height: 48px;
@@ -152,24 +86,14 @@ $orange: #f97316;
       color: #333;
       font-size: 14px;
       font-weight: 500;
-      text-decoration: none;
-      padding: 0 4px;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
+      padding: 0 12px;
+      transition: color 0.2s;
 
       &:hover {
-        color: #0055aa; // Màu primary của nhà thuốc
-      }
-
-      .dropdown-icon {
-        font-size: 8px;
-        color: #999;
-        transform: translateY(1px);
+        color: $primary-color;
       }
     }
 
-    // Hiệu ứng thanh gạch chân khi hover giống các trang TMĐT chuyên nghiệp
     &::after {
       content: "";
       position: absolute;
@@ -177,7 +101,7 @@ $orange: #f97316;
       left: 0;
       width: 0;
       height: 2px;
-      background-color: #0055aa;
+      background-color: $primary-color;
       transition: width 0.3s ease;
     }
 
@@ -187,72 +111,93 @@ $orange: #f97316;
   }
 }
 
-// Khi dùng text-primary cho "Hệ thống nhà thuốc"
-.text-primary {
-  color: #0055aa !important;
-}
+// --- Dropdown Mixin (Dùng chung cho Profile & Cart) ---
+@mixin custom-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  transform: translateY(10px);
 
-.user-profile-dropdown {
-
-  // Menu mặc định ẩn
-  .custom-dropdown-menu {
-    display: none;
+  &::before {
+    content: "";
     position: absolute;
-    top: 100%; // Nằm ngay dưới nút user
-    right: 0;
-    background-color: white;
-    min-width: 160px;
-    z-index: 1000;
-    list-style: none;
-    padding: 8px 0;
-    border-radius: 8px;
-    margin-top: 0; // Quan trọng: Để không có khoảng trống khi di chuột xuống
-
-    // Tạo một "vùng đệm" giả để khi di chuột từ nút xuống menu không bị mất hover
-    &::before {
-      content: "";
-      position: absolute;
-      top: -10px;
-      left: 0;
-      width: 100%;
-      height: 10px;
-    }
+    top: -10px;
+    right: 20px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid white;
   }
+}
 
-  // Khi hover vào container thì hiện menu
+// --- Profile & Cart Components ---
+.user-profile-dropdown,
+.cart-container {
+  position: relative;
+
+  // Trạng thái hover chung
   &:hover {
-    .custom-dropdown-menu {
-      display: block;
-      animation: fadeIn 0.2s ease-in-out;
+
+    .custom-dropdown-menu,
+    .cart-dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
     }
   }
-}
 
-// Hiệu ứng mượt mà
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .custom-dropdown-menu,
+  .cart-dropdown {
+    @include custom-dropdown;
   }
 }
 
-// Style cho các item trong menu
+.cart-dropdown {
+  width: 300px;
+
+  .cart-item {
+    padding: 10px 16px;
+    border-bottom: 1px solid #eee;
+  }
+}
+
 .custom-dropdown-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
   .dropdown-item {
-    color: #333;
-    text-decoration: none;
     display: block;
     padding: 8px 16px;
+    text-decoration: none;
+    color: #333;
     transition: background 0.2s;
 
     &:hover {
       background-color: #f8f9fa;
-      color: #007bff; // Màu xanh thương hiệu của bạn
+      color: $primary-color;
     }
   }
+}
+
+// --- Utilities ---
+.btn-cart {
+  border-radius: 8px;
+  padding: 10px 16px;
+  border: none;
+}
+
+.bg-blue-5 {
+  background-color: $blue;
+}
+
+.text-primary {
+  color: $primary-color !important;
 }

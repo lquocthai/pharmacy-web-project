@@ -3,7 +3,7 @@ import { store } from '../redux/store'; // Import store để sử dụng dispat
 import { setLogout } from '../redux/slices/authSlice';
 
 const axiosClient = axios.create({
-    baseURL: 'http://localhost:8080/pharmacy'
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/pharmacy',
 });
 
 axiosClient.interceptors.request.use((config) => {
@@ -30,20 +30,20 @@ axiosClient.interceptors.response.use(
                 if (!refreshToken) throw new Error("No refresh token");
 
                 // Gọi API refresh token
-                const res = await axiosClient.post('/auth/refresh', {
+                const res = await axiosClient.post('http://localhost:8080/pharmacy/auth/refresh', {
                     refreshToken
                 });
-                const newAccessToken = res.data.result.token;
-                const newRefreshToken = res.data.result.token;
+                const newAccessToken = res.data.result.accessToken;
+                const newRefreshToken = res.data.result.refreshToken;
                 localStorage.setItem('accessToken', newAccessToken);
                 localStorage.setItem('refreshToken', newRefreshToken);
 
                 // Cập nhật header và thực hiện lại request cũ
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                 return axiosClient(originalRequest);
 
             } catch (err) {
-                // --- ĐÂY LÀ PHẦN BẠN CẦN ---
+                
                 // Khi Refresh Token cũng hết hạn hoặc lỗi
                 store.dispatch(setLogout()); // Xóa sạch state trong Redux & LocalStorage
 

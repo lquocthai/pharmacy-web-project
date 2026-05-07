@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { closeLoginModal, setLoginSuccess } from '../../redux/slices/authSlice';
+import { fetchCart } from '../../redux/slices/cartSlice';
 import { GoogleLogin } from '@react-oauth/google';
 import authService from '../../services/authService';
 import './AuthModal.scss';
@@ -76,27 +77,22 @@ const AuthModal = () => {
         e.preventDefault();
         setLoginLoading(true);
         try {
-            const res = await authService.login({
-                email: email,
-                password: password
-            });
-
-            // Giả sử backend trả về: { result: { token: '...', refreshToken: '...', user: {...} } }
+            const res = await authService.login({ email, password });
             const { code, result, message } = res.data;
-            console.log(result);
+
+            // Backend trả code 1000 khi thành công
             if (code === 0) {
-                // TRƯỜNG HỢP THÀNH CÔNG
-                console.log("Login Success:", result);
                 dispatch(setLoginSuccess(result));
                 dispatch(closeLoginModal());
+                // Gọi API lấy giỏ hàng ngay sau khi login thành công
+                // dispatch(fetchCart());
             } else {
-                alert(`Lỗi (${code}): ${message || "Đăng nhập không thành công"}`);
+                alert(`Lỗi (${code}): ${message || 'Đăng nhập không thành công'}`);
             }
-
         } catch (error) {
-            console.error("Login Error:", error);
-            const errorMsg = error.response?.data?.message || "Lỗi kết nối đến máy chủ";
-            alert("Đăng nhập thất bại: " + errorMsg);
+            console.error('Login Error:', error);
+            const errorMsg = error.response?.data?.message || 'Lỗi kết nối đến máy chủ';
+            alert('Đăng nhập thất bại: ' + errorMsg);
         } finally {
             setLoginLoading(false);
         }
@@ -217,10 +213,14 @@ const AuthModal = () => {
     const handleGoogleSuccess = async (response) => {
         try {
             const res = await authService.loginGoogle(response.credential);
-            dispatch(setLoginSuccess(res.data.result));
-            dispatch(closeLoginModal());
+            if (res.data.code === 0) {
+                dispatch(setLoginSuccess(res.data.result));
+                dispatch(closeLoginModal());
+                // Gọi API lấy giỏ hàng ngay sau khi login Google thành công
+                // dispatch(fetchCart());
+            }
         } catch (error) {
-            console.error("Google Login Error", error);
+            console.error('Google Login Error', error);
         }
     };
     if (!isLoginModalOpen) return null;

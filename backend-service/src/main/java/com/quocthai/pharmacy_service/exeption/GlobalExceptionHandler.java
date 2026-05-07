@@ -16,7 +16,8 @@ public class GlobalExceptionHandler {
     private static final String MAX_ATTRIBUTE = "max";
     // xử lí các exception không mong đợi nó xảy ra và chưa biết nó laf gì nên trả về đây (khong bắt dc)
     @ExceptionHandler(value = Exception.class)
-    ResponseEntity<ApiResponse> handlingRuntimeException(RuntimeException e) {
+    ResponseEntity<ApiResponse> handlingRuntimeException(Exception e) {
+        log.error("Unhandled exception: ", e);
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
         apiResponse.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
