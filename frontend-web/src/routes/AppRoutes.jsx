@@ -5,16 +5,12 @@ import MainLayout from '../layouts/MainLayout';
 import HomePage from '../pages/Home/HomePage';
 import CartPage from '../pages/Cart/CartPage';
 import ProfilePage from '../pages/profile/ProfilePage';
+import ProductDetailPage from '../pages/Product/ProductDetailPage';
 
 const PrivateRoute = ({ children }) => {
-    const { isAuthenticated, isLoggingOut } = useSelector(state => state.auth);
+    const { isAuthenticated } = useSelector(state => state.auth);
     const dispatch = useDispatch();
-    // useEffect(() => {
-    //     // Reset flag sau khi đã redirect về trang home
-    //     if (isLoggingOut) {
-    //         dispatch(resetLogoutFlag());
-    //     }
-    // }, [isLoggingOut, dispatch]);
+
     if (!isAuthenticated) {
         dispatch(openLoginModal());
         return <Navigate to="/" replace />;
@@ -26,6 +22,7 @@ const AppRoutes = () => (
     <Routes>
         <Route element={<MainLayout />}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/products/detail/:slug" element={<ProductDetailPage />} />
             <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
             <Route path="/cart" element={<PrivateRoute><CartPage /></PrivateRoute>} />
         </Route>

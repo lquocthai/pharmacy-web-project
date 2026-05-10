@@ -5,6 +5,7 @@ import { fetchCart } from '../../redux/slices/cartSlice';
 import { GoogleLogin } from '@react-oauth/google';
 import authService from '../../services/authService';
 import './AuthModal.scss';
+import toast from 'react-hot-toast';
 
 const AuthModal = () => {
     const dispatch = useDispatch();
@@ -32,10 +33,12 @@ const AuthModal = () => {
         setForgotLoading(true);
         try {
             await authService.forgotPassword(email);
-            alert("Mã xác thực đã được gửi!");
+            // alert("Mã xác thực đã được gửi!");
+            toast.success("Mã xác thực đã được gửi đến email của bạn!");
             setMode('OTP'); // Chuyển sang nhập OTP
         } catch (error) {
-            alert(error.response?.data?.message || "Email không tồn tại");
+            // alert(error.response?.data?.message || "Email không tồn tại");
+            toast.error(error.response?.data?.message || "Email không tồn tại");
         } finally { setForgotLoading(false); }
     };
 
@@ -87,12 +90,13 @@ const AuthModal = () => {
                 // Gọi API lấy giỏ hàng ngay sau khi login thành công
                 // dispatch(fetchCart());
             } else {
-                alert(`Lỗi (${code}): ${message || 'Đăng nhập không thành công'}`);
+                // alert(`Lỗi (${code}): ${message || 'Đăng nhập không thành công'}`);
+                toast.error(`Lỗi (${code}): ${message || 'Đăng nhập không thành công'}`);
             }
         } catch (error) {
             console.error('Login Error:', error);
             const errorMsg = error.response?.data?.message || 'Lỗi kết nối đến máy chủ';
-            alert('Đăng nhập thất bại: ' + errorMsg);
+            toast.error('Đăng nhập thất bại: ' + errorMsg);
         } finally {
             setLoginLoading(false);
         }
@@ -114,12 +118,13 @@ const AuthModal = () => {
                 console.log("Register Success:", result);
                 setMode('OTP');
             } else {
-                alert(`Lỗi (${code}): ${message || "Đăng ký không thành công"}`);
+                toast.error(`Lỗi (${code}): ${message || "Đăng ký không thành công"}`);
             }
         } catch (error) {
             console.error("Register Error:", error);
             const errorMsg = error.response?.data?.message || "Lỗi kết nối đến máy chủ";
-            alert("Đăng ký thất bại: " + errorMsg);
+            // alert("Đăng ký thất bại: " + errorMsg);
+            toast.error("Đăng ký thất bại: " + errorMsg);
         } finally {
             setRegisterLoading(false);
         }
@@ -172,7 +177,8 @@ const AuthModal = () => {
     const handleVerifyOtp = async () => {
         const otpCode = otp.join("");
         if (otpCode.length < 6) {
-            alert("Vui lòng nhập đủ 6 số");
+            // alert("Vui lòng nhập đủ 6 số");
+            toast.error("Vui lòng nhập đủ 6 số");
             return;
         }
 
@@ -180,13 +186,16 @@ const AuthModal = () => {
         try {
             const res = await authService.verifyOtp({ email, otp: otpCode });
             if (res.data.code === 0) {
-                alert("Xác thực thành công! Vui lòng đăng nhập.");
+                // alert("Xác thực thành công! Vui lòng đăng nhập.");
+                toast.success("Xác thực thành công! Vui lòng đăng nhập.");
                 setMode('LOGIN');
             } else {
-                alert(res.data.message);
+                // alert(res.data.message);
+                toast.error(res.data.message);
             }
         } catch (error) {
-            alert(error.response?.data?.message || "Xác thực thất bại");
+            // alert(error.response?.data?.message || "Xác thực thất bại");
+            toast.error(error.response?.data?.message || "Xác thực thất bại");
         } finally {
             setIsVerifying(false);
         }
@@ -199,14 +208,16 @@ const AuthModal = () => {
         try {
             const res = await authService.resendOtp({ email });
             if (res.data.code === 0) {
-                alert(res.data.result);
+                // alert(res.data.result);
+                toast.success(res.data.result);
                 setResendTimer(60); // Reset cooldown 60s
                 setOtpTimer(300);   // Reset thời gian hiệu lực 5p
                 setOtp(["", "", "", "", "", ""]); // Xóa OTP cũ
             }
         } catch (error) {
             const msg = error.response?.data?.message || "Không thể gửi lại mã";
-            alert(msg);
+            // alert(msg);
+            toast.error(msg);
         }
     };
 

@@ -17,7 +17,7 @@ const FOOTER_LINKS = {
     'DANH MỤC': [
         'Thực phẩm chức năng', 'Dược mỹ phẩm', 'Thuốc',
         'Chăm sóc cá nhân', 'Trang thiết bị y tế',
-        'Đặt thuốc online', 'Tiêm chủng Long Châu',
+        'Đặt thuốc online'
     ],
     'TÌM HIỂU THÊM': [
         'Góc sức khỏe', 'Tra cứu thuốc', 'Tra cứu dược chất',

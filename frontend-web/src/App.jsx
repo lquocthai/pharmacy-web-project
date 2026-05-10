@@ -4,6 +4,7 @@ import AuthModal from './components/Auth/AuthModal';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCart } from './redux/slices/cartSlice';
+import { Toaster } from 'react-hot-toast';
 function App() {
     const dispatch = useDispatch();
     const { accessToken } = useSelector(state => state.auth);
@@ -17,6 +18,10 @@ function App() {
         <>
             <AppRoutes />
             <AuthModal />
+            <Toaster
+                position="top-center"
+                reverseOrder={false}
+            />
         </>
     );
 }

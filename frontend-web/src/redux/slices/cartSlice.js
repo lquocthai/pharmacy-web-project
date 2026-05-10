@@ -7,7 +7,7 @@ export const fetchCart = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const { data } = await cartService.getCart();
-            // Backend trả ApiResponse<CartResponse> — code 1000 là thành công
+            // Backend trả ApiResponse<CartResponse> — code 0 là thành công
             if (data.code !== 0) return rejectWithValue(data.message);
             return data.result; // CartResponse
         } catch (error) {
@@ -34,38 +34,38 @@ const cartSlice = createSlice({
         // Cập nhật toàn bộ giỏ từ response API (dùng sau add/update/remove/increase/decrease)
         setCart: (state, action) => {
             const cart = action.payload; // CartResponse
-            state.id           = cart.id;
-            state.items        = cart.items        ?? [];
-            state.totalItems   = cart.totalItems   ?? 0;
-            state.totalQuantity= cart.totalQuantity?? 0;
-            state.error        = null;
+            state.id = cart.id;
+            state.items = cart.items ?? [];
+            state.totalItems = cart.totalItems ?? 0;
+            state.totalQuantity = cart.totalQuantity ?? 0;
+            state.error = null;
         },
 
         // Xóa sạch giỏ hàng khi logout
         clearCart: (state) => {
-            state.id           = null;
-            state.items        = [];
-            state.totalItems   = 0;
-            state.totalQuantity= 0;
-            state.error        = null;
+            state.id = null;
+            state.items = [];
+            state.totalItems = 0;
+            state.totalQuantity = 0;
+            state.error = null;
         },
     },
     extraReducers: (builder) => {
         builder
             .addCase(fetchCart.pending, (state) => {
                 state.loading = true;
-                state.error   = null;
+                state.error = null;
             })
             .addCase(fetchCart.fulfilled, (state, action) => {
-                state.loading      = false;
-                state.id           = action.payload.id;
-                state.items        = action.payload.items        ?? [];
-                state.totalItems   = action.payload.totalItems   ?? 0;
-                state.totalQuantity= action.payload.totalQuantity?? 0;
+                state.loading = false;
+                state.id = action.payload.id;
+                state.items = action.payload.items ?? [];
+                state.totalItems = action.payload.totalItems ?? 0;
+                state.totalQuantity = action.payload.totalQuantity ?? 0;
             })
             .addCase(fetchCart.rejected, (state, action) => {
                 state.loading = false;
-                state.error   = action.payload;
+                state.error = action.payload;
             });
     },
 });

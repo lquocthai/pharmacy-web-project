@@ -81,7 +81,8 @@ public class CartService {
                 .stream()
                 .collect(Collectors.toMap(
                         img -> img.getProduct().getId(),
-                        ProductImage::getImageUrl
+                        ProductImage::getImageUrl,
+                        (existingValue, newValue) -> existingValue // nếu trung key product_id thi lay cai cũ
                 ));
     }
 

@@ -15,7 +15,7 @@ const ProfilePage = () => {
 
 
     return (
-        <div className="bg-light min-vh-100 py-4">
+        <div className=" min-vh-100 py-4">
             <Container>
                 {/* Breadcrumb */}
                 <Nav className="small mb-4 text-muted">

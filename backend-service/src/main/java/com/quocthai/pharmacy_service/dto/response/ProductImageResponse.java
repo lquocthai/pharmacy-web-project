@@ -1,0 +1,15 @@
+package com.quocthai.pharmacy_service.dto.response;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class ProductImageResponse {
+    String id;
+    String imageUrl;
+    boolean isPrimary;
+}

@@ -12,7 +12,6 @@ import authService from '../services/authService';
 import LogoutModal from '../components/Auth/LogoutModal';
 
 export default function Header() {
-    // 1. Khai báo các state cần thiết để tránh lỗi ReferenceError
     const [searchValue, setSearchValue] = useState('');
     const [navOpen, setNavOpen] = useState(false);
 
@@ -32,10 +31,15 @@ export default function Header() {
         e.preventDefault();
         if (searchValue.trim()) {
             navigate(`/products?search=${encodeURIComponent(searchValue.trim())}`);
-            setNavOpen(false); // Đóng menu mobile nếu đang mở
+            setNavOpen(false);
         }
     };
-
+    const goToDetail = (productSlug) => {
+        console.log(productSlug);
+        if (productSlug) {
+            navigate(`/products/detail/${productSlug}`);
+        }
+    };
 
     return (
         <header className="main-header">
@@ -152,9 +156,12 @@ export default function Header() {
                                 {/* Danh sách sản phẩm khi hover */}
                                 {totalItems > 0 && (
                                     <div className="cart-dropdown shadow-sm border rounded p-3 bg-white position-absolute">
-                                        <h6 className="mb-3 text-secondary">Sản phẩm mới thêm</h6>
+                                        <h6 className="mb-3 text-secondary">Giỏ hàng</h6>
                                         {cart.items.slice(0, 4).map(item => (
-                                            <div key={item.id} className="d-flex align-items-center gap-2 mb-3">
+                                            <div key={item.id} className="d-flex align-items-center gap-2 mb-3"
+                                                onClick={() => goToDetail(item.productSlug)}
+                                                style={{ cursor: 'pointer' }}
+                                            >
                                                 <img src={item.imageUrl} alt={item.productName} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
                                                 <div className="flex-grow-1" style={{ fontSize: '12px' }}>
                                                     <div className="text-truncate" style={{ maxWidth: '150px' }}>{item.productName}</div>
