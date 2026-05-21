@@ -2,6 +2,7 @@ package com.quocthai.pharmacy_service.repository;
 
 import com.quocthai.pharmacy_service.entity.CartItem;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -31,4 +32,16 @@ public interface CartItemRepository extends JpaRepository<CartItem, String> {
     WHERE ci.cart.id = :cartId
     """)
     List<CartItem> findByCartId(@Param("cartId") String cartId);
+
+    // xóa items khỏi cart khi đã đặt hàng items đó
+    @Modifying
+    @Query("""
+        DELETE FROM CartItem ci
+        WHERE ci.cart.user.id = :userId
+        AND ci.product.id IN :productIds
+    """)
+    void deleteSelectedItems(
+            @Param("userId") String userId,
+            @Param("productIds") List<String> productIds
+    );
 }

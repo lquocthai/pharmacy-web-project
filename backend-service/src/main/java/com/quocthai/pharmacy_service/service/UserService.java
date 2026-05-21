@@ -146,9 +146,9 @@ public class UserService {
         User user =
                 userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         userMapper.updateUser(user, request);
-        if (request.getPassword() != null) {
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-        }
+//        if (request.getPassword() != null) {
+//            user.setPassword(passwordEncoder.encode(request.getPassword()));
+//        }
         return userMapper.toUserResponse(userRepository.save(user));
         // tạo hay update hay xóa thì save repository lại
     }

@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +37,14 @@ public class Cart {
     LocalDateTime createdAt;
 
     // Helper method để tính tổng tiền
-    public double getTotalAmount() {
+    public BigDecimal getTotalAmount() {
+
         return items.stream()
-                .mapToDouble(CartItem::getSubtotal)
-                .sum();
+                .map(CartItem::getSubtotal)
+                .reduce(
+                        BigDecimal.ZERO,
+                        BigDecimal::add
+                );
     }
 
     public int getTotalItems() { // số loại sản phẩm

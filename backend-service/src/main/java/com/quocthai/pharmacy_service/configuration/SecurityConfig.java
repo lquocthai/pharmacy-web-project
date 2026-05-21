@@ -32,7 +32,8 @@ public class SecurityConfig {
     private static final String[] PUBLIC_GET_ENDPOINTS = {
             "/products/*",
             "/products/detail/*",
-            "/ratings/product/*"
+            "/ratings/product/*",
+            "/categories/*"
     };
 
     private final CustomJwtDecoder customJwtDecoder;

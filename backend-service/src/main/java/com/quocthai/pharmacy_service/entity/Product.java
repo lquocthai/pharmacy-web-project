@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -25,8 +26,8 @@ public class Product {
     @Column(unique = true)
     String slug;
 
-    double price;
-    double oldPrice;
+    BigDecimal price;
+    BigDecimal oldPrice;
     String unit;
 
     boolean isPrescription;

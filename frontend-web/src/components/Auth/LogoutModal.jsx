@@ -25,6 +25,8 @@ const LogoutModal = ({ show, handleClose }) => {
     return (
         <Modal
             show={show}
+            backdrop="static"
+            keyboard={false}
             onHide={handleClose}
             centered
             contentClassName="border-0 rounded-4 shadow-lg"

@@ -38,8 +38,23 @@ public enum ErrorCode {
     // Rating errors
     RATING_NOT_EXISTED(1024, "Đánh giá không tồn tại", HttpStatus.NOT_FOUND),
     RATING_ALREADY_EXISTED(1025, "Bạn đã đánh giá sản phẩm này rồi", HttpStatus.BAD_REQUEST),
-    RATING_STAR_INVALID(1026, "Số sao phải từ 1 đến 5", HttpStatus.BAD_REQUEST);
+    RATING_STAR_INVALID(1026, "Số sao phải từ 1 đến 5", HttpStatus.BAD_REQUEST),
 
+    // Address errors
+    ADDRESS_NOT_EXISTED(1027, "Địa chỉ không tồn tại", HttpStatus.NOT_FOUND),
+    ADDRESS_LIMIT_EXCEEDED(1028, "Bạn chỉ có thể lưu tối đa 10 địa chỉ", HttpStatus.BAD_REQUEST),
+    FIELD_REQUIRED(1029, "Thông tin này không được để trống", HttpStatus.BAD_REQUEST),
+    INVALID_PHONE_NUMBER(1030, "Số điện thoại không đúng định dạng", HttpStatus.BAD_REQUEST),
+
+    // Order errors
+    ORDER_NOT_EXISTED(1031, "Đơn hàng không tồn tại", HttpStatus.NOT_FOUND),
+    ORDER_CANNOT_CANCEL(1032, "Đơn hàng không thể hủy ở trạng thái hiện tại", HttpStatus.BAD_REQUEST),
+    CART_EMPTY(1033, "Giỏ hàng trống, không thể đặt hàng", HttpStatus.BAD_REQUEST),
+    INVALID_STATUS_TRANSITION(1034, "Chuyển trạng thái đơn hàng không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_AMOUNT(1035,"Giá đơn hàng không hợp lệ",HttpStatus.BAD_REQUEST),
+
+    // category
+    CATEGORY_NOT_FOUND(1036,"Danh mục không tồn tại",HttpStatus.NOT_FOUND),;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;

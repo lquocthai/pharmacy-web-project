@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -26,4 +28,13 @@ public class Category {
 
     String description;
     String icon; // Lưu class icon hoặc URL ảnh icon danh mục
+
+    // === MENU ĐA CẤP ===
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    Category parent; // Danh mục cha của danh mục này (Nếu null thì đây là danh mục gốc - Cấp 1)
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    List<Category> children; // Danh sách các danh mục con (Cấp dưới)
 }

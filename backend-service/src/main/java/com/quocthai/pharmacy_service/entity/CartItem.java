@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Builder
@@ -30,9 +32,13 @@ public class CartItem {
 
     // Lưu giá tại thời điểm thêm vào giỏ — tránh bị ảnh hưởng khi giá sản phẩm thay đổi
     @Column(nullable = false)
-    double priceAtTime;
+    BigDecimal priceAtTime;
 
-    public double getSubtotal() {
-        return priceAtTime * quantity;
+    @Transient
+    public BigDecimal getSubtotal() {
+
+        return priceAtTime.multiply(
+                BigDecimal.valueOf(quantity)
+        );
     }
 }

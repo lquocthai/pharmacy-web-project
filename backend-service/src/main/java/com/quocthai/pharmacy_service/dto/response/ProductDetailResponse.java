@@ -3,6 +3,7 @@ package com.quocthai.pharmacy_service.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -14,8 +15,8 @@ public class ProductDetailResponse {
     String id;
     String name;
     String slug;
-    double price;
-    double oldPrice;
+    BigDecimal price;
+    BigDecimal oldPrice;
     String unit;
     boolean isPrescription;
     String manufacturer;

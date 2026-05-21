@@ -113,3 +113,20 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* Ẩn thanh cuộn ngang của trình duyệt nhưng vẫn cho phép vuốt/cuộn */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  /* IE và Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+/* Con trỏ dạng bàn tay khi trỏ vào các box danh mục */
+.cursor-pointer {
+  cursor: pointer;
+}

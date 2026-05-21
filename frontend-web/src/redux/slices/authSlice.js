@@ -1,5 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { jwtDecode } from "jwt-decode";
+
+const savedUser = localStorage.getItem('user');
+
 const authSlice = createSlice({
     name: 'auth',
     initialState: {
@@ -8,7 +11,7 @@ const authSlice = createSlice({
         refreshToken: localStorage.getItem('refreshToken'),
         isAuthenticated: !!localStorage.getItem('accessToken'), // Chuyển thành boolean (true nếu có token)
         isLoginModalOpen: false,
-        user: JSON.parse(localStorage.getItem('user')) || null, // Lưu cả info user để hiển thị tên/avatar
+        user: savedUser ? JSON.parse(savedUser) : null,
         isLoggingOut: false,  // ← thêm flag
 
     },
@@ -27,7 +30,7 @@ const authSlice = createSlice({
 
             // Decode token để lấy thông tin
             const decoded = jwtDecode(accessToken);
-            const user = {
+            const basicUser = {
                 email: decoded.sub,
                 username: decoded.username,
                 roles: decoded.scope,
@@ -36,12 +39,27 @@ const authSlice = createSlice({
 
             state.accessToken = accessToken;
             state.refreshToken = refreshToken;
-            state.user = user;
+            state.user = basicUser;
             state.isAuthenticated = true;
 
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('refreshToken', refreshToken);
-            localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('user', JSON.stringify(basicUser));
+        },
+        // =========================
+        // UPDATE FULL USER INFO
+        // gọi sau khi GET /users/me
+        // =========================
+        setUserInfo: (state, action) => {
+            state.user = {
+                ...state.user,
+                ...action.payload,
+            };
+
+            localStorage.setItem(
+                'user',
+                JSON.stringify(state.user)
+            );
         },
         // Xử lý đăng xuất
         setLogout: (state) => {
@@ -61,5 +79,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { openLoginModal, closeLoginModal, setLoginSuccess, setLogout, resetLogoutFlag } = authSlice.actions;
+export const { openLoginModal, closeLoginModal, setLoginSuccess, setLogout, resetLogoutFlag, setUserInfo } = authSlice.actions;
 export default authSlice.reducer;

@@ -112,6 +112,11 @@ export default function Header() {
                                             </Link>
                                         </li>
                                         <li>
+                                            <Link className="dropdown-item py-2 small" to="/profile?tab=address">
+                                                Quản lý địa chỉ
+                                            </Link>
+                                        </li>
+                                        <li>
                                             <Link className="dropdown-item py-2 small" to="/orders">
                                                 Lịch sử đơn hàng
                                             </Link>
@@ -190,13 +195,14 @@ export default function Header() {
                 <div className="container-xl">
                     <ul className="nav-list d-flex align-items-center justify-content-center m-0 p-0 list-unstyled">
                         {[
-                            { name: 'Thực phẩm chức năng' },
-                            { name: 'Dược mỹ phẩm' },
-                            { name: 'Thuốc' },
-                            { name: 'Chăm sóc cá nhân' },
-                            { name: 'Thiết bị y tế' },
+                            { name: 'Thực phẩm chức năng', path: '/products/thuc-pham-chuc-nang' },
+                            { name: 'Dược mỹ phẩm', path: '/products/duoc-my-pham' },
+                            { name: 'Thuốc', path: '/products/thuoc' },
+                            { name: 'Chăm sóc cá nhân', path: '/products/cham-soc-ca-nhan' },
+                            { name: 'Thiết bị y tế', path: '/products/thiet-bi-y-te' },
                         ].map((item, index) => (
                             <li key={index} className="nav-item px-3">
+                                {/* Giờ đây khi click, URL sẽ chuyển thành ví dụ: /products/duoc-my-pham */}
                                 <Link to={item.path} className="nav-link">
                                     {item.name}
                                     {item.hasChild && <span className="dropdown-icon ms-1">▼</span>}
@@ -204,7 +210,7 @@ export default function Header() {
                             </li>
                         ))}
 
-                        {/* Mục cuối cùng thường có style khác biệt một chút */}
+                        {/* Mục cuối cùng hệ thống nhà thuốc */}
                         <li className="nav-item">
                             <Link to="/he-thong-cua-hang" className="nav-link text-primary fw-bold">
                                 Hệ thống nhà thuốc

@@ -50,7 +50,7 @@ const AuthModal = () => {
     //             // Nếu không có username nghĩa là đang ở luồng Quên mật khẩu
     //             if (!username) setMode('RESET_PASSWORD');
     //             else {
-    //                 alert("Đăng ký thành công!");
+    //                 toast.success("Đăng ký thành công!");
     //                 setMode('LOGIN');
     //             }
     //         }

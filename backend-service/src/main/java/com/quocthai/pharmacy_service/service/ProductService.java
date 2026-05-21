@@ -2,7 +2,6 @@ package com.quocthai.pharmacy_service.service;
 
 import com.quocthai.pharmacy_service.dto.response.*;
 import com.quocthai.pharmacy_service.entity.Product;
-import com.quocthai.pharmacy_service.entity.ProductImage;
 import com.quocthai.pharmacy_service.exeption.AppException;
 import com.quocthai.pharmacy_service.exeption.ErrorCode;
 import com.quocthai.pharmacy_service.mapper.ProductMapper;
@@ -24,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
