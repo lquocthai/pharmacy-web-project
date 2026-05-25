@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BiMap, BiChevronLeft, BiPurchaseTagAlt } from 'react-icons/bi';
 import toast from 'react-hot-toast';
 import profileService from '../../services/profileService';
 import ghnService from '../../services/ghnService';
+import orderService from '../../services/orderService';
+import paymentService from '../../services/paymentService';
+import { FaShoppingCart } from 'react-icons/fa';
+import { fetchCart } from '../../redux/slices/cartSlice';
 
 const CheckoutPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const { items } = useSelector(state => state.cart);
 
     const selectedIds = location.state?.selectedIds || [];
@@ -91,9 +96,110 @@ const CheckoutPage = () => {
         calculateFee();
     }, [selectedAddressId, addresses, isFreeShip, totalAmount]);
 
+    // xử lí đặt hàng
     const handlePlaceOrder = async () => {
-        if (!selectedAddressId) return toast.error("Vui lòng chọn địa chỉ!");
-        setLoading(true);
+
+        if (!selectedAddressId) {
+            return toast.error("Vui lòng chọn địa chỉ!");
+        }
+
+        if (checkoutItems.length === 0) {
+            return toast.error("Không có sản phẩm để thanh toán!");
+        }
+
+        try {
+
+            setLoading(true);
+
+            // Build payload gửi backend tạo order
+            const payload = {
+
+                addressId: selectedAddressId,
+
+                paymentMethod,
+
+                note: "",
+
+                shippingFee,
+
+                totalAmount,
+
+                items: checkoutItems.map(item => ({
+                    variantId: item.variantId,
+                    quantity: item.quantity,
+                    imageUrl: item.imageUrl
+                }))
+            };
+
+            /**
+             * 1. Tạo đơn hàng trước
+             */
+            const orderRes =
+                await orderService.placeOrder(payload);
+
+            const order =
+                orderRes.data.result;
+
+            /**
+             * 2. Nếu COD
+             */
+            if (paymentMethod === 'COD') {
+
+                toast.success("Đặt hàng thành công!");
+                dispatch(fetchCart());
+                navigate(
+                    '/checkout-success',
+                    {
+                        state: {
+                            orderCode: order.orderCode
+                        }
+                    }
+                );
+
+                return;
+            }
+
+            /**
+             * 3. Nếu VNPay
+             */
+            if (paymentMethod === 'VNPAY') {
+                console.log("Final Amount:", order.finalAmount); // Debug log
+                const paymentRes =
+                    await paymentService.createVnPayUrl({
+
+                        orderCode: order.orderCode,
+
+                        amount: order.finalAmount
+                    });
+
+
+                const paymentUrl =
+                    paymentRes.data.result;
+
+                // Redirect sang VNPay
+                window.location.href = paymentUrl;
+
+                return;
+            }
+
+        } catch (err) {
+
+            console.error(err);
+
+            toast.error(
+                err?.response?.data?.message
+                || "Đặt hàng thất bại"
+            );
+
+        } finally {
+
+            setLoading(false);
+        }
+    };
+    const goToDetail = (productSlug) => {
+        if (productSlug) {
+            navigate(`/products/detail/${productSlug}`);
+        }
     };
 
     return (
@@ -105,37 +211,36 @@ const CheckoutPage = () => {
 
             <div className="row">
                 <div className="col-lg-8">
-                    <p className="text-start mb-1">Danh sách sản phẩm</p>
-
                     <div className="card border-0 shadow-sm p-4 mb-4" style={{ fontSize: '.875rem' }}>
                         {/* Banner Miễn phí vận chuyển */}
                         <div className="text-center py-2 mb-2 rounded-3" style={{ backgroundColor: '#f0f7ff', color: '#0d6efd' }}>
                             <small className="fw-bold">Miễn phí vận chuyển <span className="text-dark fw-normal">đối với đơn hàng trên 300.000đ</span></small>
                         </div>
+                        <h6 className="fw-bold mb-3 d-flex align-items-center"><FaShoppingCart className="me-2" /> Danh sách sản phẩm</h6>
 
                         {checkoutItems.map((item, index) => (
-                            <div key={item.id} className={`py-4 ${index !== 0 ? 'border-top' : ''}`}>
+                            <div key={item.id} className={`py-2 ${index !== 0 ? 'border-top' : ''}`}>
                                 <div className="d-flex align-items-center justify-content-between">
                                     {/* Khối bên trái: Ảnh + Tên */}
-                                    <div className="d-flex align-items-center flex-grow-1" style={{ minWidth: 0 }}>
-                                        <div className="flex-shrink-0">
-                                            <img src={item.imageUrl} alt="" className="rounded border p-1" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                                    <div className="d-flex align-items-center flex-grow-1 " style={{ minWidth: 0 }}>
+                                        <div className="flex-shrink-0" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
+                                            <img src={item?.imageUrl} alt="" className="rounded border p-1" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
                                         </div>
-                                        <div className="ms-3 pe-3">
+                                        <div className="ms-3 pe-3" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer', minWidth: 0 }}>
                                             <div className="text-start text-dark mb-1 text-wrap" style={{ fontSize: '0.95rem' }}>
-                                                {item.productName}
+                                                {item?.productName}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Khối bên phải: Giá + Số lượng (Dàn hàng ngang) */}
-                                    <div className="d-flex align-items-center flex-shrink-0 ms-auto">
+                                    <div className="d-flex align-items-center flex-shrink-0 ms-auto justify-content-between">
                                         <div className="text-end me-4" style={{ minWidth: '100px' }}>
-                                            <div className="fw-bold h6 mb-0 text-nowrap">{item.priceAtTime.toLocaleString()}đ</div>
+                                            <div className="fw-bold h6 mb-0 text-nowrap">{item?.priceAtTime?.toLocaleString()}đ</div>
 
                                         </div>
                                         <div className="text-muted small fw-bold text-nowrap" style={{ minWidth: '60px' }}>
-                                            x{item.quantity} {item.unit || 'Hộp'}
+                                            x{item?.quantity} {item?.variantName || 'Hộp'}
                                         </div>
                                     </div>
                                 </div>
@@ -177,10 +282,10 @@ const CheckoutPage = () => {
                             >
                                 <div className="d-flex align-items-center justify-content-between">
                                     <div>
-                                        <div className="fw-bold small">
+                                        <div className="text-start fw-bold small">
                                             Thanh toán khi nhận hàng (COD)
                                         </div>
-                                        <div className="text-muted small mt-1">
+                                        <div className="text-start text-muted small mt-1">
                                             Thanh toán bằng tiền mặt khi nhận thuốc
                                         </div>
                                     </div>
@@ -204,7 +309,7 @@ const CheckoutPage = () => {
                             >
                                 <div className="d-flex align-items-center justify-content-between">
                                     <div>
-                                        <div className="fw-bold small">
+                                        <div className="text-start fw-bold small">
                                             Thanh toán VNPay
                                         </div>
                                         <div className="text-muted small mt-1">
@@ -231,7 +336,7 @@ const CheckoutPage = () => {
                             >
                                 <div className="d-flex align-items-center justify-content-between">
                                     <div>
-                                        <div className="fw-bold small">
+                                        <div className="text-start fw-bold small">
                                             Ví MoMo
                                         </div>
                                         <div className="text-muted small mt-1">

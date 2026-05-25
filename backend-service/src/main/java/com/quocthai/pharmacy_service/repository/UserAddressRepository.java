@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface UserAddressRepository extends JpaRepository<UserAddress, String> {
 
     // Lấy tất cả địa chỉ của user — JOIN FETCH user để tránh lazy load
-    @Query("SELECT a FROM UserAddress a WHERE a.user.email = :email ORDER BY a.isDefault DESC, a.createdAt DESC")
+    @Query("SELECT a FROM UserAddress a WHERE a.user.email = :email ORDER BY a.defaultAddress DESC, a.createdAt DESC")
     List<UserAddress> findByUserEmail(@Param("email") String email);
 
     // Kiểm tra ownership — chỉ cho sửa/xóa địa chỉ của chính mình
@@ -23,7 +23,7 @@ public interface UserAddressRepository extends JpaRepository<UserAddress, String
 
     // Đặt tất cả địa chỉ của user về isDefault = false trước khi set default mới
     @Modifying
-    @Query("UPDATE UserAddress a SET a.isDefault = false WHERE a.user.email = :email")
+    @Query("UPDATE UserAddress a SET a.defaultAddress = false WHERE a.user.email = :email")
     void clearDefaultByUserEmail(@Param("email") String email);
 
     // Đếm số địa chỉ của user — giới hạn tối đa (ví dụ 10)

@@ -11,5 +11,5 @@ import lombok.experimental.FieldDefaults;
 public class ProductImageResponse {
     String id;
     String imageUrl;
-    boolean isPrimary;
+    boolean defaultImage;
 }

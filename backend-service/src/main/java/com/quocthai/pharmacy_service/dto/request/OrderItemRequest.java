@@ -14,9 +14,11 @@ import lombok.experimental.FieldDefaults;
 public class OrderItemRequest {
 
     @NotBlank(message = "PRODUCT_ID_REQUIRED")
-    String productId;
+    String variantId;
 
     @NotNull(message = "QUANTITY_REQUIRED")
     @Min(value = 1, message = "QUANTITY_INVALID")
     Integer quantity;
+
+    String imageUrl;
 }

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -16,35 +16,38 @@ import java.util.List;
 @Entity
 @Table(name = "products")
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
-    @Column(nullable = false)
     String name;
 
     @Column(unique = true)
     String slug;
 
-    BigDecimal price;
-    BigDecimal oldPrice;
-    String unit;
-
     boolean isPrescription;
+    @Column(columnDefinition = "LONGTEXT")
+    String description;
     String manufacturer;
     String country;
+    boolean active;
 
+    // Ví dụ:
+    // Thuốc giảm đau, vitamin,...
     @ManyToOne
     @JoinColumn(name = "category_id")
     Category category;
 
-    // Quan hệ 1-1 với bảng chi tiết
-    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    ProductDetail productDetail;
+    // Ảnh dùng chung
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
+    List<ProductImage> images = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    List<Inventory> inventories;
+    // Variants
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
+    List<ProductVariant> variants = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    List<ProductImage> images;
+    // Specifications động
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
+    List<ProductSpecification> specifications = new ArrayList<>();
 }

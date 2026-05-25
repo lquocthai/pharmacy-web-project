@@ -41,7 +41,7 @@ public class CartController {
      */
     @PostMapping("/items")
     ApiResponse<CartResponse> addItem(@RequestBody @Valid AddToCartRequest request) {
-        log.info("POST /cart/items - productId={}, qty={}", request.getProductId(), request.getQuantity());
+        log.info("POST /cart/items - productId={}, qty={}", request.getVariantId(), request.getQuantity());
         return ApiResponse.<CartResponse>builder()
                 .result(cartService.addItem(request))
                 .build();

@@ -87,7 +87,7 @@ public class UserAddressService {
                 .districtId(request.getDistrictId())
                 .wardCode(request.getWardCode())
                 .addressDetail(request.getAddressDetail())
-                .isDefault(shouldBeDefault)
+                .defaultAddress(shouldBeDefault)
                 .label(request.getLabel())
                 .build();
 
@@ -105,7 +105,7 @@ public class UserAddressService {
                 .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
 
         // Nếu set làm default → clear tất cả default cũ trước
-        if (request.isDefault() && !address.isDefault()) {
+        if (request.isDefault() && !address.isDefaultAddress()) {
             userAddressRepository.clearDefaultByUserEmail(email);
         }
 
@@ -118,7 +118,7 @@ public class UserAddressService {
         address.setDistrictId(request.getDistrictId());
         address.setWardCode(request.getWardCode());
         address.setAddressDetail(request.getAddressDetail());
-        address.setDefault(request.isDefault());
+        address.setDefaultAddress(request.isDefault());
         address.setLabel(request.getLabel());
         log.info("ward: " + address.getFullName());
 
@@ -147,7 +147,7 @@ public class UserAddressService {
 
         // Clear tất cả default cũ rồi set cái mới
         userAddressRepository.clearDefaultByUserEmail(email);
-        address.setDefault(true);
+        address.setDefaultAddress(true);
 
         return userMapper.toAddressResponse(address);
     }

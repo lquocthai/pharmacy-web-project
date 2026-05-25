@@ -21,8 +21,8 @@ const cartService = {
         axiosClient.get('/carts'),
 
     // Thêm sản phẩm vào giỏ (nếu đã có → cộng thêm quantity)
-    addItem: ({ productId, quantity }) =>
-        axiosClient.post('/carts/items', { productId, quantity }),
+    addItem: ({ variantId, quantity }) =>
+        axiosClient.post('/carts/items', { variantId, quantity }),
 
     // Cập nhật số lượng cụ thể cho 1 item
     updateItem: (itemId, quantity) =>

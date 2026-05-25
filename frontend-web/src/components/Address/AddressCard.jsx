@@ -22,7 +22,7 @@ const AddressCard = ({ address, onEdit, onDelete }) => {
             style={{ backgroundColor: address.default ? '#f0f5ff' : '#fff' }}>
 
             {/* Badge mặc định */}
-            {address.default && (
+            {address.defaultAddress && (
                 <Badge bg="primary" className="position-absolute top-0 end-0 m-2"
                     style={{ fontSize: '11px' }}>
                     Mặc định

@@ -1,38 +1,24 @@
-.custom-tab-nav {
-    border: none; // Bỏ đường gạch chân mặc định của bootstrap tabs
-
-    .nav-item {
-        .nav-link {
-            color: #6c757d; // Màu mặc định: Xám nhạt
-            font-weight: 500;
-            border: none !important; // Bỏ border của link
-            padding: 8px 20px;
-            transition: all 0.3s ease;
-            background: transparent;
-
-            &:hover {
-                color: #333;
-            }
-
-            &.active {
-                color: #212529; // Chữ đậm hơn khi active
-                background-color: #eeeeee !important; // Nền màu xám khi click
-                border-radius: 8px;
-            }
-        }
-    }
-
-    // Dấu gạch mờ giữa các item
-    .tab-divider {
-        width: 1px;
-        height: 16px;
-        background-color: #dee2e6; // Màu xám mờ
-        margin: 0 5px;
-    }
+.custom-scroll-nav .nav-link:hover {
+    color: #0d6efd !important;
+    /* Đổi sang màu Primary của hệ thống */
+    padding-left: 5px !important;
 }
 
-// Làm mượt phần nội dung khi chuyển tab
-.tab-content {
-    background-color: #f8f9fa !important; // Nền nhẹ cho vùng nội dung
-    min-height: 200px;
+/* Tùy chỉnh thanh cuộn cho khu vực content bên phải nhìn cho tinh tế */
+.specifications-content-wrapper::-webkit-scrollbar {
+    width: 6px;
+}
+
+.specifications-content-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.specifications-content-wrapper::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.specifications-content-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
 }

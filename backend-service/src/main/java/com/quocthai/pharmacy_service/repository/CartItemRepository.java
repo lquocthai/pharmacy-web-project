@@ -44,4 +44,20 @@ public interface CartItemRepository extends JpaRepository<CartItem, String> {
             @Param("userId") String userId,
             @Param("productIds") List<String> productIds
     );
+
+    // Tìm kiếm item dựa trên giỏ hàng và biến thể (Thay vì productId như cũ)
+    Optional<CartItem> findByCartIdAndVariantId(String cartId, String variantId);
+
+    // Ép Hibernate dùng đúng 1 câu lệnh INNER JOIN kéo sạch Variant, Product và mảng Images lên RAM
+    @Query("SELECT ci FROM CartItem ci " +
+            "JOIN FETCH ci.variant v " +
+            "JOIN FETCH v.product p " +
+            "LEFT JOIN FETCH p.images " + // Dùng LEFT JOIN phòng trường hợp sản phẩm chưa có ảnh
+            "WHERE ci.cart.id = :cartId")
+    List<CartItem> findByCartIdWithProductDetails(@Param("cartId") String cartId);
+
+    // xóa giỏ hàng theo variantId và người đặt hàng
+    @Modifying
+    @Query("DELETE FROM CartItem ci WHERE ci.cart.user.id = :userId AND ci.variant.id IN :variantIds")
+    void deleteSelectedVariants(@Param("userId") String userId, @Param("variantIds") List<String> variantIds);
 }

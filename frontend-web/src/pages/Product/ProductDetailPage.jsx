@@ -39,6 +39,8 @@ const ProductDetailPage = () => {
     const [ratingLoading, setRatingLoading] = useState(false);
     const [ratingSummary, setRatingSummary] = useState(null);
 
+    const [selectedVariantId, setSelectedVariantId] = useState(null); // Mặc định chưa chọn variant nào
+
     // Load product detail
     useEffect(() => {
         console.log('Loading product detail for slug:', slug);
@@ -48,8 +50,19 @@ const ProductDetailPage = () => {
             try {
                 const { data } = await productService.getDetail(slug);
                 if (data.code !== 0) throw new Error(data.message);
+
+                const loadedProduct = data.result;
                 setProduct(data.result);
                 setRatingSummary(data.result.ratingSummary);
+                console.log('Product detail loaded:', data.result);
+
+                // 1. TỰ ĐỘNG TÌM VARIANT MẶC ĐỊNH (variantDefault === true)
+                const defaultVariant = loadedProduct.variants?.find(v => v.variantDefault)
+                    || loadedProduct.variants?.[0]; // Fallback nếu không có cấu hình default
+                if (defaultVariant) {
+                    setSelectedVariantId(defaultVariant.id);
+                }
+
                 // Chọn ảnh primary mặc định
                 const primary = data.result.images?.find(img => img.primary) || data.result.images?.[0];
                 setSelectedImage(primary?.imageUrl || null);
@@ -57,11 +70,15 @@ const ProductDetailPage = () => {
                 setError(err.response?.data?.message || 'Không tìm thấy sản phẩm');
             } finally {
                 setLoading(false);
+
             }
         };
         load();
     }, [slug]);
-
+    console.log('Product state:', product);
+    // ── LẤY RA OBJECT VARIANT HIỆN TẠI ĐỂ RENDER GIÁ/KHO RA JSX ──
+    const currentVariant = product?.variants?.find(v => v.id === selectedVariantId);
+    console.log('Current variant:', currentVariant);
     // Load ratings (reset khi đổi filter)
     useEffect(() => {
         if (!product) return;
@@ -96,11 +113,21 @@ const ProductDetailPage = () => {
             dispatch(openLoginModal());
             return;
         }
+        // Kiểm tra xem đã chọn variant chưa để phòng ngừa lỗi logic giao diện
+        if (!selectedVariantId) {
+            toast.warning('Vui lòng chọn phân loại sản phẩm!');
+            return;
+        }
+        // Validate nhẹ số lượng đặt mua dựa trên số lượng tồn thực tế của Variant đó
+        if (currentVariant && qty > currentVariant.stockQuantity) {
+            toast.error(`Sản phẩm này chỉ còn ${currentVariant.stockQuantity} sản phẩm khả dụng.`);
+            return;
+        }
         setAddingToCart(true);
         try {
-            const { data } = await cartService.addItem({ productId: product.id, quantity: qty });
+            const { data } = await cartService.addItem({ variantId: selectedVariantId, quantity: qty });
             if (data.code === 0) dispatch(setCart(data.result));
-            toast.success(`Thêm vào giỏ hàng thành công ${qty}`);
+            toast.success(`Thêm thành công ${qty} ${currentVariant?.variantName || ''} vào giỏ hàng`);
         } catch (err) {
             toast.error(err.response?.data?.message || 'Không thể thêm vào giỏ hàng');
         } finally {
@@ -153,8 +180,8 @@ const ProductDetailPage = () => {
 
     if (!product) return null;
 
-    const discountPercent = product.oldPrice > product.price
-        ? Math.round((1 - product.price / product.oldPrice) * 100)
+    const discountPercent = currentVariant.originalPrice > currentVariant.price
+        ? Math.round((1 - currentVariant.price / currentVariant.originalPrice) * 100)
         : 0;
 
     return (
@@ -233,12 +260,12 @@ const ProductDetailPage = () => {
 
                         <div className="d-flex align-items-center gap-3 mb-3">
                             <span className="fs-3 fw-bold" style={{ color: '#1250dc' }}>
-                                {product.price.toLocaleString('vi-VN')}đ
+                                {currentVariant?.price?.toLocaleString('vi-VN')}đ
                             </span>
-                            {product.oldPrice > product.price && (
+                            {currentVariant.originalPrice > currentVariant.price && (
                                 <>
                                     <span className="text-muted text-decoration-line-through">
-                                        {product.oldPrice.toLocaleString('vi-VN')}đ
+                                        {currentVariant.originalPrice.toLocaleString('vi-VN')}đ
                                     </span>
                                     <Badge bg="danger">-{discountPercent}%</Badge>
                                 </>
@@ -252,9 +279,53 @@ const ProductDetailPage = () => {
                     )}
 
                     <div className="text-start"> {/* Đảm bảo mọi thứ bên trong bám lề trái */}
-                        <p className="text-muted small mb-1">
-                            Đơn vị: <strong className="text-dark">{product.unit}</strong>
-                        </p>
+                        <div className="mb-3">
+                            <label className="text-muted small d-block mb-2">Chọn quy cách đóng gói / Đơn vị:</label>
+                            <div className="d-flex flex-wrap gap-2">
+                                {product?.variants?.map((v) => {
+                                    const isSelected = selectedVariantId === v.id;
+                                    const isOutOfStock = v.stockQuantity <= 0;
+
+                                    return (
+                                        <button
+                                            key={v.id}
+                                            type="button"
+                                            disabled={isOutOfStock}
+                                            onClick={() => {
+                                                setSelectedVariantId(v.id);
+                                                if (v.imageUrl) setSelectedImage(v.imageUrl); // Đổi ảnh đại diện nếu biến thể có ảnh riêng
+                                            }}
+                                            className={`btn btn-sm text-start px-3 py-2 position-relative d-flex flex-column justify-content-center transition-all ${isSelected
+                                                ? 'btn-primary border-primary'
+                                                : 'btn-outline-secondary border-dashed text-dark bg-light'
+                                                }`}
+                                            style={{
+                                                minWidth: '120px',
+                                                cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                                                opacity: isOutOfStock ? 0.5 : 1,
+                                                borderRadius: '8px',
+                                                border: isSelected ? '2px solid' : '1px dashed #ccc'
+                                            }}
+                                        >
+                                            {/* Tên phân loại (Ví dụ: Hộp 100 viên) */}
+                                            <span className="fw-bold small">{v.variantName}</span>
+
+                                            {/* Giá tiền của phân loại đó */}
+                                            <span className={`small mt-1 ${isSelected ? 'text-white-50' : 'text-muted'}`}>
+                                                {v.price?.toLocaleString()}đ
+                                            </span>
+
+                                            {/* Badge phụ nếu hết hàng */}
+                                            {isOutOfStock && (
+                                                <span className="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger x-small" style={{ fontSize: '10px' }}>
+                                                    Hết hàng
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                         <p className="text-muted small mb-1">
                             Nhà sản xuất: <strong className="text-dark">{product.manufacturer}</strong>
                         </p>
@@ -265,8 +336,8 @@ const ProductDetailPage = () => {
                         {/* Tình trạng kho hàng */}
                         <div className="small mb-3">
                             <span className="text-muted">Tình trạng:</span>{' '}
-                            {product.stockQuantity > 0
-                                ? <span className="text-success fw-bold">Còn hàng ({product.stockQuantity})</span>
+                            {currentVariant.stockQuantity > 0
+                                ? <span className="text-success fw-bold">Còn hàng ({currentVariant.stockQuantity})</span>
                                 : <span className="text-danger fw-bold">Hết hàng</span>
                             }
                         </div>
@@ -280,7 +351,7 @@ const ProductDetailPage = () => {
                                     onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
                                 <span className="px-3 fw-bold">{qty}</span>
                                 <button className="btn btn-light px-3 py-2 border-0"
-                                    onClick={() => setQty(q => Math.min(product.stockQuantity, q + 1))}>+</button>
+                                    onClick={() => setQty(q => Math.min(currentVariant.stockQuantity, q + 1))}>+</button>
                             </div>
 
                         }
@@ -305,50 +376,74 @@ const ProductDetailPage = () => {
                         </Button>
                     </div>
                     <p className="text-muted small mb-1 text-start mt-4">
-                        {product?.detail?.description}
+                        {product?.description}
                     </p>
                 </Col>
             </Row>
-            <div className="product-details-tabs mt-4 bg-white rounded-3 p-3 mb-3">
-                <Tab.Container defaultActiveKey="composition">
-                    <Nav className="custom-tab-nav mb-4 align-items-center">
-                        <Nav.Item>
-                            <Nav.Link eventKey="composition">Thành phần</Nav.Link>
-                        </Nav.Item>
-                        <div className="tab-divider"></div>
-                        <Nav.Item>
-                            <Nav.Link eventKey="usage">Hướng dẫn sử dụng</Nav.Link>
-                        </Nav.Item>
-                        <div className="tab-divider"></div>
-                        <Nav.Item>
-                            <Nav.Link eventKey="sideEffects">Tác dụng phụ</Nav.Link>
-                        </Nav.Item>
-                        <div className="tab-divider"></div>
-                        <Nav.Item>
-                            <Nav.Link eventKey="storage">Bảo quản</Nav.Link>
-                        </Nav.Item>
-                    </Nav>
+            <div className="product-details-tabs mt-4 bg-white rounded-3 p-4 mb-3">
+                <div className="row">
+                    {/* ── BÊN TRÁI: NAVLINK CỐ ĐỊNH (STICKY MENU) ── */}
+                    <div className="col-md-3">
+                        <div className="position-sticky" style={{ top: '20px' }}>
+                            <nav className="nav flex-column custom-scroll-nav">
+                                {product.specifications?.map((spec, index) => (
+                                    <a
+                                        key={index}
+                                        href={`#spec-section-${index}`}
+                                        className="border-bottom fs-6 nav-link text-secondary py-2 px-0 transition-all text-start specification-link"
+                                        style={{ fontSize: '14px', fontWeight: '500' }}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            document.getElementById(`spec-section-${index}`)?.scrollIntoView({
+                                                behavior: 'smooth',
+                                                block: 'start'
+                                            });
+                                        }}
+                                    >
+                                        {spec.specKey}
+                                    </a>
+                                ))}
+                            </nav>
+                        </div>
+                    </div>
 
-                    <Tab.Content className="p-4 border-0 bg-white rounded-4" style={{ padding: '5px' }}>
-                        {[
-                            { key: 'composition', value: product.detail?.composition },
-                            { key: 'usage', value: product.detail?.usage },
-                            { key: 'sideEffects', value: product.detail?.sideEffects },
-                            { key: 'storage', value: product.detail?.storage },
-                        ].map(({ key, label, value }) => (
-                            <Tab.Pane key={key} eventKey={key} className="fade">
-                                <h5 className="fw-bold mb-3">{label}</h5>
-                                {value ? (
-                                    <p className="text-secondary text-start" style={{ whiteSpace: 'pre-line', lineHeight: '1.8' }}>
-                                        {value}
-                                    </p>
-                                ) : (
-                                    <p className="text-muted fst-italic">Chưa có thông tin {label.toLowerCase()}.</p>
-                                )}
-                            </Tab.Pane>
-                        ))}
-                    </Tab.Content>
-                </Tab.Container>
+                    {/* ── BÊN PHẢI: HIỂN THỊ TẤT CẢ CONTENT (SCROLL AREA) ── */}
+                    <div className="col-md-9 ps-md-4">
+                        <h6 className="text-start fw-bold text-muted mb-3 uppercase small">Thông tin sản phẩm</h6>
+                        <h5 className="text-start fw-bold text-dark border-bottom pb-2 mb-2">
+                            {product.name}
+                        </h5>
+
+                        <div className="specifications-content-wrapper" style={{ maxHeight: '600px', overflowY: 'auto', paddingRight: '10px' }}>
+                            {product.specifications && product.specifications.length > 0 ? (
+                                product.specifications.map((spec, index) => (
+                                    <div
+                                        key={index}
+                                        id={`spec-section-${index}`}
+                                        className="mb-2 section-scroll-item"
+                                    >
+                                        {/* Tiêu đề (Ví dụ: Thành phần, Công dụng) */}
+                                        <h5 className="text-start fw-bold text-dark ">
+                                            {spec.specKey}
+                                        </h5>
+
+                                        {/* Nội dung chi tiết */}
+                                        <p
+                                            className="text-secondary text-start lh-lg"
+                                            style={{ whiteSpace: 'pre-line', fontSize: '15px' }}
+                                        >
+                                            {spec.specValue}
+                                        </p>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-muted fst-italic text-start">
+                                    Chưa có thông tin thông số kỹ thuật cho sản phẩm này.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
             {/* ── Đánh giá ── */}
             <section className='bg-white rounded-3 p-3'>

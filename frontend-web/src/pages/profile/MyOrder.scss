@@ -1,0 +1,24 @@
+.custom-order-tabs::-webkit-scrollbar {
+    display: none;
+    /* Ẩn thanh cuộn ngang trên điện thoại */
+}
+
+.custom-order-tabs .nav-link {
+    border-radius: 0px !important;
+    background: transparent !important;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    padding-bottom: 12px !important;
+}
+
+/* Thanh chỉ báo màu xanh dương dưới tab đang chọn giống ảnh thiết kế */
+.custom-order-tabs .nav-link.active-tab {
+    color: #1250dc !important;
+    font-weight: bold !important;
+    border-bottom: 3px solid #1250dc !important;
+}
+
+.item-row:last-child {
+    border-bottom: none !important;
+    /* Xóa gạch chân ở item cuối đơn hàng */
+}

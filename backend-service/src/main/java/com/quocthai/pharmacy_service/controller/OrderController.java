@@ -35,12 +35,21 @@ public class OrderController {
                 .result(orderService.getMyOrders(status))
                 .build();
     }
+    // lấy order theo mã code
+    @GetMapping("/code/{orderCode}")
+    public ApiResponse<OrderResponse> getOrderByCode(
+            @PathVariable String orderCode
+    ) {
+        return ApiResponse.<OrderResponse>builder()
+                .result(orderService.getByOrderCode(orderCode))
+                .build();
+    }
 
     // ── GET /orders/{id} ─────────────────────────
-    @GetMapping("/{orderId}")
-    public ApiResponse<OrderResponse> getOrderDetail(@PathVariable String orderId) {
+    @GetMapping("/{orderCode}")
+    public ApiResponse<OrderResponse> getOrderDetail(@PathVariable String orderCode) {
         return ApiResponse.<OrderResponse>builder()
-                .result(orderService.getOrderDetail(orderId))
+                .result(orderService.getOrderDetailByCode(orderCode))
                 .build();
     }
 

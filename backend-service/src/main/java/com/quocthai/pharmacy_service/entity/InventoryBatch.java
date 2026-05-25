@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -15,22 +16,35 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
+@Table(name = "inventory_batches")
+public class InventoryBatch {
 
-public class Inventory {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
-    // SỬA TẠI ĐÂY: Nhiều lô hàng trỏ về một sản phẩm
+    // QUAN TRỌNG:
+    // phải là variant
     @ManyToOne
-    @JoinColumn(name = "product_id")
-    Product product;
+    @JoinColumn(name = "variant_id")
+    ProductVariant variant;
 
-    String batchNumber;   // Số lô (Ví dụ: BN20240501)
-    LocalDate expiryDate;  // Hạn sử dụng của riêng lô này
+    // Số lô
+    String batchNumber;
 
-    int stockQuantity;    // Số lượng tồn kho của riêng lô này
-    int lowStockThreshold; // Ngưỡng cảnh báo cho lô này (hoặc tổng kho)
+    // Hạn dùng
+    LocalDate expiryDate;
+
+    // Ngày sản xuất
+    LocalDate manufactureDate;
+
+    // Giá nhập của lô
+    BigDecimal importPrice;
+
+    // Tồn kho còn lại
+    Integer remainingQuantity;
+
+    Integer lowStockThreshold;
 
     @UpdateTimestamp
     LocalDateTime lastStockUpdate;

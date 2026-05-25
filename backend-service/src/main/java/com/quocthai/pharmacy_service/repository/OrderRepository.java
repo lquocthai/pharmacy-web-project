@@ -44,7 +44,25 @@ public interface OrderRepository extends JpaRepository<Order, String> {
             @Param("email") String email);
 
     /**
+     * Lấy chi tiết 1 đơn hàng — ownership check ngay trong query.
+     * Không FETCH items/statusHistory — tách query riêng.
+     */
+    @Query("""
+        SELECT o FROM Order o
+        WHERE o.orderCode = :orderCode
+        AND o.user.email = :email
+        """)
+    Optional<Order> findByOrderCodeAndUserEmail(
+            @Param("orderCode") String orderCode,
+            @Param("email") String email);
+
+    /**
      * Kiểm tra orderCode đã tồn tại chưa — dùng khi generate mã đơn hàng.
      */
     boolean existsByOrderCode(String orderCode);
+
+    /**
+     * Tìm chính xác đơn hàng theo OrderCode (Dùng cho thanh toán)
+     */
+    Optional<Order> findByOrderCode(String orderCode);
 }

@@ -15,8 +15,13 @@ public class OrderItemResponse {
     String productId;
     String productName;
     String productSlug;
+
+    //  BỔ SUNG CÁC TRƯỜNG THÔNG TIN SKU
+    String variantId;       // ID của phân loại hàng
+    String variantName;     // Tên phân loại (Ví dụ: Hộp 100 viên, Vỉ 10 viên)
+    String sku;             // Mã SKU để đối chiếu khi đóng gói hàng (Ví dụ: PANA-H100)
+
     String imageUrl;
-    String unit;
     int quantity;
     BigDecimal priceAtTime;
     BigDecimal subtotal;

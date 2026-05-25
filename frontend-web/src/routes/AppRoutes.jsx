@@ -8,6 +8,10 @@ import ProfilePage from '../pages/profile/ProfilePage';
 import ProductDetailPage from '../pages/Product/ProductDetailPage';
 import CheckoutPage from '../pages/Checkout/CheckoutPage';
 import ProductPage from '../pages/Product/ProductPage';
+import CheckoutSuccessPage from '../pages/Checkout/CheckoutSuccessPage';
+import PaymentResultPage from '../pages/Checkout/PaymentResultPage';
+import MyOrders from '../pages/profile/MyOrder';
+import OrderDetail from '../pages/profile/OrderDetail';
 
 const PrivateRoute = ({ children }) => {
     const { isAuthenticated } = useSelector(state => state.auth);
@@ -30,6 +34,12 @@ const AppRoutes = () => (
             <Route path="/checkout" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
             <Route path="/products" element={<ProductPage />} />
             <Route path="/products/:slug" element={<ProductPage />} />
+            <Route path="/checkout-success" element={<PrivateRoute><CheckoutSuccessPage /></PrivateRoute>} />
+            <Route path="/payment-result" element={<PrivateRoute><PaymentResultPage /></PrivateRoute>} />
+            <Route path="/my-orders" element={<PrivateRoute><MyOrders /></PrivateRoute>} />
+            {/* 🚀 ROUTE MỚI: Trang chi tiết đơn hàng (Ví dụ: /profile/orders/QT-20260525-1759) */}
+            <Route path="/profile/orders/:orderCode" element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
+
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
     </Routes>

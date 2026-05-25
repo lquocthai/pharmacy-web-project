@@ -23,7 +23,6 @@ public interface UserMapper {
     void updateUser(@MappingTarget User user, UserUpdateRequest request);
 
     // Map UserAddress entity → UserAddressResponse
-    @Mapping(target = "isDefault", source = "default")
     @Mapping(target = "fullAddress",
         expression = "java(address.getAddressDetail() + \", \" + address.getWard() + \", \" + address.getDistrict() + \", \" + address.getProvince())")
     UserAddressResponse toAddressResponse(UserAddress address);

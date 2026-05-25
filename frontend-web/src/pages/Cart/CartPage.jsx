@@ -156,7 +156,7 @@ const CartPage = () => {
                                     {(item.price * item.quantity).toLocaleString()}đ
                                 </div>
                                 <div className="text-start col-2 ">
-                                    <p className="text-start mb-0 text-truncate">{item.unit}</p>
+                                    <p className="text-start mb-0 text-truncate">{item.variantName}</p>
                                 </div>
                                 <div className="text-start col-1 ">
                                     <button className="btn text-secondary" onClick={() => handleRemoveItem(item.id)}>

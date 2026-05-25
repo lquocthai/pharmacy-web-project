@@ -2,8 +2,6 @@ package com.quocthai.pharmacy_service.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -15,10 +13,9 @@ public class ProductDetailResponse {
     String id;
     String name;
     String slug;
-    BigDecimal price;
-    BigDecimal oldPrice;
-    String unit;
     boolean isPrescription;
+    String description;
+
     String manufacturer;
     String country;
 
@@ -27,15 +24,17 @@ public class ProductDetailResponse {
     String categoryName;
     String categorySlug;
 
-    // Tất cả ảnh (FE tự chọn primary)
+    // Ảnh dùng chung của sản phẩm gốc
     List<ProductImageResponse> images;
 
-    // Chi tiết sản phẩm
-    ProductDetailInfoResponse detail;
+    // Danh sách các cấu hình SKU (Hộp, vỉ...) để FE render chọn lựa
+    List<ProductVariantResponse> variants;
 
-    // Tồn kho
-    int stockQuantity;
+    // Trả ra một list thông số đã được sắp xếp theo displayOrder để FE chạy vòng lặp render
+    List<ProductSpecificationResponse> specifications;
+    // Tổng tồn kho của TẤT CẢ các phân loại cộng lại
+    int totalStockQuantity;
 
-    // Tổng hợp rating — tính sẵn để FE không cần gọi thêm API
+    // Tổng hợp rating
     RatingSummaryResponse ratingSummary;
 }

@@ -23,6 +23,11 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     Order order;
 
+    // ── ĐỔI SANG VARIANT ĐỂ QUẢN LÝ SKU CHÍNH XÁC ──
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id", nullable = false) // Mắt xích bắt buộc để xử lý trừ kho FIFO
+    ProductVariant variant;
+
     // FK giữ để tra cứu sản phẩm, nhưng snapshot tên/giá để tránh mất dữ liệu
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
@@ -34,7 +39,8 @@ public class OrderItem {
 
     String productSlug;
     String imageUrl;
-    String unit;
+    String sku;
+    String variantName;
 
     @Column(nullable = false)
     int quantity;

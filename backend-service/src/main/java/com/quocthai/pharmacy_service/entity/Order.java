@@ -86,11 +86,11 @@ public class Order {
     String shippingAddressDetail;
 
     // ── Quan hệ ────────────────────────────────────────────────────────────────
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true , fetch = FetchType.LAZY)
     @Builder.Default
     List<OrderItem> items = new ArrayList<>();
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true ,fetch = FetchType.LAZY)
     @Builder.Default
     List<OrderStatusHistory> statusHistory = new ArrayList<>();
 

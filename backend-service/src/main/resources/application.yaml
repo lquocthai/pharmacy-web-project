@@ -51,4 +51,10 @@ jwt:
 outbound:
   google:
     client-id: ${GOOGLE_CLIENT_ID}
-
+vnpay:
+  tmn-code: ${VNPAY_TMN_CODE}
+  hash-secret: ${VNPAY_HASH_SECRET}
+  pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: http://localhost:8080/pharmacy/payments/vnpay-return
+  ipn-url: http://localhost:8080/pharmacy/payments/vnpay-ipn
+  api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction

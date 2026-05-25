@@ -54,7 +54,14 @@ public enum ErrorCode {
     INVALID_ORDER_AMOUNT(1035,"Giá đơn hàng không hợp lệ",HttpStatus.BAD_REQUEST),
 
     // category
-    CATEGORY_NOT_FOUND(1036,"Danh mục không tồn tại",HttpStatus.NOT_FOUND),;
+    CATEGORY_NOT_FOUND(1036,"Danh mục không tồn tại",HttpStatus.NOT_FOUND),
+
+    INVALID_PAYMENT_METHOD(1037,"Phương thức thanh toán không hợp lệ", HttpStatus.BAD_REQUEST),
+    ORDER_ALREADY_PAID(1038,"Đơn hàng đã thanh toán", HttpStatus.BAD_REQUEST),
+    ORDER_ALREADY_CANCELLED(1039, "Đơn hàng đã hủy", HttpStatus.BAD_REQUEST),
+    GENERATE_SIGNATURE_FAILURE(1040,"Tạo chữ kí thất bại", HttpStatus.BAD_REQUEST),
+    CATEGORY_NOT_EXISTED(1041,"Danh mục không tồn tại",HttpStatus.NOT_FOUND),
+    ;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;

@@ -30,10 +30,12 @@ public class SecurityConfig {
 
     // Các endpoint GET public (không cần đăng nhập)
     private static final String[] PUBLIC_GET_ENDPOINTS = {
-            "/products/*",
+            "/products/**",
             "/products/detail/*",
             "/ratings/product/*",
-            "/categories/*"
+            "/categories/*",
+            "/payments/vnpay-return",
+            "/payments/vnpay-ipn"
     };
 
     private final CustomJwtDecoder customJwtDecoder;

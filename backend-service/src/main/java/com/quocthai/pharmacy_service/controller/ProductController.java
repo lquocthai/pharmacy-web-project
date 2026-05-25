@@ -20,21 +20,19 @@ public class ProductController {
 
     ProductService productService;
 
-    /**
-     * GET /products/{categorySlug}
-     * Lấy danh sách sản phẩm theo category slug với phân trang và sắp xếp.
-     */
-    @GetMapping("/{categorySlug}")
-    ApiResponse<PageResponse<ProductSummaryResponse>> getProductsByCategory(
-            @PathVariable("categorySlug") String categorySlug,
-            @RequestParam(defaultValue = "0")    int page,
-            @RequestParam(defaultValue = "20")   int size,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc")  String sortDir
-    ) {
-        log.info("GET /products/{} - page={}, size={}, sortBy={}, sortDir={}",
-                categorySlug, page, size, sortBy, sortDir);
-        return ApiResponse.<PageResponse<ProductSummaryResponse>>builder()
+    @GetMapping
+    public ApiResponse<PageResponse<ProductSummaryResponse>> getProducts(
+            @RequestParam String categorySlug,
+            @RequestParam(defaultValue = "0")
+            int page,
+            @RequestParam(defaultValue = "20")
+            int size,
+            @RequestParam(defaultValue = "createdAt")
+            String sortBy,
+            @RequestParam(defaultValue = "desc")
+            String sortDir) {
+        return ApiResponse
+                .<PageResponse<ProductSummaryResponse>>builder()
                 .result(productService.getProductsByCategory(categorySlug, page, size, sortBy, sortDir))
                 .build();
     }

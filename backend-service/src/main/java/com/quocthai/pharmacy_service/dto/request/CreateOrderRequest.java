@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -25,10 +26,10 @@ public class CreateOrderRequest {
     String note;
 
     @NotNull(message = "SHIPPING_FEE_REQUIRED")
-    Long shippingFee;
+    BigDecimal shippingFee;
 
     @NotNull(message = "TOTAL_AMOUNT_REQUIRED")
-    Long totalAmount;
+    BigDecimal totalAmount;
 
     @Valid
     @NotEmpty(message = "ORDER_ITEMS_REQUIRED")

@@ -109,7 +109,7 @@ const AddressFormModal = ({ show, onHide, onSubmit, initialData }) => {
                 addressDetail: initialData.addressDetail || '',
                 label: initialData.label || 'HOME',
 
-                isDefault: initialData.default || false,
+                isDefault: initialData.defaultAddress || false,
             };
 
             setForm(data);

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -36,5 +37,5 @@ public class Category {
     Category parent; // Danh mục cha của danh mục này (Nếu null thì đây là danh mục gốc - Cấp 1)
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    List<Category> children; // Danh sách các danh mục con (Cấp dưới)
+    List<Category> children = new ArrayList<>(); // Danh sách các danh mục con (Cấp dưới)
 }

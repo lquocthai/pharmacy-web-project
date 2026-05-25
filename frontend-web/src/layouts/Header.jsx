@@ -10,6 +10,7 @@ import {
 import '../assets/styles/Header.scss';
 import authService from '../services/authService';
 import LogoutModal from '../components/Auth/LogoutModal';
+import { LogOut, MapPin, Package, User } from 'lucide-react';
 
 export default function Header() {
     const [searchValue, setSearchValue] = useState('');
@@ -108,26 +109,38 @@ export default function Header() {
                                     <ul className="custom-dropdown-menu shadow border-0 mt-0">
                                         <li>
                                             <Link className="dropdown-item py-2 small" to="/profile">
-                                                Hồ sơ cá nhân
+                                                <div className="d-flex align-items-center gap-3">
+                                                    <User size={18} />
+                                                    <span>Thông tin cá nhân</span>
+                                                </div>
                                             </Link>
                                         </li>
                                         <li>
                                             <Link className="dropdown-item py-2 small" to="/profile?tab=address">
-                                                Quản lý địa chỉ
+                                                <div className="d-flex align-items-center gap-3">
+                                                    <MapPin size={18} />
+                                                    <span>Quản lý địa chỉ</span>
+                                                </div>
                                             </Link>
                                         </li>
                                         <li>
-                                            <Link className="dropdown-item py-2 small" to="/orders">
-                                                Lịch sử đơn hàng
+                                            <Link className="dropdown-item py-2 small" to="/profile?tab=orders">
+                                                <div className="d-flex align-items-center gap-3">
+                                                    <Package size={18} />
+                                                    <span>Đơn hàng của tôi</span>
+                                                </div>
                                             </Link>
                                         </li>
                                         <li><hr className="dropdown-divider" /></li>
                                         <li>
                                             <button
-                                                className="dropdown-item py-2 small text-danger fw-bold"
+                                                className="dropdown-item py-2 small "
                                                 onClick={() => setShowLogout(true)}
                                             >
-                                                Đăng xuất
+                                                <div className="d-flex align-items-center gap-3">
+                                                    <LogOut size={18} />
+                                                    <span>Đăng xuất</span>
+                                                </div>
                                             </button>
                                         </li>
                                     </ul>

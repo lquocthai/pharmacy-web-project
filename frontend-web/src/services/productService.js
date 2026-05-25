@@ -17,9 +17,21 @@ import axiosClient from '../configs/axiosConfig.js';
  */
 const productService = {
     // Lấy danh sách sản phẩm theo category slug (load more / phân trang)
-    getByCategory: (slug, page = 0, size = 20, sortBy = 'name', sortDir = 'asc') =>
-        axiosClient.get(`/products/${slug}`, {
-            params: { page, size, sortBy, sortDir },
+    getByCategory: (
+        categorySlug,
+        page = 0,
+        size = 20,
+        sortBy = 'name',
+        sortDir = 'asc'
+    ) =>
+        axiosClient.get('/products', {
+            params: {
+                categorySlug,
+                page,
+                size,
+                sortBy,
+                sortDir
+            }
         }),
 
     // Lấy chi tiết sản phẩm theo slug

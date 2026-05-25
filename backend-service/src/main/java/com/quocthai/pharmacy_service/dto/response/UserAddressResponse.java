@@ -20,7 +20,7 @@ public class UserAddressResponse {
     int districtId;
     String wardCode;
     String addressDetail;
-    boolean isDefault;
+    boolean defaultAddress;
     String label;
     // Địa chỉ đầy đủ dạng chuỗi để hiển thị nhanh
     String fullAddress;

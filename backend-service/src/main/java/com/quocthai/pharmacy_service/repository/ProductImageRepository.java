@@ -19,4 +19,8 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Stri
     // Lấy tất cả ảnh của 1 sản phẩm (dùng cho product detail)
     @Query("SELECT pi FROM ProductImage pi WHERE pi.product.id = :productId ORDER BY pi.isPrimary DESC")
     List<ProductImage> findAllByProductId(@Param("productId") String productId);
+
+    List<ProductImage> findAllByProductIdInAndIsPrimaryTrue(
+            List<String> productIds
+    );
 }

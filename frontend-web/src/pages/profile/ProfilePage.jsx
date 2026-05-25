@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
+import MyOrders from './MyOrder';
 
 
 const ProfilePage = () => {
@@ -96,6 +97,18 @@ const ProfilePage = () => {
             setIsUpdating(false);
         }
     };
+
+    const getHeaderTitle = () => {
+        switch (activeTab) {
+            case 'address':
+                return 'Quản lý sổ địa chỉ';
+            case 'orders':
+                return 'Đơn hàng của tôi';
+            default:
+                return 'Thông tin cá nhân';
+        }
+    };
+
     return (
         <div className=" min-vh-100 py-4">
             <Container>
@@ -204,7 +217,7 @@ const ProfilePage = () => {
                                 style={{ borderColor: '#dee2e6', minHeight: '60px' }}
                             >
                                 <p className="mb-0 fw-bold text-dark">
-                                    {activeTab === 'address' ? 'Quản lý sổ địa chỉ' : 'Thông tin cá nhân'}
+                                    {getHeaderTitle()}
                                 </p>
                                 {activeTab === 'profile' && (
                                     <div style={{ width: '70px' }} className="text-end">
@@ -221,6 +234,9 @@ const ProfilePage = () => {
                             <Card.Body className="">
                                 {/* ── Tab: Quản lý sổ địa chỉ ── */}
                                 {activeTab === 'address' && <AddressManager />}
+
+                                {/* ── Tab: Đơn hàng của tôi ── */}
+                                {activeTab === 'orders' && <MyOrders />}
 
                                 {/* ── Tab: Thông tin cá nhân ── */}
                                 {activeTab === 'profile' && (

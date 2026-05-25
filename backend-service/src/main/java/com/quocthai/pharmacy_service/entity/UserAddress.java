@@ -53,7 +53,7 @@ public class UserAddress {
     String wardCode;        // Phường/Xã
 
     @Builder.Default
-    boolean isDefault = false; // Địa chỉ mặc định
+    boolean defaultAddress = false; // Địa chỉ mặc định
 
     String label;
 

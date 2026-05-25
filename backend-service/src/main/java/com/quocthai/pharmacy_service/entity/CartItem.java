@@ -23,8 +23,16 @@ public class CartItem {
     @JoinColumn(name = "cart_id", nullable = false)
     Cart cart;
 
+    // ── THAY ĐỔI CỐT LÕI TẠI ĐÂY ──
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "variant_id", nullable = false) // Đổi từ product_id sang variant_id
+    ProductVariant variant;
+
+    // Giữ lại trường product nếu bạn muốn query nhanh sản phẩm gốc,
+    // hoặc có thể bỏ qua vì variant đã có liên kết đến product.
+    // Ở đây mình giữ lại để không làm lỗi logic builder cũ của bạn trong service.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
     Product product;
 
     @Column(nullable = false)

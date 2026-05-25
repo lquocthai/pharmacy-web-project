@@ -6,7 +6,6 @@ import com.quocthai.pharmacy_service.constants.PaymentStatus;
 import com.quocthai.pharmacy_service.dto.request.CancelOrderRequest;
 import com.quocthai.pharmacy_service.dto.request.CreateOrderRequest;
 import com.quocthai.pharmacy_service.dto.request.OrderItemRequest;
-import com.quocthai.pharmacy_service.dto.request.PlaceOrderRequest;
 import com.quocthai.pharmacy_service.dto.response.*;
 import com.quocthai.pharmacy_service.entity.*;
 import com.quocthai.pharmacy_service.exeption.AppException;
@@ -16,14 +15,12 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -42,12 +39,14 @@ public class OrderService {
     CartItemRepository cartItemRepository;
     UserRepository userRepository;
     UserAddressRepository userAddressRepository;
-    InventoryRepository inventoryRepository;
+    InventoryBatchRepository inventoryRepository;
+    ProductVariantRepository productVariantRepository;
     ProductImageRepository productImageRepository;
-
+    ProductRepository productRepository;
     // ── Phí vận chuyển cố định (có thể mở rộng sau) ──────────────────────────
     private static final BigDecimal SHIPPING_FEE = BigDecimal.valueOf(30_000);
-    private final ProductRepository productRepository;
+    private static final Random RD = new Random();
+
 
     // ── Lấy email từ JWT ──────────────────────────────────────────────────────
     private String getCurrentUserEmail() {
@@ -61,11 +60,11 @@ public class OrderService {
     // ── Generate mã đơn hàng duy nhất ─────────────────────────────────────────
     private String generateOrderCode() {
         String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String random = String.format("%04d", new Random().nextInt(10000));
+        String random = String.format("%04d", RD.nextInt(10000));
         String code = "QT-" + date + "-" + random;
         // Đảm bảo không trùng
         while (orderRepository.existsByOrderCode(code)) {
-            random = String.format("%04d", new Random().nextInt(10000));
+            random = String.format("%04d", RD.nextInt(10000));
             code = "QT-" + date + "-" + random;
         }
         return code;
@@ -114,8 +113,10 @@ public class OrderService {
                 .productId(oi.getProduct() != null ? oi.getProduct().getId() : null)
                 .productName(oi.getProductName())
                 .productSlug(oi.getProductSlug())
+                .variantId(oi.getVariant() != null ? oi.getVariant().getId() : null)
+                .variantName(oi.getVariantName())
+                .sku(oi.getSku())
                 .imageUrl(oi.getImageUrl())
-                .unit(oi.getUnit())
                 .quantity(oi.getQuantity())
                 .priceAtTime(oi.getPriceAtTime())
                 .subtotal(oi.getSubtotal())
@@ -132,133 +133,119 @@ public class OrderService {
                 .build();
     }
 
-    // ── Trừ tồn kho FIFO ──────────────────────────────────────────────────────
+    // ── THUẬT TOÁN TRỪ KHO THEO LÔ FIFO (REAL-TIME NĂM 2026) ───────────────────
     private void deductInventoryFIFO(OrderItem item) {
-        String productId = item.getProduct().getId();
-        int quantity = item.getQuantity();
+        String variantId = item.getVariant().getId();
+        int quantityNeeded = item.getQuantity();
 
-        List<Inventory> batches =
-                inventoryRepository.findAvailableBatchesByProductId(productId);
+        // Lấy các lô hàng chưa hết hạn, xếp theo hạn sử dụng từ gần đến xa
+        List<InventoryBatch> batches = inventoryRepository.findAvailableBatchesByVariantId(variantId, LocalDate.now());
 
-        int remaining = quantity;
+        int remainingToDeduct = quantityNeeded;
 
-        for (Inventory batch : batches) {
-            if (remaining <= 0) break;
+        for (InventoryBatch batch : batches) {
+            if (remainingToDeduct <= 0) break;
 
-            int currentStock = batch.getStockQuantity();
-            if (currentStock <= 0) continue;
+            int currentBatchStock = batch.getRemainingQuantity();
+            if (currentBatchStock <= 0) continue;
 
-            int deduct = Math.min(currentStock, remaining);
+            // Số lượng thực trừ từ lô này
+            int deductAmount = Math.min(currentBatchStock, remainingToDeduct);
 
-            batch.setStockQuantity(currentStock - deduct);
-            remaining -= deduct;
+            batch.setRemainingQuantity(currentBatchStock - deductAmount);
+            remainingToDeduct -= deductAmount;
+
+            // Lưu cập nhật của lô vào DB
+            inventoryRepository.save(batch);
         }
 
-        if (remaining > 0) {
+        // Nếu duyệt hết toàn bộ các lô khả dụng mà vẫn chưa trừ đủ số lượng -> Báo lỗi chặn thanh toán
+        if (remainingToDeduct > 0) {
             throw new AppException(ErrorCode.INSUFFICIENT_STOCK);
         }
     }
 
-    // ── Hoàn lại tồn kho khi hủy đơn ─────────────────────────────────────────
-    // sẽ phát triển restore sau
+    // ── HOÀN LẠI TỒN KHO KHI HỦY ĐƠN (QUAY LẠI LÔ GỐC) ─────────────────────────
+    // sẽ phát triển sau
     private void restoreInventory(List<OrderItem> items) {
         for (OrderItem item : items) {
-            if (item.getProduct() == null) continue;
-            List<Inventory> batches = inventoryRepository
-                    .findAvailableBatchesByProductId(item.getProduct().getId());
-            // Hoàn vào lô đầu tiên (hoặc tạo logic phức tạp hơn nếu cần)
+            if (item.getVariant() == null) continue;
+
+            List<InventoryBatch> batches = inventoryRepository.findAvailableBatchesByVariantId(item.getVariant().getId(), LocalDate.now());
+
             if (!batches.isEmpty()) {
-                Inventory first = batches.get(0);
-                first.setStockQuantity(first.getStockQuantity() + item.getQuantity());
-                inventoryRepository.save(first);
+                // Hoàn trả số lượng vào lô có hạn xa nhất hoặc lô đầu tiên để tái khả dụng nhanh
+                InventoryBatch targetBatch = batches.getFirst();
+                targetBatch.setRemainingQuantity(targetBatch.getRemainingQuantity() + item.getQuantity());
+                inventoryRepository.save(targetBatch);
             }
         }
     }
 
-
-// POST /orders — Đặt hàng
-// ═══════════════════════════════════════════════════════════════════════════
+    // ================= POST /orders — ĐẶT HÀNG SKU MỚI =================
     @Transactional
     public OrderResponse placeOrder(CreateOrderRequest request) {
-
         String email = getCurrentUserEmail();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        // 1. Validate địa chỉ thuộc user
+        // 1. Validate địa chỉ
         UserAddress address = userAddressRepository
                 .findOwnedAddress(request.getAddressId(), email)
                 .orElseThrow(() -> new AppException(ErrorCode.ADDRESS_NOT_EXISTED));
 
-        // 2. Lấy productIds từ request
-        List<String> productIds = request.getItems()
-                .stream()
-                .map(OrderItemRequest::getProductId)
+        // 2. Gom danh sách variantId từ client gửi lên
+        List<String> variantIds = request.getItems().stream()
+                .map(OrderItemRequest::getVariantId)
                 .distinct()
                 .toList();
 
-        // 3. Query products
-        List<Product> products = productRepository.findAllById(productIds);
-
-        Map<String, Product> productMap = products.stream()
-                .collect(Collectors.toMap(Product::getId, p -> p));
-
-        // Validate product tồn tại
-        if (products.size() != productIds.size()) {
+        // 3. Query hàng loạt thông tin Phân loại (Variants) để lấy giá, thông tin gốc
+        List<ProductVariant> variants = productVariantRepository.findAllById(variantIds);
+        if (variants.size() != variantIds.size()) {
             throw new AppException(ErrorCode.PRODUCT_NOT_EXISTED);
         }
 
-        // 4. Lấy ảnh primary
-        Map<String, String> imageMap = productImageRepository
-                .findPrimaryImages(productIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        img -> img.getProduct().getId(),
-                        ProductImage::getImageUrl,
-                        (a, b) -> a
-                ));
+        Map<String, ProductVariant> variantMap = variants.stream()
+                .collect(Collectors.toMap(ProductVariant::getId, v -> v));
 
-        // 5. Validate stock
-        Map<String, Integer> stockMap = inventoryRepository.getStockMap(productIds)
+        // 4. Validate tồn kho tổng hợp từ các Lô (Batch) còn hạn khả dụng
+        Map<String, Integer> stockMap = inventoryRepository.getStockMapByVariantIds(variantIds, LocalDate.now())
                 .stream()
                 .collect(Collectors.toMap(
                         row -> (String) row[0],
                         row -> ((Number) row[1]).intValue()
                 ));
 
-        for (OrderItemRequest item : request.getItems()) {
-
-            int available = stockMap.getOrDefault(item.getProductId(), 0);
-
-            if (available < item.getQuantity()) {
+        for (OrderItemRequest itemReq : request.getItems()) {
+            int availableStock = stockMap.getOrDefault(itemReq.getVariantId(), 0);
+            if (availableStock < itemReq.getQuantity()) {
                 throw new AppException(ErrorCode.INSUFFICIENT_STOCK);
             }
         }
 
-        // 6. Build order items + calculate total
+        // 5. Build cấu trúc Order Items + Chụp ảnh Snapshot dữ liệu tại thời điểm đặt thuốc
         List<OrderItem> orderItems = new ArrayList<>();
-
         BigDecimal calculatedTotal = BigDecimal.ZERO;
 
         for (OrderItemRequest itemRequest : request.getItems()) {
+            ProductVariant variant = variantMap.get(itemRequest.getVariantId());
+            Product product = variant.getProduct(); // Lấy thông tin sản phẩm cha để làm snapshot
 
-            Product product = productMap.get(itemRequest.getProductId());
-
-            BigDecimal price = product.getPrice();
-
-            BigDecimal subtotal = price.multiply(
-                    BigDecimal.valueOf(itemRequest.getQuantity())
-            );
-
+            BigDecimal price = variant.getPrice();
+            BigDecimal subtotal = price.multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
             calculatedTotal = calculatedTotal.add(subtotal);
 
+            // Gán đầy đủ thông tin Snapshot ngăn lỗi vỡ hóa đơn lịch sử sau này
             OrderItem orderItem = OrderItem.builder()
+                    .variant(variant)
                     .product(product)
                     .productName(product.getName())
+                    .variantName(variant.getVariantName()) // Lưu snapshot tên phân loại (Ví dụ: Vỉ 10 viên)
+                    .sku(variant.getSku())                 // Lưu mã SKU xuất kho
                     .productSlug(product.getSlug())
-                    .imageUrl(imageMap.get(product.getId()))
-                    .unit(product.getUnit())
+                    .imageUrl(itemRequest.getImageUrl())
                     .quantity(itemRequest.getQuantity())
                     .priceAtTime(price)
                     .subtotal(subtotal)
@@ -267,86 +254,64 @@ public class OrderService {
             orderItems.add(orderItem);
         }
 
-        // 7. Validate total amount frontend gửi xuống
-        if (calculatedTotal.compareTo(
-                BigDecimal.valueOf(request.getTotalAmount())) != 0) {
-
+        // 6. Xác minh khớp tổng tiền hệ thống tính toán và client hiển thị
+        if (calculatedTotal.compareTo(request.getTotalAmount()) != 0) {
             throw new AppException(ErrorCode.INVALID_ORDER_AMOUNT);
         }
-
-        // 8. Validate shipping fee
-        BigDecimal shippingFee = BigDecimal.valueOf(request.getShippingFee());
-
-//        if (shippingFee.compareTo(BigDecimal.ZERO) < 0) {
-//            throw new AppException(ErrorCode.INVALID_SHIPPING_FEE);
-//        }
-
+        // sau này có thể sửa backend tự tính phí shipping k trust thông tin phí từ frontend tuyệt đối
+        BigDecimal shippingFee = request.getShippingFee();
         BigDecimal finalAmount = calculatedTotal.add(shippingFee);
 
-        // 9. Create order
+        // 7. Lưu bản ghi Order tổng quát
         Order order = Order.builder()
                 .orderCode(generateOrderCode())
                 .user(user)
                 .status(OrderStatus.PENDING)
-                .paymentMethod(
-                        PaymentMethod.valueOf(request.getPaymentMethod())
-                )
+                .paymentMethod(PaymentMethod.valueOf(request.getPaymentMethod()))
                 .paymentStatus(PaymentStatus.UNPAID)
                 .totalAmount(calculatedTotal)
                 .shippingFee(shippingFee)
                 .finalAmount(finalAmount)
                 .note(request.getNote())
 
-                // snapshot shipping address
+                // Snapshot địa chỉ giao nhận thuốc tại chỗ
                 .shippingFullName(address.getFullName())
                 .shippingPhone(address.getPhone())
                 .shippingProvince(address.getProvince())
                 .shippingDistrict(address.getDistrict())
                 .shippingWard(address.getWard())
                 .shippingAddressDetail(address.getAddressDetail())
-
                 .build();
 
         orderRepository.save(order);
 
-        // 10. Set order vào orderItems
+        // 8. Đóng kết nối khóa ngoại items vào Order cha và lưu hàng loạt
         orderItems.forEach(item -> item.setOrder(order));
-
         orderItemRepository.saveAll(orderItems);
 
-        // 11. Trừ tồn kho FIFO
+        // 9. Thực thi trừ kho Lô theo thuật toán FIFO cấu hình hạn dùng tăng dần
         for (OrderItem item : orderItems) {
             deductInventoryFIFO(item);
         }
 
-        // 12. Tạo tracking đầu tiên
+        // 10. Tạo bản ghi Audit Log tiến trình đơn hàng trước tiên
         OrderStatusHistory history = OrderStatusHistory.builder()
                 .order(order)
                 .status(OrderStatus.PENDING)
-                .note("Đơn hàng được tạo")
+                .note("Đơn hàng được tạo thành công trên hệ thống")
                 .changedBy(email)
                 .build();
-
         orderStatusHistoryRepository.save(history);
 
-        // 13. Xóa selected items khỏi cart
-        List<String> selectedProductIds = request.getItems()
-                .stream()
-                .map(OrderItemRequest::getProductId)
-                .toList();
+        // 11. Dọn dẹp sạch sẽ các mặt hàng SKU vừa mua ra khỏi giỏ hàng (Cart) của User
+        cartItemRepository.deleteSelectedVariants(user.getId(), variantIds);
 
-        cartItemRepository.deleteSelectedItems(
-                user.getId(),
-                selectedProductIds
-        );
-
-        // 14. Build response
+        // 12. Tập hợp dữ liệu trả kết quả về Frontend
         List<OrderItemResponse> itemResponses = orderItems.stream()
                 .map(this::toItemResponse)
                 .toList();
 
-        List<OrderStatusHistoryResponse> historyResponses =
-                List.of(toHistoryResponse(history));
+        List<OrderStatusHistoryResponse> historyResponses = List.of(toHistoryResponse(history));
 
         return toResponse(order, itemResponses, historyResponses);
     }
@@ -354,40 +319,32 @@ public class OrderService {
     // ═══════════════════════════════════════════════════════════════════════════
     // GET /orders — Lịch sử đơn hàng ( lọc status)
     // ═══════════════════════════════════════════════════════════════════════════
+    // ================= GET /orders — XEM LỊCH SỬ MUA HÀNG =================
     @Transactional(readOnly = true)
     public List<OrderResponse> getMyOrders(OrderStatus status) {
         String email = getCurrentUserEmail();
 
-        // 1. Lấy tất cả orders theo status (nếu null thì lấy hết)
         List<Order> orders = orderRepository.findByUserEmail(email, status);
-
         if (orders.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<String> orderIds = orders.stream()
-                .map(Order::getId)
-                .toList();
+        List<String> orderIds = orders.stream().map(Order::getId).toList();
 
-        // 2. Lấy items batch
         List<OrderItem> allItems = orderItemRepository.findByOrderIds(orderIds);
-
         Map<String, List<OrderItemResponse>> itemMap = allItems.stream()
                 .collect(Collectors.groupingBy(
                         oi -> oi.getOrder().getId(),
                         Collectors.mapping(this::toItemResponse, Collectors.toList())
                 ));
 
-        // 3. Lấy history batch
         List<OrderStatusHistory> allHistory = orderStatusHistoryRepository.findByOrderIds(orderIds);
-
         Map<String, List<OrderStatusHistoryResponse>> historyMap = allHistory.stream()
                 .collect(Collectors.groupingBy(
                         h -> h.getOrder().getId(),
                         Collectors.mapping(this::toHistoryResponse, Collectors.toList())
                 ));
 
-        // 4. Map response
         return orders.stream()
                 .map(o -> toResponse(
                         o,
@@ -396,23 +353,54 @@ public class OrderService {
                 ))
                 .toList();
     }
+    /**
+     * Lấy đơn hàng theo orderCode
+     * Dùng cho VNPay payment result page
+     */
+    @Transactional(readOnly = true)
+    public OrderResponse getByOrderCode(String orderCode) {
+
+        Order order = orderRepository
+                .findByOrderCode(orderCode)
+                .orElseThrow(() ->
+                        new AppException(ErrorCode.ORDER_NOT_EXISTED)
+                );
+
+        List<OrderItemResponse> items =
+                orderItemRepository.findByOrderId(order.getId())
+                        .stream()
+                        .map(this::toItemResponse)
+                        .toList();
+
+        List<OrderStatusHistoryResponse> history =
+                orderStatusHistoryRepository.findByOrderId(order.getId())
+                        .stream()
+                        .map(this::toHistoryResponse)
+                        .toList();
+
+        return toResponse(
+                order,
+                items,
+                history
+        );
+    }
+
 
     // ═══════════════════════════════════════════════════════════════════════════
     // GET /orders/{orderId} — Chi tiết 1 đơn hàng
     // ═══════════════════════════════════════════════════════════════════════════
     @Transactional(readOnly = true)
-    public OrderResponse getOrderDetail(String orderId) {
+    public OrderResponse getOrderDetailByCode(String orderCode) {
         String email = getCurrentUserEmail();
 
-        // Query 1: Order (ownership check)
-        Order order = orderRepository.findByIdAndUserEmail(orderId, email)
+        Order order = orderRepository.findByOrderCodeAndUserEmail(orderCode, email)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
-        // Query 2: Items
+        String orderId = order.getId();
+
         List<OrderItemResponse> items = orderItemRepository.findByOrderId(orderId)
                 .stream().map(this::toItemResponse).toList();
 
-        // Query 3: History
         List<OrderStatusHistoryResponse> history = orderStatusHistoryRepository.findByOrderId(orderId)
                 .stream().map(this::toHistoryResponse).toList();
 
