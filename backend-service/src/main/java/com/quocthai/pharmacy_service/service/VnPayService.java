@@ -107,6 +107,7 @@ public class VnPayService {
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Locale", "vn");
         vnpParams.put("vnp_ReturnUrl", returnUrl);
+
         vnpParams.put("vnp_IpAddr", getClientIp(request));
 
         if (paymentRequest.getBankCode() != null
@@ -189,6 +190,108 @@ public class VnPayService {
         return ApiResponse.<String>builder()
                 .result(paymentUrl)
                 .build();
+    }
+    @Transactional
+    public void handleVnPayReturn(
+            Map<String, String> params
+    ) {
+
+        try {
+
+            boolean validSignature =
+                    verifySignature(params);
+
+            if (!validSignature) {
+
+                log.error("Invalid VNPay return signature");
+
+                return;
+            }
+
+            String responseCode =
+                    params.get("vnp_ResponseCode");
+
+            if (!"00".equals(responseCode)) {
+
+                log.warn(
+                        "VNPay payment failed with code {}",
+                        responseCode
+                );
+
+                return;
+            }
+
+            String orderCode =
+                    params.get("vnp_TxnRef");
+
+            Order order = orderRepository
+                    .findByOrderCode(orderCode)
+                    .orElse(null);
+
+            if (order == null) {
+
+                log.error(
+                        "Order not found: {}",
+                        orderCode
+                );
+
+                return;
+            }
+
+            // idempotent
+            if (order.getPaymentStatus() == PaymentStatus.PAID) {
+
+                log.info(
+                        "Order already paid: {}",
+                        orderCode
+                );
+
+                return;
+            }
+
+            if (order.getStatus() == OrderStatus.CANCELLED) {
+
+                log.warn(
+                        "Cancelled order payment ignored: {}",
+                        orderCode
+                );
+
+                return;
+            }
+
+            BigDecimal vnpAmount =
+                    BigDecimal.valueOf(
+                            Long.parseLong(
+                                    params.get("vnp_Amount")
+                            )
+                    ).divide(BigDecimal.valueOf(100));
+
+            if (vnpAmount.compareTo(order.getFinalAmount()) != 0) {
+
+                log.error(
+                        "Invalid payment amount for order {}",
+                        orderCode
+                );
+
+                return;
+            }
+
+            order.setPaymentStatus(PaymentStatus.PAID);
+
+            orderRepository.save(order);
+
+            log.info(
+                    "VNPay RETURN payment success for order {}",
+                    orderCode
+            );
+
+        } catch (Exception e) {
+
+            log.error(
+                    "VNPay return processing error",
+                    e
+            );
+        }
     }
 
     /**

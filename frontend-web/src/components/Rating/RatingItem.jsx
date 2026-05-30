@@ -39,7 +39,7 @@ const RatingItem = ({ rating, isOwner, onDelete }) => {
                 <div className="d-flex align-items-center gap-2">
                     <span className="text-muted small">{formatDate(rating.createdAt)}</span>
                     {isOwner && (
-                        <button className="btn btn-sm btn-outline-danger p-1"
+                        <button className="btn btn-sm btn-outline p-1"
                             onClick={() => onDelete(rating.id)}
                             title="Xóa đánh giá">
                             <Trash2 size={14} />

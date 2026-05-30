@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { setLogout } from '../../redux/slices/authSlice';
 import { clearCart } from '../../redux/slices/cartSlice';
 import authService from '../../services/authService';
+import logoutImg from '../../assets/logout-img.svg';
 
 const LogoutModal = ({ show, handleClose }) => {
     const dispatch = useDispatch();
@@ -49,16 +50,13 @@ const LogoutModal = ({ show, handleClose }) => {
                     <div className="position-relative" style={{ width: '100px', height: '100px' }}>
                         {/* Đây là giả lập icon cánh cửa xanh trong ảnh */}
                         <div className="bg-primary bg-opacity-10 rounded-circle w-100 h-100 d-flex align-items-center justify-content-center">
-                            <div style={{ fontSize: '50px' }}>🚪</div>
+                            <img src={logoutImg} alt="Logout" />
                         </div>
-                        {/* Mũi tên hướng ra ngoài */}
-                        <div className="position-absolute top-50 start-100 translate-middle text-primary fw-bold" style={{ fontSize: '24px' }}>
-                            ➜
-                        </div>
+
                     </div>
                 </div>
 
-                <h4 className="fw-bold mb-3">Đăng xuất?</h4>
+                <h4 className=" mb-3">Đăng xuất?</h4>
                 <p className="text-secondary small mb-4">
                     Bạn sẽ không nhận được các đặc quyền riêng dành cho thành viên.
                 </p>
@@ -66,7 +64,7 @@ const LogoutModal = ({ show, handleClose }) => {
                 <div className="d-flex gap-3">
                     <Button
                         variant="light"
-                        className="w-100 py-2 rounded-pill fw-bold text-primary border-0"
+                        className="w-100 py-2 rounded-pill text-primary border-0"
                         style={{ backgroundColor: '#e7efff' }}
                         onClick={handleLogout}
                     >
@@ -74,7 +72,7 @@ const LogoutModal = ({ show, handleClose }) => {
                     </Button>
                     <Button
                         variant="primary"
-                        className="w-100 py-2 rounded-pill fw-bold shadow-sm"
+                        className="w-100 py-2 rounded-pill shadow-sm"
                         style={{ backgroundColor: '#1250dc', border: 'none' }}
                         onClick={handleClose}
                     >

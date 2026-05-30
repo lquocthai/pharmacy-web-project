@@ -3,6 +3,7 @@ package com.quocthai.pharmacy_service.repository;
 import com.quocthai.pharmacy_service.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -80,4 +81,34 @@ public interface ProductRepository extends JpaRepository<Product, String> {
             String categoryId,
             Pageable pageable
     );
+
+
+    // admin
+    @Query("""
+    SELECT p FROM Product p
+    LEFT JOIN p.category c
+    WHERE
+        (
+            :keyword IS NULL OR
+            LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+         )
+    AND
+        (
+            :categoryIds IS NULL OR
+            c.id IN :categoryIds
+         )
+    """)
+    Page<Product> searchAdminProducts(
+            @Param("keyword") String keyword,
+            @Param("categoryIds") List<String> categoryIds,
+            Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = {
+            "category",
+            "images",
+            "variants",
+            "specifications"
+    })
+    Optional<Product> findDetailById(String id);
 }

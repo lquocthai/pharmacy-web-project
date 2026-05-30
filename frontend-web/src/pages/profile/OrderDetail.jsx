@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Row, Col, Card, Button, Spinner, Alert, Breadcrumb } from 'react-bootstrap';
 import { ShieldCheck, Copy, User, MapPin, Store, CreditCard, ChevronRight, Check } from 'lucide-react';
 import orderService from '../../services/orderService';
+import ReBuyModal from './ReBuyModal';
 
 const OrderDetail = () => {
     const { orderCode } = useParams();
@@ -11,6 +12,16 @@ const OrderDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [copied, setCopied] = useState(false);
+
+    // --- STATE QUẢN LÝ MODAL MUA LẠI ---
+    const [showReorderModal, setShowReorderModal] = useState(false);
+    const [selectedOrderItems, setSelectedOrderItems] = useState([]);
+    // --- XỬ LÝ KHI BẤM NÚT "MUA LẠI" Ở MỖI ĐƠN HÀNG ---
+    const handleOpenReorderModal = (orderItems) => {
+        setSelectedOrderItems(orderItems || []);
+        setShowReorderModal(true);
+    };
+    console.log('order mua lại', selectedOrderItems);
 
     useEffect(() => {
         const fetchOrderDetail = async () => {
@@ -354,6 +365,7 @@ const OrderDetail = () => {
                                 variant="primary"
                                 className="w-100 rounded-pill py-2 fw-bold shadow-sm mt-2"
                                 style={{ backgroundColor: '#1250dc', border: 'none' }}
+                                onClick={() => handleOpenReorderModal(order.items)}
                             >
                                 Mua lại
                             </Button>
@@ -484,6 +496,11 @@ const OrderDetail = () => {
                     }
                 }
             `}</style>
+            <ReBuyModal
+                show={showReorderModal}
+                onHide={() => setShowReorderModal(false)}
+                selectedOrderItems={selectedOrderItems}
+            />
         </div>
     );
 };

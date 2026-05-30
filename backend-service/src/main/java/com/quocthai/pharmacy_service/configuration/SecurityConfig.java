@@ -33,7 +33,7 @@ public class SecurityConfig {
             "/products/**",
             "/products/detail/*",
             "/ratings/product/*",
-            "/categories/*",
+            "/categories/**",
             "/payments/vnpay-return",
             "/payments/vnpay-ipn"
     };

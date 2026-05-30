@@ -2,11 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
-import { BiTrash } from 'react-icons/bi';
+import { BiChevronLeft, BiTrash } from 'react-icons/bi';
 import toast from 'react-hot-toast';
 import { setCart } from '../../redux/slices/cartSlice';
 import cartService from '../../services/cartService';
 import { size } from 'lodash';
+import cartEmpty from '../../assets/illustration-cart-empty.png';
+
 
 const CartPage = () => {
     const { id, items } = useSelector(state => state.cart);
@@ -100,9 +102,55 @@ const CartPage = () => {
         navigate('/checkout', { state: { selectedIds } });
     };
 
+    // ==========================================
+    // LOGIC HIỂN THỊ GIỎ HÀNG TRỐNG (NHƯ ẢNH MẪU)
+    // ==========================================
+    if (!items || items.length === 0) {
+        return (
+            <div className="container mb-2 text-center py-1">
+                {/* Nút tiếp tục mua sắm phía trên góc trái */}
+                <button style={{ fontSize: '0.875em' }} className="btn text-decoration-none  p-0 mb-3 d-flex align-items-center shadow-none btn-link" onClick={() => navigate('/')}>
+                    <BiChevronLeft size={24} /> Tiếp tục mua sắm
+                </button>
+
+                {/* Nội dung thông báo giỏ hàng trống */}
+                <div className="d-flex flex-column align-items-center justify-content-center">
+                    {/* Icon giỏ hàng trống lấy từ mẫu */}
+                    <div className="mb-4">
+                        <img src={cartEmpty} alt="Cart is empty" className="img-fluid" style={{ maxWidth: '300px' }} />
+                    </div>
+
+                    <h5 className="fw-bold text-dark mb-2">Chưa có sản phẩm nào trong giỏ</h5>
+                    <p className="text-muted mb-2 px-3" style={{ maxWidth: '500px' }}>
+                        Cùng khám phá hàng ngàn sản phẩm tại Nhà thuốc Quốc Thái nhé!
+                    </p>
+
+                    {/* Nút khám phá ngay */}
+                    <button
+                        onClick={() => navigate('/')} // Điều hướng về trang chủ khi click
+                        className="btn text-white fw-bold px-4 py-2 rounded-pill shadow-sm"
+                        style={{
+                            backgroundColor: '#1250dc',
+                            border: 'none',
+                            fontSize: '15px',
+                            paddingLeft: '2rem',
+                            paddingRight: '2rem'
+                        }}
+                    >
+                        Khám phá ngay
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="container py-4">
+        <div className="container py-1">
+            <button style={{ fontSize: '0.875em' }} className="btn text-decoration-none  p-0 mb-3 d-flex align-items-center shadow-none btn-link" onClick={() => navigate('/')}>
+                <BiChevronLeft size={24} /> Tiếp tục mua sắm
+            </button>
             <div className="row">
+
                 <div className="col-lg-8">
                     <div className="card border-0 shadow-sm p-3" style={{ fontSize: '.875rem' }}>
                         <div className="text-center py-2 mb-2 rounded-3" style={{ backgroundColor: '#f0f7ff', color: '#0d6efd' }}>
@@ -177,12 +225,20 @@ const CartPage = () => {
                         </div>
                         <div className="d-flex justify-content-between mb-4">
                             <span className="h5 fw-bold">Tổng tiền</span>
-                            <span className="h5 fw-bold text-danger">{totalPrice.toLocaleString()}đ</span>
+                            <span style={{ color: '#0d6efd' }} className="h5 fw-bold ">{totalPrice.toLocaleString()}đ</span>
                         </div>
                         <button className="btn btn-primary w-100 py-3 fw-bold shadow-sm"
                             disabled={selectedIds.length === 0} onClick={handleCheckout}>
                             MUA NGAY
                         </button>
+                        <div style={{ fontSize: '0.8125rem' }} className=" text-caption2 text-center indent-4 py-4" style={{ borderRadius: '50px' }}>
+                            <span style={{ fontSize: '0.8125rem' }}>Bằng việc tiến hành đặt mua hàng, bạn đồng ý với
+                            </span>
+                            <a style={{ fontSize: '0.8125rem' }} className="font-medium underline underline-offset-[3px] whitespace-nowrap" href="/chinh-sach/tos">Điều khoản dịch vụ
+                            </a>
+                            <span style={{ fontSize: '0.8125rem' }}> của Nhà thuốc Quốc Thái
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

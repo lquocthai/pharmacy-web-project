@@ -12,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AddToCartRequest {
 
-    @NotBlank(message = "variantId không được để trống")
+    @NotBlank(message = "FIELD_REQUIRED")
     String variantId; // Đổi từ productId sang variantId để chỉ định chính xác SKU phân loại
 
     @Min(value = 1, message = "INVALID_QUANTITY")

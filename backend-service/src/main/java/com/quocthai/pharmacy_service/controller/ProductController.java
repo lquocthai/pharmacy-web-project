@@ -48,4 +48,46 @@ public class ProductController {
                 .result(productService.getProductDetail(slug))
                 .build();
     }
+
+    // cho admin==> sai hàm này rồi sửa lại
+    @GetMapping("/admin/products")
+    public ApiResponse<PageResponse<ProductSummaryResponse>> getAdminProducts(
+            @RequestParam(required = false)
+            String keyword,
+            @RequestParam(required = false)
+            String categoryId,
+            @RequestParam(defaultValue = "0")
+            int page,
+            @RequestParam(defaultValue = "10")
+            int size,
+            @RequestParam(defaultValue = "name")
+            String sortBy,
+            @RequestParam(defaultValue = "desc")
+            String sortDir
+    ) {
+
+        return ApiResponse
+                .<PageResponse<ProductSummaryResponse>>builder()
+                .result(
+                        productService.getAdminProducts(
+                                keyword,
+                                categoryId,
+                                page,
+                                size,
+                                sortBy,
+                                sortDir
+                        )
+                )
+                .build();
+    }
+
+
+    // admin lấy product detail
+    @GetMapping("admin/detail/{slug}")
+    ApiResponse<ProductDetailResponse> getProductDetailAdmin(@PathVariable("slug") String slug) {
+        return ApiResponse.<ProductDetailResponse>builder()
+                .result(productService.getProductDetailAdmin(slug))
+                .build();
+    }
+
 }

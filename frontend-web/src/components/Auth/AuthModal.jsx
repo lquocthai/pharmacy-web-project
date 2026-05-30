@@ -6,9 +6,11 @@ import { GoogleLogin } from '@react-oauth/google';
 import authService from '../../services/authService';
 import './AuthModal.scss';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const AuthModal = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { isLoginModalOpen } = useSelector((state) => state.auth);
     const [mode, setMode] = useState('LOGIN'); // LOGIN, REGISTER, OTP
     const [email, setEmail] = useState("");
@@ -81,14 +83,23 @@ const AuthModal = () => {
         setLoginLoading(true);
         try {
             const res = await authService.login({ email, password });
+            console.log(JSON.stringify(res.data, null, 2));
             const { code, result, message } = res.data;
 
             // Backend trả code 1000 khi thành công
             if (code === 0) {
                 dispatch(setLoginSuccess(result));
                 dispatch(closeLoginModal());
-                // Gọi API lấy giỏ hàng ngay sau khi login thành công
-                // dispatch(fetchCart());
+                // redirect theo role
+                const userRoles = result?.user?.roles?.map(r => r.name) || [];
+                if (userRoles.includes('ADMIN')) {
+                    navigate('/admin');
+                } else if (userRoles.includes('PHARMACIST')) {
+                    navigate('/pharmacist');
+                } else {
+                    navigate('/');
+                }
+
             } else {
                 // alert(`Lỗi (${code}): ${message || 'Đăng nhập không thành công'}`);
                 toast.error(`Lỗi (${code}): ${message || 'Đăng nhập không thành công'}`);

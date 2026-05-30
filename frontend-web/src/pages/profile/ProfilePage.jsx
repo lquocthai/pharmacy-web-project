@@ -23,6 +23,15 @@ const ProfilePage = () => {
 
     const dispatch = useDispatch();
 
+    const currentTab = searchParams.get('tab');
+
+    const tabNames = {
+        orders: 'Đơn hàng của tôi',
+        address: 'Sổ địa chỉ',
+        prescriptions: 'Đơn thuốc của tôi',
+        // Thêm các tab khác của bạn vào đây...
+    };
+    const breadcrumbTitle = tabNames[currentTab] || 'Thông tin cá nhân';
     // State lưu dữ liệu Form
     const [formData, setFormData] = useState({
         username: '',
@@ -104,17 +113,19 @@ const ProfilePage = () => {
                 return 'Quản lý sổ địa chỉ';
             case 'orders':
                 return 'Đơn hàng của tôi';
+            case 'prescriptions':
+                return 'Đơn thuốc của tôi';
             default:
                 return 'Thông tin cá nhân';
         }
     };
 
     return (
-        <div className=" min-vh-100 py-4">
+        <div className=" min-vh-100 py-1">
             <Container>
                 {/* Breadcrumb */}
                 <Nav className="small mb-4 text-muted">
-                    Trang chủ / Cá nhân / <span className="text-primary ms-1 fw-bold">Thông tin cá nhân</span>
+                    Trang chủ / Cá nhân / <span className="text-primary ms-1 fw-bold">{breadcrumbTitle}</span>
                 </Nav>
 
                 <Row>

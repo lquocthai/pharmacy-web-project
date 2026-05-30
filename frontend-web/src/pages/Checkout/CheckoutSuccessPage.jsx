@@ -28,7 +28,7 @@ const CheckoutSuccessPage = () => {
 
                     <button
                         className="btn btn-primary"
-                        onClick={() => navigate('/profile/orders')}
+                        onClick={() => navigate('/profile?tab=orders')}
                     >
                         Xem đơn hàng của bạn
                     </button>

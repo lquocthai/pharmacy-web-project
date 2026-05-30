@@ -1,0 +1,9 @@
+.product-card-hover {
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: 2px solid transparent !important; // Mặc định ẩn viền
+}
+
+.product-card-hover:hover {
+    border-color: #0d6efd !important; // Màu btn-primary của Bootstrap
+    box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.15) !important; // Đổ bóng màu xanh nhẹ
+}

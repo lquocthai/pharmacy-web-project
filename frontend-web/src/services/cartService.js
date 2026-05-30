@@ -24,6 +24,10 @@ const cartService = {
     addItem: ({ variantId, quantity }) =>
         axiosClient.post('/carts/items', { variantId, quantity }),
 
+    // Thêm nhiều sản phẩm vào giỏ
+    addListItem: (items) =>
+        axiosClient.post('/carts/items/bulk', items),
+
     // Cập nhật số lượng cụ thể cho 1 item
     updateItem: (itemId, quantity) =>
         axiosClient.put(`/carts/items/${itemId}`, { quantity }),

@@ -203,20 +203,20 @@ const CheckoutPage = () => {
     };
 
     return (
-        <div className="container py-4">
-            <button className="btn btn-link text-decoration-none  p-0 mb-3 d-flex align-items-center shadow-none " onClick={() => navigate('/cart')}>
+        <div className="container py-1">
+            <button style={{ fontSize: '0.875em' }} className="btn text-decoration-none  p-0 mb-3 d-flex align-items-center shadow-none btn-link" onClick={() => navigate('/cart')}>
                 <BiChevronLeft size={24} /> Quay lại giỏ hàng
             </button>
 
 
             <div className="row">
                 <div className="col-lg-8">
-                    <div className="card border-0 shadow-sm p-4 mb-4" style={{ fontSize: '.875rem' }}>
+                    <div className="card border-0 shadow-sm p-3 mb-4" style={{ fontSize: '.875rem' }}>
                         {/* Banner Miễn phí vận chuyển */}
                         <div className="text-center py-2 mb-2 rounded-3" style={{ backgroundColor: '#f0f7ff', color: '#0d6efd' }}>
                             <small className="fw-bold">Miễn phí vận chuyển <span className="text-dark fw-normal">đối với đơn hàng trên 300.000đ</span></small>
                         </div>
-                        <h6 className="fw-bold mb-3 d-flex align-items-center"><FaShoppingCart className="me-2" /> Danh sách sản phẩm</h6>
+                        <p style={{ fontSize: '0.875rem' }} className="fw-bold mb-3 d-flex align-items-center"><FaShoppingCart className="me-2" /> Danh sách sản phẩm</p>
 
                         {checkoutItems.map((item, index) => (
                             <div key={item.id} className={`py-2 ${index !== 0 ? 'border-top' : ''}`}>
@@ -227,7 +227,7 @@ const CheckoutPage = () => {
                                             <img src={item?.imageUrl} alt="" className="rounded border p-1" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
                                         </div>
                                         <div className="ms-3 pe-3" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer', minWidth: 0 }}>
-                                            <div className="text-start text-dark mb-1 text-wrap" style={{ fontSize: '0.95rem' }}>
+                                            <div className="text-start text-dark mb-1 text-wrap">
                                                 {item?.productName}
                                             </div>
                                         </div>
@@ -239,7 +239,7 @@ const CheckoutPage = () => {
                                             <div className="fw-bold h6 mb-0 text-nowrap">{item?.priceAtTime?.toLocaleString()}đ</div>
 
                                         </div>
-                                        <div className="text-muted small fw-bold text-nowrap" style={{ minWidth: '60px' }}>
+                                        <div className="text-muted small text-nowrap" style={{ minWidth: '60px' }}>
                                             x{item?.quantity} {item?.variantName || 'Hộp'}
                                         </div>
                                     </div>
@@ -249,25 +249,50 @@ const CheckoutPage = () => {
                     </div>
 
                     <div className="card border-0 shadow-sm p-4 mb-4">
-                        <h6 className="fw-bold mb-3 d-flex align-items-center"><BiMap className="me-2" /> Địa chỉ nhận hàng</h6>
-                        <div className="row g-3">
-                            {addresses.map(addr => (
-                                <div key={addr.id} className="col-md-6">
-                                    <div className={`p-3 border rounded cursor-pointer h-100 ${selectedAddressId === addr.id ? 'border-primary bg-light' : ''}`}
-                                        onClick={() => setSelectedAddressId(addr.id)}>
-                                        <div className="fw-bold small">{addr.fullName} - {addr.phone}</div>
-                                        <div className="text-muted x-small mt-1">{addr.fullAddress}</div>
+                        <p style={{ fontSize: '0.875rem' }} className="fw-bold mb-3 d-flex align-items-center">
+                            <BiMap className="me-2" /> Địa chỉ nhận hàng
+                        </p>
+
+                        {/* TRƯỜNG HỢP 1: Nếu KHÔNG CÓ địa chỉ nào (Mảng rỗng hoặc undefined) */}
+                        {!addresses || addresses.length === 0 ? (
+                            <div className="text-center py-3">
+                                <p className="text-muted small mb-3">Bạn chưa có địa chỉ nhận hàng nào.</p>
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-primary btn-sm rounded-pill px-4 fw-semibold"
+                                    onClick={() => {
+                                        // Logic xử lý khi bấm vào nút: Ví dụ mở Modal thêm địa chỉ mới
+                                        // openAddressModal(); 
+                                        navigate('/profile?tab=address')
+                                    }}
+                                >
+                                    + Vui lòng thêm địa chỉ nhận hàng
+                                </button>
+                            </div>
+                        ) : (
+                            /* TRƯỜNG HỢP 2: Nếu CÓ địa chỉ thì lặp mảng .map() hiển thị bình thường */
+                            <div className="row g-3">
+                                {addresses.map(addr => (
+                                    <div key={addr.id} className="col-md-6">
+                                        <div
+                                            className={`p-3 border rounded cursor-pointer h-100 ${selectedAddressId === addr.id ? 'border-primary bg-light' : ''
+                                                }`}
+                                            onClick={() => setSelectedAddressId(addr.id)}
+                                        >
+                                            <div className="fw-bold small">{addr.fullName} - {addr.phone}</div>
+                                            <div className="text-muted x-small mt-1">{addr.fullAddress}</div>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="card border-0 shadow-sm p-4 mb-4">
-                        <h6 className="fw-bold mb-3 d-flex align-items-center">
+                        <p style={{ fontSize: '0.875rem' }} className="fw-bold mb-3 d-flex align-items-center">
                             <BiPurchaseTagAlt className="me-2" />
                             Phương thức thanh toán
-                        </h6>
+                        </p>
 
                         <div className="d-flex flex-column gap-3">
 
@@ -379,15 +404,23 @@ const CheckoutPage = () => {
                         <hr />
                         <div className="d-flex justify-content-between mb-4">
                             <span className="h5 fw-bold">Tổng thanh toán</span>
-                            <span className="h5 fw-bold text-danger">
+                            <span style={{ color: '#0d6efd' }} className="h5 fw-bold ">
                                 {(totalAmount + shippingFee).toLocaleString()}đ
                             </span>
                         </div>
 
-                        <button className="btn btn-primary w-100 py-3 fw-bold shadow-sm"
+                        <button style={{ borderRadius: '50px' }} className="btn btn-primary w-100 py-3 fw-bold shadow-sm"
                             disabled={loading || !selectedAddressId} onClick={handlePlaceOrder}>
                             {loading ? "ĐANG XỬ LÝ..." : "XÁC NHẬN ĐẶT HÀNG"}
                         </button>
+                        <div style={{ fontSize: '0.8125rem' }} className="text-text-primary text-caption2 text-center indent-4 py-4" >
+                            <span style={{ fontSize: '0.8125rem' }}>Bằng việc tiến hành đặt mua hàng, bạn đồng ý với
+                            </span>
+                            <a style={{ fontSize: '0.8125rem' }} className="font-medium underline underline-offset-[3px] whitespace-nowrap" href="/chinh-sach/tos">Điều khoản dịch vụ
+                            </a>
+                            <span style={{ fontSize: '0.8125rem' }}> của Nhà thuốc Quốc Thái
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { openLoginModal, setLogout } from '../redux/slices/authSlice';
@@ -10,13 +10,15 @@ import {
 import '../assets/styles/Header.scss';
 import authService from '../services/authService';
 import LogoutModal from '../components/Auth/LogoutModal';
-import { LogOut, MapPin, Package, User } from 'lucide-react';
+import { LogOut, MapPin, Package, Pill, User } from 'lucide-react';
 
 export default function Header() {
     const [searchValue, setSearchValue] = useState('');
+    const [categories, setCategories] = useState([]);
     const [navOpen, setNavOpen] = useState(false);
 
     const [showLogout, setShowLogout] = useState(false);
+
 
 
     // 2. Lấy dữ liệu từ Redux Store
@@ -26,7 +28,21 @@ export default function Header() {
     const { isAuthenticated, user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/pharmacy/categories');
+
+            const data = await response.json();
+
+            setCategories(data.result || []);
+        } catch (error) {
+            console.error('Fetch categories error:', error);
+        }
+    };
     // 3. Xử lý tìm kiếm
     const handleSearch = (e) => {
         e.preventDefault();
@@ -131,6 +147,14 @@ export default function Header() {
                                                 </div>
                                             </Link>
                                         </li>
+                                        <li>
+                                            <Link className="dropdown-item py-2 small" to="/profile?tab=prescriptions">
+                                                <div className="d-flex align-items-center gap-3">
+                                                    <Pill size={18} />
+                                                    <span>Đơn thuốc của tôi</span>
+                                                </div>
+                                            </Link>
+                                        </li>
                                         <li><hr className="dropdown-divider" /></li>
                                         <li>
                                             <button
@@ -163,7 +187,7 @@ export default function Header() {
                                         <FaShoppingCart size={18} />
                                         {totalItems > 0 && (
                                             <span className="position-absolute top-0 start-100 translate-middle badge rounded-circle"
-                                                style={{ backgroundColor: '#fa8c16', fontSize: '9px', padding: '2px 5px', marginTop: '5px' }}>
+                                                style={{ backgroundColor: '#fa8c16', fontSize: '10px', padding: '2px 5px', marginTop: '-2px' }}>
                                                 {totalItems}
                                             </span>
                                         )}
@@ -207,18 +231,15 @@ export default function Header() {
             <nav className="header-nav bg-white border-bottom d-none d-lg-block">
                 <div className="container-xl">
                     <ul className="nav-list d-flex align-items-center justify-content-center m-0 p-0 list-unstyled">
-                        {[
-                            { name: 'Thực phẩm chức năng', path: '/products/thuc-pham-chuc-nang' },
-                            { name: 'Dược mỹ phẩm', path: '/products/duoc-my-pham' },
-                            { name: 'Thuốc', path: '/products/thuoc' },
-                            { name: 'Chăm sóc cá nhân', path: '/products/cham-soc-ca-nhan' },
-                            { name: 'Thiết bị y tế', path: '/products/thiet-bi-y-te' },
-                        ].map((item, index) => (
-                            <li key={index} className="nav-item px-3">
-                                {/* Giờ đây khi click, URL sẽ chuyển thành ví dụ: /products/duoc-my-pham */}
-                                <Link to={item.path} className="nav-link">
-                                    {item.name}
-                                    {item.hasChild && <span className="dropdown-icon ms-1">▼</span>}
+                        {categories.map((category) => (
+                            <li key={category.id} className="nav-item px-3">
+                                <Link
+                                    to={`/products/${category.slug}`}
+                                    className="nav-link"
+                                >
+                                    {category.name}
+
+
                                 </Link>
                             </li>
                         ))}

@@ -12,6 +12,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -40,10 +42,23 @@ public class CartController {
      * Nếu chưa có giỏ → tự động tạo mới.
      */
     @PostMapping("/items")
-    ApiResponse<CartResponse> addItem(@RequestBody @Valid AddToCartRequest request) {
-        log.info("POST /cart/items - productId={}, qty={}", request.getVariantId(), request.getQuantity());
+    ApiResponse<CartResponse> addItem(@RequestBody @Valid AddToCartRequest requests) {
+        log.info("POST /cart/items - productId={}, qty={}", requests.getVariantId(), requests.getQuantity());
         return ApiResponse.<CartResponse>builder()
-                .result(cartService.addItem(request))
+                .result(cartService.addItem(requests))
+                .build();
+    }
+
+    /**
+     * POST /cart/items
+     * Thêm danh sách sản phẩm vào giỏ.
+     * Nếu sản phẩm đã có → cộng thêm quantity.
+     * Nếu chưa có giỏ → tự động tạo mới.
+     */
+    @PostMapping("/items/bulk")
+    ApiResponse<CartResponse> addListItem(@RequestBody @Valid List<AddToCartRequest> request) {
+        return ApiResponse.<CartResponse>builder()
+                .result(cartService.addListItem(request))
                 .build();
     }
 

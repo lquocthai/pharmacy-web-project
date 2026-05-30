@@ -36,8 +36,15 @@ const cartSlice = createSlice({
             const cart = action.payload; // CartResponse
             state.id = cart.id;
             state.items = cart.items ?? [];
-            state.totalItems = cart.totalItems ?? 0;
-            state.totalQuantity = cart.totalQuantity ?? 0;
+            // Nếu trong payload có totalItems và totalQuantity (Từ API trả về) -> Lấy luôn
+            // Nếu KHÔNG CÓ (Từ Optimistic Update gửi lên) -> Tự tính toán dựa trên mảng items mới để UI không bị về 0
+            state.totalItems = cart.totalItems !== undefined
+                ? cart.totalItems
+                : (cart.items ? cart.items.length : state.totalItems);
+
+            state.totalQuantity = cart.totalQuantity !== undefined
+                ? cart.totalQuantity
+                : (cart.items ? cart.items.reduce((sum, item) => sum + item.quantity, 0) : state.totalQuantity);
             state.error = null;
         },
 

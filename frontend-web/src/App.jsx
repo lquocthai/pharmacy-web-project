@@ -7,10 +7,10 @@ import { fetchCart } from './redux/slices/cartSlice';
 import { Toaster } from 'react-hot-toast';
 function App() {
     const dispatch = useDispatch();
-    const { accessToken } = useSelector(state => state.auth);
+    const { accessToken, user } = useSelector(state => state.auth);
 
     useEffect(() => {
-        if (accessToken) {
+        if (accessToken && user?.roles?.[0]?.name === 'USER') {
             dispatch(fetchCart());
         }
     }, [accessToken]);

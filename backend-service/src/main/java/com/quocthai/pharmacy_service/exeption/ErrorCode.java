@@ -30,7 +30,7 @@ public enum ErrorCode {
     INSUFFICIENT_STOCK(1019, "Số lượng tồn kho không đủ", HttpStatus.BAD_REQUEST),
     CART_ITEM_NOT_EXISTED(1020, "Sản phẩm không có trong giỏ hàng", HttpStatus.NOT_FOUND),
     INVALID_QUANTITY(1021, "Số lượng phải lớn hơn 0", HttpStatus.BAD_REQUEST),
-    CART_NOT_EXISTED(1022, "Giỏ hàng không tồn tại", HttpStatus.BAD_REQUEST),
+    CART_NOT_EXISTED(1022, "Giỏ hàng không tồn tại", HttpStatus.NOT_FOUND),
 
     // Product detail errors
     PRODUCT_SLUG_NOT_EXISTED(1023, "Sản phẩm không tồn tại", HttpStatus.NOT_FOUND),
@@ -61,7 +61,14 @@ public enum ErrorCode {
     ORDER_ALREADY_CANCELLED(1039, "Đơn hàng đã hủy", HttpStatus.BAD_REQUEST),
     GENERATE_SIGNATURE_FAILURE(1040,"Tạo chữ kí thất bại", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_EXISTED(1041,"Danh mục không tồn tại",HttpStatus.NOT_FOUND),
-    ;
+    PRIMARY_IMAGE_REQUIRED(1042, "Thiếu ảnh chính",HttpStatus.BAD_REQUEST),
+
+    PRODUCT_NOT_FOUND(1043,"Sản phẩm không tồn tại",HttpStatus.NOT_FOUND),
+    PRODUCT_VARIANT_REQUIRED(1044,"Cần có biến thể",HttpStatus.BAD_REQUEST),
+    INVALID_REQUEST(1047,"Thiếu dữ liệu",HttpStatus.BAD_REQUEST),
+    PRODUCT_UNAVAILABLE(1068, "Sản phẩm không có sẵn", HttpStatus.BAD_REQUEST),
+
+            ;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;

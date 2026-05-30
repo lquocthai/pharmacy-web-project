@@ -52,12 +52,12 @@ const AddressCard = ({ address, onEdit, onDelete }) => {
                         Đặt mặc định
                     </Button>
                 )} */}
-                <Button variant="outline-secondary" size="sm" className="rounded-pill px-3"
+                <Button variant="outline-secondary" size="sm" className="rounded-pill px-3 d-flex align-items-center"
                     onClick={() => onEdit(address)}>
                     <Pencil size={13} className="me-1" />
                     Sửa
                 </Button>
-                <Button variant="outline-danger" size="sm" className="rounded-pill px-3"
+                <Button variant="outline-danger" size="sm" className="rounded-pill px-3 d-flex align-items-center"
                     onClick={() => onDelete(address.id)}>
                     <Trash2 size={13} className="me-1" />
                     Xóa

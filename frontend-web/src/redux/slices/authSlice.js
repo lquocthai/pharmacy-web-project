@@ -26,25 +26,25 @@ const authSlice = createSlice({
 
         // Xử lý khi đăng nhập thành công (Google hoặc Email/Pass)
         setLoginSuccess: (state, action) => {
-            const { accessToken, refreshToken } = action.payload;
+            const { accessToken, refreshToken, user } = action.payload;
 
-            // Decode token để lấy thông tin
-            const decoded = jwtDecode(accessToken);
-            const basicUser = {
-                email: decoded.sub,
-                username: decoded.username,
-                roles: decoded.scope,
+            // // Decode token để lấy thông tin
+            // const decoded = jwtDecode(accessToken);
+            // const basicUser = {
+            //     email: decoded.sub,
+            //     username: decoded.username,
+            //     roles: decoded.scope,
 
-            };
+            // };
 
             state.accessToken = accessToken;
             state.refreshToken = refreshToken;
-            state.user = basicUser;
+            state.user = user;
             state.isAuthenticated = true;
 
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('refreshToken', refreshToken);
-            localStorage.setItem('user', JSON.stringify(basicUser));
+            localStorage.setItem('user', JSON.stringify(user));
         },
         // =========================
         // UPDATE FULL USER INFO

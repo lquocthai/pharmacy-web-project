@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Form, InputGroup, Nav, Spinner, Alert } from 'react-bootstrap';
+import { Card, Button, Form, InputGroup, Nav, Spinner, Alert, Modal } from 'react-bootstrap';
 import { Search } from 'lucide-react';
 import './MyOrder.scss'; // File CSS riêng cho MyOrders để tùy chỉnh giao diện
 import orderService from '../../services/orderService';
 import { useNavigate } from 'react-router-dom';
+import orderEmpty from '../../assets/order-not-found.svg';
+import toast from 'react-hot-toast'; // Sử dụng react-hot-toast đồng bộ dự án
+import { setCart } from '../../redux/slices/cartSlice'; // Import action cập nhật giỏ hàng
+import { useDispatch } from 'react-redux'; // Import dispatch
+import cartService from '../../services/cartService'; // Thêm cartService để xử lý mua lại
+import ReBuyModal from './ReBuyModal';
 
 const MyOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -14,6 +20,9 @@ const MyOrders = () => {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
+    // --- STATE QUẢN LÝ MODAL MUA LẠI ---
+    const [showReorderModal, setShowReorderModal] = useState(false);
+    const [selectedOrderItems, setSelectedOrderItems] = useState([]);
     // 1. Cơ chế Debounce cho ô tìm kiếm để tránh việc re-render liên tục khi gõ chữ
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -58,7 +67,11 @@ const MyOrders = () => {
 
         return matchCode || matchProduct;
     });
-
+    // --- XỬ LÝ KHI BẤM NÚT "MUA LẠI" Ở MỖI ĐƠN HÀNG ---
+    const handleOpenReorderModal = (orderItems) => {
+        setSelectedOrderItems(orderItems || []);
+        setShowReorderModal(true);
+    };
     // Hàm Helper: Định nghĩa màu sắc & nhãn hiển thị cho từng Status của Backend
     const getStatusDetails = (status) => {
         switch (status) {
@@ -155,8 +168,32 @@ const MyOrders = () => {
             ) : error ? (
                 <Alert variant="danger" className="rounded-4 border-0 shadow-sm">{error}</Alert>
             ) : displayedOrders.length === 0 ? (
-                <div className="text-center py-5 bg-white rounded-4 shadow-sm border border-light">
-                    <p className="text-muted mb-0 small">Không tìm thấy đơn hàng nào trong trạng thái này.</p>
+                <div className="text-center py-5 bg-white">
+                    {/* Tiêu đề in đậm, màu chữ tối đặc trưng (fs-5 hoặc fw-bold) */}
+                    <img src={orderEmpty} alt="No orders" className="img-fluid mb-3 d-block mx-auto" style={{ maxWidth: '300px' }} />
+                    <h5 className="fw-bold text-dark mb-2" style={{ color: '#2c333f' }}>
+                        Bạn chưa có đơn hàng nào.
+                    </h5>
+
+                    {/* Đoạn mô tả chữ nhỏ hơn, màu xám nhạt và có khoảng cách dòng thoải mái */}
+                    <p className="text-muted small mb-4 px-3" style={{ maxWidth: '400px', margin: '0 auto', lineHeight: '1.5' }}>
+                        Cùng khám phá hàng ngàn sản phẩm tại Nhà thuốc Quốc Thái nhé!
+                    </p>
+
+                    {/* Nút bấm bo tròn hoàn toàn, đổ màu xanh coban chuẩn thương hiệu */}
+                    <button
+                        onClick={() => navigate('/')} // Điều hướng về trang chủ khi click
+                        className="btn text-white fw-bold px-4 py-2 rounded-pill shadow-sm"
+                        style={{
+                            backgroundColor: '#1250dc',
+                            border: 'none',
+                            fontSize: '15px',
+                            paddingLeft: '2rem',
+                            paddingRight: '2rem'
+                        }}
+                    >
+                        Khám phá ngay
+                    </button>
                 </div>
             ) : (
                 displayedOrders.map((order) => {
@@ -233,6 +270,7 @@ const MyOrders = () => {
                                         variant="primary"
                                         className="rounded-pill px-4 btn-sm fw-bold shadow-sm"
                                         style={{ backgroundColor: '#1250dc', border: 'none', padding: '6px 22px' }}
+                                        onClick={() => handleOpenReorderModal(order.items)}
                                     >
                                         Mua lại
                                     </Button>
@@ -241,8 +279,15 @@ const MyOrders = () => {
                         </Card>
                     );
                 })
-            )}
-        </div>
+            )
+            }
+            <ReBuyModal
+                show={showReorderModal}
+                onHide={() => setShowReorderModal(false)}
+                selectedOrderItems={selectedOrderItems}
+            />
+
+        </div >
     );
 };
 

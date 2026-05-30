@@ -16,7 +16,7 @@ public class ProductImage {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
-
+    @Column(nullable = false)
     String imageUrl;
     boolean isPrimary; // Ảnh chính để hiển thị ở trang danh sách
 

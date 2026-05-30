@@ -17,8 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
     @Slf4j
@@ -171,6 +171,193 @@ import java.util.stream.Collectors;
                     });
 
             cartItemRepository.save(item);
+
+            return buildCartResponse(cart);
+        }
+        private Map<String, Integer> getStockMapByVariantIds(List<String> variantIds) {
+            List<Object[]> stockRows = inventoryBatchRepository
+                    .getStockMapByVariantIds(variantIds, LocalDate.now());
+
+            if (stockRows == null || stockRows.isEmpty()) {
+                return Collections.emptyMap();
+            }
+
+            return stockRows.stream()
+                    .filter(row -> row != null && row[0] != null)
+                    .collect(Collectors.toMap(
+                            row -> (String) row[0],
+                            row -> row[1] != null ? ((Number) row[1]).intValue() : 0,
+                            (existing, replacement) -> existing // Phòng hờ trùng key trùng lặp
+                    ));
+        }
+
+        @Transactional
+        public CartResponse addListItem(List<AddToCartRequest> requests) {
+
+            // ================= VALIDATE =================
+
+            if (requests == null || requests.isEmpty()) {
+                throw new AppException(ErrorCode.INVALID_REQUEST);
+            }
+
+            String email = getCurrentUserEmail();
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() ->
+                            new AppException(ErrorCode.USER_NOT_EXISTED));
+
+            Cart cart = getOrCreateCart(user);
+
+            // ================= GROUP REQUEST =================
+            // nếu frontend gửi trùng variant
+            // thì cộng quantity trên RAM
+
+            Map<String, Integer> requestQtyMap = requests.stream()
+                    .filter(r ->
+                            r.getVariantId() != null &&
+                                    !r.getVariantId().isBlank() &&
+                                    r.getQuantity() > 0
+                    )
+                    .collect(Collectors.toMap(
+                            AddToCartRequest::getVariantId,
+                            AddToCartRequest::getQuantity,
+                            Integer::sum
+                    ));
+
+            if (requestQtyMap.isEmpty()) {
+                throw new AppException(ErrorCode.INVALID_REQUEST);
+            }
+
+            List<String> variantIds =
+                    new ArrayList<>(requestQtyMap.keySet());
+
+            // ================= FETCH VARIANTS =================
+            // fetch product luôn để tránh N+1
+
+            List<ProductVariant> variants =
+                    productVariantRepository
+                            .findAllWithProductByIds(variantIds);
+
+            Map<String, ProductVariant> variantMap =
+                    variants.stream()
+                            .collect(Collectors.toMap(
+                                    ProductVariant::getId,
+                                    Function.identity()
+                            ));
+
+            // ================= CHECK VARIANT EXIST =================
+
+            if (variantMap.size() != variantIds.size()) {
+                throw new AppException(ErrorCode.PRODUCT_NOT_EXISTED);
+            }
+
+            // ================= CHECK PRODUCT ACTIVE =================
+
+            for (ProductVariant variant : variants) {
+
+                if (!variant.isActive()
+                        || variant.getProduct() == null
+                        || !variant.getProduct().isActive()) {
+
+                    throw new AppException(
+                            ErrorCode.PRODUCT_UNAVAILABLE
+                    );
+                }
+            }
+
+            // ================= FETCH EXISTING CART ITEMS =================
+
+            List<CartItem> existingItems =
+                    cartItemRepository
+                            .findByCartIdAndVariantIdIn(
+                                    cart.getId(),
+                                    variantIds
+                            );
+
+            Map<String, CartItem> existingItemMap =
+                    existingItems.stream()
+                            .collect(Collectors.toMap(
+                                    item -> item.getVariant().getId(),
+                                    Function.identity()
+                            ));
+
+            // ================= FETCH STOCK BULK =================
+            // DIỆT N+1 QUERY
+
+            Map<String, Integer> stockMap =
+                    getStockMapByVariantIds(variantIds);
+
+            // ================= BUILD SAVE LIST =================
+
+            List<CartItem> itemsToSave = new ArrayList<>();
+
+            for (String variantId : variantIds) {
+
+                ProductVariant variant =
+                        variantMap.get(variantId);
+
+                int requestQty =
+                        requestQtyMap.get(variantId);
+
+                int stock =
+                        stockMap.getOrDefault(variantId, 0);
+
+                // ================= CHECK STOCK =================
+
+                if (stock <= 0) {
+                    throw new AppException(ErrorCode.OUT_OF_STOCK);
+                }
+
+                CartItem existingItem =
+                        existingItemMap.get(variantId);
+
+                // ================= UPDATE EXISTING ITEM =================
+
+                if (existingItem != null) {
+
+                    int newQty =
+                            existingItem.getQuantity() + requestQty;
+
+                    if (newQty > stock) {
+                        throw new AppException(
+                                ErrorCode.INSUFFICIENT_STOCK
+                        );
+                    }
+
+                    existingItem.setQuantity(newQty);
+
+                    itemsToSave.add(existingItem);
+                }
+
+                // ================= CREATE NEW ITEM =================
+
+                else {
+
+                    if (requestQty > stock) {
+                        throw new AppException(
+                                ErrorCode.INSUFFICIENT_STOCK
+                        );
+                    }
+
+                    CartItem newItem = CartItem.builder()
+                            .cart(cart)
+                            .variant(variant)
+                            .product(variant.getProduct())
+                            .quantity(requestQty)
+                            .priceAtTime(variant.getPrice())
+                            .build();
+
+                    itemsToSave.add(newItem);
+                }
+            }
+
+            // ================= SAVE ALL =================
+
+            if (!itemsToSave.isEmpty()) {
+                cartItemRepository.saveAll(itemsToSave);
+            }
+
+            // ================= RESPONSE =================
 
             return buildCartResponse(cart);
         }

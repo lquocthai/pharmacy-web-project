@@ -11,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -44,5 +45,19 @@ public class CategoryService {
                                 .collect(Collectors.toList())
                         : null)
                 .build();
+    }
+
+    /**
+     * Lấy toàn bộ category tree
+     * Chỉ lấy category cha (parent = null)
+     */
+    public List<CategoryResponse> getAll() {
+
+        List<Category> rootCategories =
+                categoryRepository.findByParentIsNull();
+
+        return rootCategories.stream()
+                .map(this::convertToDto)
+                .toList();
     }
 }

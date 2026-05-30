@@ -108,7 +108,7 @@ const AddressManager = () => {
                     <h6 className="text-start fw-bold mb-0">Sổ địa chỉ</h6>
                     <p className="text-muted small mb-0">Quản lý địa chỉ giao hàng của bạn (tối đa 10 địa chỉ)</p>
                 </div>
-                <Button variant="primary" size="sm" className="rounded-pill px-3 fw-bold"
+                <Button variant="primary" size="sm" className="rounded-pill px-3 fw-bold d-flex align-items-center"
                     style={{ backgroundColor: '#1250dc', border: 'none' }}
                     onClick={handleOpenCreate}
                     disabled={addresses.length >= 10}>
@@ -133,9 +133,9 @@ const AddressManager = () => {
             {/* Empty state */}
             {!loading && !error && addresses.length === 0 && (
                 <div className="text-center py-5">
-                    <MapPin size={48} className="text-muted mb-3" />
+                    <MapPin size={48} className="text-muted mb-3 mx-auto d-block" />
                     <p className="text-muted">Bạn chưa có địa chỉ nào.</p>
-                    <Button variant="primary" className="rounded-pill px-4 fw-bold"
+                    <Button variant="primary" className="rounded-pill px-4 fw-bold d-flex align-items-center justify-content-center mx-auto mt-3"
                         style={{ backgroundColor: '#1250dc', border: 'none' }}
                         onClick={handleOpenCreate}>
                         <Plus size={15} className="me-1" />

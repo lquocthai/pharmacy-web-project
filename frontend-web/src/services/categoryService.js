@@ -5,6 +5,9 @@ const categoryService = {
     // Lấy danh mục sản phẩm
     getCategoriesTree: (slug) =>
         axiosClient.get(`/categories/${slug}/tree`),
+
+    getAll: () =>
+        axiosClient.get('/categories'),
 };
 
 
