@@ -43,6 +43,10 @@ spring:
             scope:
               - email
               - profile
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 30MB
 
 jwt:
   signerKey: ${JWT_SECRET}

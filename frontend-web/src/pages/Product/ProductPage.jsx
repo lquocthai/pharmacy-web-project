@@ -26,6 +26,14 @@ export default function ProductPage() {
     const [hasMore, setHasMore] = useState(false);
 
     const scrollRef = useRef(null);
+    const [selectedPrice, setSelectedPrice] = useState("Dưới 100.000đ");
+
+    const priceOptions = [
+        "Dưới 100.000đ",
+        "100.000đ đến 300.000đ",
+        "300.000đ đến 500.000đ",
+        "Trên 500.000đ"
+    ];
 
     // 1. Tải cây danh mục (Chạy 1 lần duy nhất khi đổi slug trên URL)
     const loadCategoryTree = async (mainSlug) => {
@@ -148,7 +156,7 @@ export default function ProductPage() {
                                 style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                             />
                         </div>
-                        <span style={{ fontSize: '14px', height: '42px', lineHeight: '42px' }}>Tất cả sản phẩm</span>
+                        <span style={{ fontSize: '14px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: '42px', lineHeight: '21px' }}>Tất cả sản phẩm</span>
                     </div>
 
                     {/* Duyệt mảng con `children` từ API */}
@@ -166,7 +174,7 @@ export default function ProductPage() {
                                     style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                                 />
                             </div>
-                            <span className="text-dark" style={{ fontSize: '14px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: '42px', lineHeight: '21px' }}>
+                            <span style={{ fontSize: '14px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: '42px', lineHeight: '21px' }}>
                                 {child.name}
                             </span>
                         </div>
@@ -215,8 +223,31 @@ export default function ProductPage() {
                             {/* Giá bán */}
                             <div>
                                 <h6 className="fw-bold text-dark mb-2" style={{ fontSize: '14px' }}>Giá bán</h6>
-                                <button className="btn btn-outline-secondary btn-sm w-100 text-start mb-2 py-2 px-3 border-light-subtle text-dark bg-light" style={{ fontSize: '13px' }}>Dưới 100.000đ</button>
-                                <button className="btn btn-outline-secondary btn-sm w-100 text-start mb-2 py-2 px-3 border-light-subtle text-dark bg-light" style={{ fontSize: '13px' }}>100.000đ đến 300.000đ</button>
+                                <div className="d-flex flex-column gap-2">
+                                    {priceOptions.map((option) => {
+                                        const isActive = selectedPrice === option;
+                                        return (
+                                            <button
+                                                key={option}
+                                                type="button"
+                                                onClick={() => setSelectedPrice(option)}
+                                                className={`btn w-100 text-start py-2 px-3 custom-price-btn ${isActive ? 'active' : ''}`}
+                                                style={{ fontSize: '13px' }}
+                                            >
+                                                {option}
+
+                                                {/* Dấu tích góc trên bên phải khi được chọn */}
+                                                {isActive && (
+                                                    <span className="active-checkmark-badge">
+                                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                                        </svg>
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -11,6 +11,11 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import MyOrders from './MyOrder';
+import LogoInfo from '../../assets/avatar-profile.svg'
+import BgProfile from '../../assets/background-info.png'
+import Myprescription from './MyPrescription';
+import MyPrescription from './MyPrescription';
+
 
 
 const ProfilePage = () => {
@@ -128,16 +133,20 @@ const ProfilePage = () => {
                     Trang chủ / Cá nhân / <span className="text-primary ms-1 fw-bold">{breadcrumbTitle}</span>
                 </Nav>
 
-                <Row>
+                <Row className="align-items-start">
                     {/* Sidebar */}
-                    <Col lg={3} md={4} className="mb-4">
+                    <Col lg={3} md={4} className="mb-4 sticky-top">
                         {/* User Card */}
                         <Card className="border-0 shadow-sm rounded-4 text-center text-white mb-3"
-                            style={{ background: 'linear-gradient(to right, #1250dc, #0d3fad)' }}>
+                            style={{
+                                backgroundImage: `url(${BgProfile})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                            }}>
                             <Card.Body className="py-4">
-                                <div className="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                                    style={{ width: '80px', height: '80px', border: '4px solid rgba(255,255,255,0.3)' }}>
-                                    <User size={40} className="text-white" />
+                                <div className=" d-flex align-items-center justify-content-center mx-auto mb-3">
+                                    {/* <User size={40} className="text-white" /> */}
+                                    <img src={LogoInfo} alt="" />
                                 </div>
                                 <p className="fw-bold mb-1 text-white">{user?.username || 'Người dùng'}</p>
                                 <small className="opacity-75">{user?.phone || ''}</small>
@@ -177,25 +186,9 @@ const ProfilePage = () => {
                                     <ChevronRight size={16} className="text-secondary opacity-50" />
                                 </ListGroup.Item>
 
-                                {/* Lịch hẹn tiêm chủng */}
-                                <ListGroup.Item action onClick={() => handleTabChange('vaccine-schedule')}
-                                    className={`d-flex align-items-center justify-content-between py-3 px-4 border-0 ${activeTab === 'vaccine-schedule' ? 'bg-primary-subtle text-primary fw-bold' : ''}`}>
-                                    <div className="d-flex align-items-center gap-3">
-                                        <Syringe size={18} className={activeTab === 'vaccine-schedule' ? 'text-primary' : 'text-secondary'} />
-                                        <span>Lịch hẹn tiêm chủng</span>
-                                    </div>
-                                    <ChevronRight size={16} className="text-secondary opacity-50" />
-                                </ListGroup.Item>
 
-                                {/* Đơn hàng tiêm chủng */}
-                                <ListGroup.Item action onClick={() => handleTabChange('vaccine-orders')}
-                                    className={`d-flex align-items-center justify-content-between py-3 px-4 border-0 ${activeTab === 'vaccine-orders' ? 'bg-primary-subtle text-primary fw-bold' : ''}`}>
-                                    <div className="d-flex align-items-center gap-3">
-                                        <FileText size={18} className={activeTab === 'vaccine-orders' ? 'text-primary' : 'text-secondary'} />
-                                        <span>Đơn hàng tiêm chủng</span>
-                                    </div>
-                                    <ChevronRight size={16} className="text-secondary opacity-50" />
-                                </ListGroup.Item>
+
+
 
                                 {/* Đơn thuốc của tôi */}
                                 <ListGroup.Item action onClick={() => handleTabChange('prescriptions')}
@@ -243,11 +236,15 @@ const ProfilePage = () => {
                             </Card.Header>
 
                             <Card.Body className="">
+
                                 {/* ── Tab: Quản lý sổ địa chỉ ── */}
                                 {activeTab === 'address' && <AddressManager />}
 
                                 {/* ── Tab: Đơn hàng của tôi ── */}
                                 {activeTab === 'orders' && <MyOrders />}
+
+                                {/* ── Tab: Đơn thuốc của tôi (chưa có) ── */}
+                                {activeTab === 'prescriptions' && <MyPrescription />}
 
                                 {/* ── Tab: Thông tin cá nhân ── */}
                                 {activeTab === 'profile' && (

@@ -28,6 +28,11 @@ public class SecurityConfig {
             "/auth/outbound/authentication/google", "/users/forgot-password","/users/reset-password"
     };
 
+    // WebSocket handshake endpoints (xác thực được xử lý bởi WebSocketAuthInterceptor)
+    private static final String[] WS_ENDPOINTS = {
+            "/ws/**"
+    };
+
     // Các endpoint GET public (không cần đăng nhập)
     private static final String[] PUBLIC_GET_ENDPOINTS = {
             "/products/**",
@@ -52,6 +57,8 @@ public class SecurityConfig {
                         request
                                 .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
                                 .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
+                                // WebSocket handshake — xác thực do WebSocketAuthInterceptor xử lý
+                                .requestMatchers(WS_ENDPOINTS).permitAll()
                                 .anyRequest().authenticated());
         httpSecurity.oauth2ResourceServer(
                 oauth2 ->

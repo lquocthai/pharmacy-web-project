@@ -2,9 +2,12 @@ import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Header from '../header/Header';
 import './AdminLayout.scss'; // Import file SCSS cho AdminLayout
+import LogoAdmin from '../../assets/logo-icon-admin.svg'
 
 const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarPinned, setSidebarPinned] = useState(true);
+    const [isDark, setIsDark] = useState(() => localStorage.getItem('adminTheme') === 'dark');
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -13,7 +16,7 @@ const AdminLayout = () => {
         return (
             pathname.startsWith('/admin/ecommerce') ||
             pathname.includes('product') ||
-            pathname.includes('orders') ||
+            pathname.includes('categories') ||
             pathname.includes('invoice') ||
             pathname.includes('transaction') ||
             pathname.includes('billing')
@@ -48,47 +51,78 @@ const AdminLayout = () => {
         }
     }, [location.pathname]);
 
+    useEffect(() => {
+        localStorage.setItem('adminTheme', isDark ? 'dark' : 'light');
+    }, [isDark]);
+
     // Hàm trả về Class định dạng cho các nút Menu cha dạng <button>
     const getMenuClass = (isActive) =>
-        `flex w-full items-center justify-between rounded-[6px] px-3 py-3 text-[15px] font-medium transition-all duration-200 ${isActive
-            ? 'bg-[#EBF0FF] text-[#3C50E0]'
-            : 'text-[#4A5568] hover:bg-[#F1F5F9] hover:text-[#1C2434]'
+        `flex w-full items-center rounded-[6px] py-2 text-[15px] font-medium transition-all duration-200 ${sidebarOpen ? 'justify-between px-2' : 'justify-center px-0'} ${isActive
+            ? 'bg-[#EBF0FF] text-[#3C50E0] dark:bg-[#1E3A8A] dark:text-[#BFDBFE]'
+            : 'text-[#4A5568] hover:bg-[#F1F5F9] hover:text-[#1C2434] dark:text-[#CBD5E1] dark:hover:bg-[#1E293B] dark:hover:text-white'
         }`;
 
     // Style cho nút E-commerce (Chỉ xanh khi đang ở trong các trang con của nó)
     const isEcommerceActive = checkIsEcommerceRoute(location.pathname);
     const ecommerceParentClass = isEcommerceActive
-        ? 'flex w-full items-center justify-between rounded-[6px] px-3 py-3 text-[15px] font-medium no-underline transition-all duration-200 bg-[#EBF0FF] text-[#3C50E0]'
-        : 'flex w-full items-center justify-between rounded-[6px] px-3 py-3 text-[15px] font-medium no-underline transition-all duration-200 text-[#4A5568] hover:bg-[#F1F5F9] hover:text-[#1C2434]';
+        ? `flex w-full items-center rounded-[6px] py-2 text-[15px] font-medium no-underline transition-all duration-200 bg-[#EBF0FF] text-[#3C50E0] dark:bg-[#1E3A8A] dark:text-[#BFDBFE] ${sidebarOpen ? 'justify-between px-2' : 'justify-center px-0'}`
+        : `flex w-full items-center rounded-[6px] py-2 text-[15px] font-medium no-underline transition-all duration-200 text-[#4A5568] hover:bg-[#F1F5F9] hover:text-[#1C2434] dark:text-[#CBD5E1] dark:hover:bg-[#1E293B] dark:hover:text-white ${sidebarOpen ? 'justify-between px-2' : 'justify-center px-0'}`;
 
     // Style cho nút E-commerce (Chỉ xanh khi đang ở trong các trang con của nó)
     const isOrdersActive = checkIsOrdersRoute(location.pathname);
     const ordersParentClass = isOrdersActive
-        ? 'flex w-full items-center justify-between rounded-[6px] px-3 py-3 text-[15px] font-medium no-underline transition-all duration-200 bg-[#EBF0FF] text-[#3C50E0]'
-        : 'flex w-full items-center justify-between rounded-[6px] px-3 py-3 text-[15px] font-medium no-underline transition-all duration-200 text-[#4A5568] hover:bg-[#F1F5F9] hover:text-[#1C2434]';
+        ? `flex w-full items-center rounded-[6px] py-2 text-[15px] font-medium no-underline transition-all duration-200 bg-[#EBF0FF] text-[#3C50E0] dark:bg-[#1E3A8A] dark:text-[#BFDBFE] ${sidebarOpen ? 'justify-between px-2' : 'justify-center px-0'}`
+        : `flex w-full items-center rounded-[6px] py-2 text-[15px] font-medium no-underline transition-all duration-200 text-[#4A5568] hover:bg-[#F1F5F9] hover:text-[#1C2434] dark:text-[#CBD5E1] dark:hover:bg-[#1E293B] dark:hover:text-white ${sidebarOpen ? 'justify-between px-2' : 'justify-center px-0'}`;
 
     // Style dành riêng cho các Sub-menu con thụt lề bên trong
     const subMenuClass = ({ isActive }) =>
         `text-start block rounded-[6px] ml-6 pl-4 pr-4 py-2 text-[14px] font-medium no-underline transition-all duration-200 ${isActive
-            ? 'bg-[#EBF0FF] text-[#3C50E0]'
-            : 'text-[#64748B] hover:text-[#1C2434] '
+            ? 'bg-[#EBF0FF] text-[#3C50E0] dark:bg-[#1E3A8A] dark:text-[#BFDBFE]'
+            : 'text-[#64748B] hover:text-[#1C2434] dark:text-[#94A3B8] dark:hover:text-white '
         }`;
 
     // Mẹo tạo class active thủ công cho các route có param động như /edit/:slug
     const getDynamicSubMenuClass = (isManualActive) => {
         return `text-start block rounded-[6px] ml-6 pl-4 pr-4 py-2 text-[14px] font-medium no-underline transition-all duration-200 ${isManualActive
-            ? 'bg-[#EBF0FF] text-[#3C50E0]'
-            : 'text-[#64748B] hover:text-[#1C2434]'
+            ? 'bg-[#EBF0FF] text-[#3C50E0] dark:bg-[#1E3A8A] dark:text-[#BFDBFE]'
+            : 'text-[#64748B] hover:text-[#1C2434] dark:text-[#94A3B8] dark:hover:text-white'
             }`;
     };
+
+    const handleToggleSidebar = () => {
+        setSidebarOpen((prev) => {
+            const nextOpen = !prev;
+            setSidebarPinned(nextOpen);
+            return nextOpen;
+        });
+    };
+
+    const handleToggleTheme = () => {
+        setIsDark((prev) => !prev);
+    };
+
+    const handleSidebarMouseEnter = () => {
+        if (!sidebarOpen) {
+            setSidebarOpen(true);
+        }
+    };
+
+    const handleSidebarMouseLeave = () => {
+        if (!sidebarPinned) {
+            setSidebarOpen(false);
+        }
+    };
+
     return (
         /* FIX 1: Giới hạn chiều cao toàn trang khít với 100vh và chặn scroll tổng */
-        <div className="flex h-screen w-screen overflow-hidden bg-[#F1F5F9] text-[#1C2434] font-sans antialiased">
+        <div className={`flex h-screen w-screen overflow-hidden bg-[#F1F5F9] text-[#1C2434] font-sans antialiased dark:bg-[#0F172A] dark:text-[#F8FAFC] ${isDark ? 'dark' : ''}`}>
 
             {/* SIDEBAR VỚI HIỆU ỨNG TRƯỢT SMOOTH */}
             {/* FIX 2: Ép chiều cao h-full (bằng 100vh), dùng overflow-y-auto để tự cuộn nội bộ, thêm 'scrollbar-none' để ẩn thanh cuộn */}
             <aside
-                className={`fixed inset-y-0 left-0 z-[9999] flex h-full w-[290px] flex-col border-r border-[#E2E8F0] bg-white px-6 py-5 shadow-sm transition-all duration-300 ease-in-out lg:static lg:translate-x-0 overflow-y-auto scrollbar-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-[290px]'
+                onMouseEnter={handleSidebarMouseEnter}
+                onMouseLeave={handleSidebarMouseLeave}
+                className={`fixed inset-y-0 left-0 z-[9999] flex h-full flex-col border-r border-[#E2E8F0] bg-white shadow-sm transition-all duration-300 ease-in-out lg:static lg:translate-x-0 overflow-x-hidden overflow-y-auto scrollbar-none dark:border-[#1E293B] dark:bg-[#111827] ${sidebarOpen ? 'w-[290px] translate-x-0 px-3' : 'w-[88px] translate-x-0 px-4 [&_.menu-item]:hidden [&_.sidebar-expanded-only]:hidden'
                     }`}
                 style={{
                     msOverflowStyle: 'none',  /* Ẩn thanh cuộn trên IE và Edge */
@@ -98,13 +132,14 @@ const AdminLayout = () => {
                 {/* Bọc nội dung để đảm bảo padding bottom không bị che khuất khi cuộn xuống cuối */}
                 <div className="pb-8">
                     {/* Logo Brand Head */}
-                    <div className="mb-8 flex items-center gap-3 px-2">
-                        <span className="text-xl font-bold tracking-tight text-[#1C2434]">Nhà thuốc</span>
+                    <div className={`flex items-center py-8 ${sidebarOpen ? 'gap-3 px-2' : 'justify-center px-0'}`}>
+                        <img src={LogoAdmin} alt="admin" className="h-10 w-10 flex-shrink-0" />
+                        <span className={`text-xl font-bold tracking-tight text-[#1C2434] whitespace-nowrap overflow-hidden transition-all duration-200 dark:text-[#F8FAFC] ${sidebarOpen ? 'max-w-[180px] opacity-100' : 'max-w-0 opacity-0'}`}>Nhà thuốc</span>
                     </div>
 
                     {/* Label Category: MENU */}
-                    <p className="text-start mb-4 px-2 text-[12px] font-semibold tracking-wider text-[#8A99AD] uppercase">
-                        Menu
+                    <p className={`mb-4 px-2 text-[12px] font-semibold tracking-wider text-[#8A99AD] uppercase ${sidebarOpen ? 'text-start' : 'text-center text-lg leading-none'}`}>
+                        {sidebarOpen ? 'Menu' : '...'}
                     </p>
 
                     <nav className="flex flex-col gap-1.5">
@@ -133,7 +168,7 @@ const AdminLayout = () => {
                                     <path d="M18.75 2.42969V2.43969M9.50391 9.875L9.50391 9.885M14.4961 9.875V9.885" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"></path>
                                 </svg>
                                 <span className='menu-item'>AI Assistant</span>
-                                <span className="rounded-full bg-[#EAFBF4] px-2 py-0.5 text-[11px] font-bold text-[#10B981]">NEW</span>
+                                <span className="sidebar-expanded-only rounded-full bg-[#EAFBF4] px-2 py-0.5 text-[11px] font-bold text-[#10B981]">NEW</span>
                             </div>
                         </button>
 
@@ -151,12 +186,12 @@ const AdminLayout = () => {
                                     </svg>
                                     <span className='menu-item'>Sản phẩm</span>
                                 </div>
-                                <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${ecommerceOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                <svg className={`sidebar-expanded-only w-4 h-4 text-gray-400 transition-transform duration-200 ${ecommerceOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
 
-                            <div className={`flex flex-col gap-1 overflow-hidden transition-all duration-300 ${ecommerceOpen ? 'max-h-[400px] mt-1 opacity-100' : 'max-h-0 opacity-0'}`}>
+                            <div className={`sidebar-expanded-only flex flex-col gap-1 overflow-hidden transition-all duration-300 ${ecommerceOpen ? 'max-h-[400px] mt-1 opacity-100' : 'max-h-0 opacity-0'}`}>
                                 <NavLink to="/admin/products" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Sản phẩm</NavLink>
                                 <NavLink to="/admin/products/create" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Thêm sản phẩm</NavLink>
                                 {/* FIX TẠI ĐÂY: Sử dụng kiểm tra động bằng `.includes('products/edit/')` thay vì so khớp cứng */}
@@ -166,8 +201,8 @@ const AdminLayout = () => {
                                     style={{ color: 'unset', textDecoration: 'none' }}
                                 >
                                     Chỉnh sửa sản phẩm
-                                </NavLink>                                <NavLink to="/admin/orders" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Đơn hàng</NavLink>
-                                <NavLink to="/admin/single-invoice" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Danh mục</NavLink>
+                                </NavLink>
+                                <NavLink to="/admin/categories" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Danh mục</NavLink>
                                 <NavLink to="/admin/create-invoice" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Tạo hóa đơn</NavLink>
                                 <NavLink to="/admin/transactions" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Giao dịch</NavLink>
                                 <NavLink to="/admin/single-transaction" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Chi tiết giao dịch</NavLink>
@@ -188,12 +223,12 @@ const AdminLayout = () => {
                                     </svg>
                                     <span className='menu-item'>Đơn hàng</span>
                                 </div>
-                                <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${ordersOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                <svg className={`sidebar-expanded-only w-4 h-4 text-gray-400 transition-transform duration-200 ${ordersOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
 
-                            <div className={`flex flex-col gap-1 overflow-hidden transition-all duration-300 ${ordersOpen ? 'max-h-[400px] mt-1 opacity-100' : 'max-h-0 opacity-0'}`}>
+                            <div className={`sidebar-expanded-only flex flex-col gap-1 overflow-hidden transition-all duration-300 ${ordersOpen ? 'max-h-[400px] mt-1 opacity-100' : 'max-h-0 opacity-0'}`}>
                                 <NavLink to="/admin/orders" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Đơn hàng</NavLink>
                                 <NavLink
                                     to={location.pathname.includes('/admin/orders/') ? location.pathname : "/admin/orders"}
@@ -235,10 +270,10 @@ const AdminLayout = () => {
             </aside>
 
             {/* LỚP PHỦ BACKGROUND KHI MỞ MENU TRÊN MOBILE */}
-            {sidebarOpen && (
+            {sidebarOpen && sidebarPinned && (
                 <div
                     className="fixed inset-0 z-[999] bg-black/40 backdrop-blur-sm lg:hidden"
-                    onClick={() => setSidebarOpen(false)}
+                    onClick={handleToggleSidebar}
                 />
             )}
 
@@ -246,7 +281,7 @@ const AdminLayout = () => {
             {/* FIX 3: Ép h-full, flex-col và overflow-hidden để khu vực này bám sát khung nhìn 100vh */}
             <div className="flex flex-1 flex-col h-full min-w-0 overflow-hidden">
                 {/* Header đứng yên cố định ở trên đầu */}
-                <Header onToggle={() => setSidebarOpen(prev => !prev)} />
+                <Header onToggle={handleToggleSidebar} sidebarOpen={sidebarOpen} isDark={isDark} onToggleTheme={handleToggleTheme} />
 
                 {/* FIX 4: Chỉ duy nhất phần main chứa Outlet được quyền scroll dọc độc lập */}
                 <main className="flex-1 overflow-y-auto pb-12">

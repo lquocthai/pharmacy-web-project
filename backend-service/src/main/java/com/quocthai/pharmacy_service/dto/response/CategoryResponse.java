@@ -14,6 +14,7 @@ public class CategoryResponse {
      String name;
      String slug;
      String description;
+     String parentId;
      String icon;
      List<CategoryResponse> children; // Đệ quy chứa các danh mục con/cháu
 }

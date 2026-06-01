@@ -1,5 +1,8 @@
 package com.quocthai.pharmacy_service.controller;
 
+import com.quocthai.pharmacy_service.dto.admin.request.CategoryRequest;
+import com.quocthai.pharmacy_service.dto.admin.request.SingleParentWithChildrenCategoryRequest;
+import com.quocthai.pharmacy_service.dto.admin.request.UpdateParentWithChildrenCategoryRequest;
 import com.quocthai.pharmacy_service.dto.response.ApiResponse;
 import com.quocthai.pharmacy_service.dto.response.CategoryResponse;
 import com.quocthai.pharmacy_service.service.CategoryService;
@@ -30,6 +33,53 @@ public class CategoryController {
     public ApiResponse<List<CategoryResponse>> getAll() {
         return ApiResponse.<List<CategoryResponse>>builder()
                 .result(categoryService.getAll())
+                .build();
+    }
+
+    @GetMapping("/admin/{id}")
+    public ApiResponse<CategoryResponse> getCategoryById(@PathVariable String id) {
+        return ApiResponse.<CategoryResponse>builder()
+                .result(categoryService.getCategoryById(id))
+                .build();
+    }
+
+    // ==========================================
+    // ENDPOINTS DÀNH CHO ADMIN (CRUD)
+    // ==========================================
+
+//    // 1. Tạo đơn lẻ một danh mục (Cha hoặc con tùy parentId truyền vào)
+//    @PostMapping("/admin")
+//    public ApiResponse<CategoryResponse> createCategory(@RequestBody CategoryRequest request) {
+//        return ApiResponse.<CategoryResponse>builder()
+//                .result(categoryService.createCategory(request))
+//                .build();
+//    }
+
+    // 2. Tạo nhanh 1 danh mục cha và một loạt danh mục con trực thuộc (Hàm tối ưu hiệu năng bạn vừa viết)
+    @PostMapping("/admin")
+    public ApiResponse<CategoryResponse> createParentWithChildren(
+            @RequestBody SingleParentWithChildrenCategoryRequest request) {
+        return ApiResponse.<CategoryResponse>builder()
+                .result(categoryService.createParentWithChildren(request))
+                .build();
+    }
+
+    // 3. Cập nhật thông tin danh mục bằng ID
+    @PutMapping("/admin/{id}")
+    public ApiResponse<CategoryResponse> updateCategory(
+            @PathVariable String id,
+            @RequestBody UpdateParentWithChildrenCategoryRequest request) {
+        return ApiResponse.<CategoryResponse>builder()
+                .result(categoryService.updateCategory(id, request))
+                .build();
+    }
+
+    // 4. Xóa danh mục bằng ID (Cascade xóa sạch các con trực thuộc)
+    @DeleteMapping("/admin/{id}")
+    public ApiResponse<String> deleteCategory(@PathVariable String id) {
+        categoryService.deleteCategory(id);
+        return ApiResponse.<String>builder()
+                .result("Xóa danh mục thành công!")
                 .build();
     }
 }

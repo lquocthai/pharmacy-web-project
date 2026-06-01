@@ -68,7 +68,23 @@ public enum ErrorCode {
     INVALID_REQUEST(1047,"Thiếu dữ liệu",HttpStatus.BAD_REQUEST),
     PRODUCT_UNAVAILABLE(1068, "Sản phẩm không có sẵn", HttpStatus.BAD_REQUEST),
 
-            ;
+    // Chat / Conversation errors
+    CONVERSATION_NOT_FOUND(1069, "Cuộc hội thoại không tồn tại", HttpStatus.NOT_FOUND),
+    CONVERSATION_ALREADY_TAKEN(1070, "Cuộc hội thoại đã được dược sĩ khác nhận", HttpStatus.CONFLICT),
+    CONVERSATION_NOT_IN_PROGRESS(1071, "Cuộc hội thoại không ở trạng thái đang tư vấn", HttpStatus.BAD_REQUEST),
+    CONVERSATION_CLOSED(1072, "Cuộc hội thoại đã đóng, không thể gửi tin nhắn", HttpStatus.BAD_REQUEST),
+    FILE_TYPE_NOT_ALLOWED(1073, "Loại file không được phép", HttpStatus.BAD_REQUEST),
+    FILE_SIZE_EXCEEDED(1074, "File vượt quá kích thước cho phép (5MB)", HttpStatus.BAD_REQUEST),
+    FILE_UPLOAD_FAILED(1075, "Upload file thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
+    CATEGORY_EXISTED(1076,"Danh mục đã tồn tại",HttpStatus.BAD_REQUEST),
+    CATEGORY_HAS_PRODUCTS(1077,"Danh mục này có sản phẩm",HttpStatus.BAD_REQUEST),
+    ALREADY_EXISTS(1078, "Đã tồn tại", HttpStatus.BAD_REQUEST),
+    INVALID_PARENT_CATEGORY(1079, "Danh mục không thể làm cha của chính nó", HttpStatus.BAD_REQUEST),
+
+    PRESCRIPTION_NOT_FOUND(1079, "Không tìm thấy đơn thuốc", HttpStatus.NOT_FOUND),
+
+    ;
+
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;

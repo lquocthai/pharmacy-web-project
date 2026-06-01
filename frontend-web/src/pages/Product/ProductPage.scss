@@ -7,3 +7,54 @@
     border-color: #0d6efd !important; // Màu btn-primary của Bootstrap
     box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.15) !important; // Đổ bóng màu xanh nhẹ
 }
+
+// Định nghĩa biến màu sắc (Có thể đổi theo hệ màu dự án của bạn)
+$primary-blue: #1250dc;
+$bg-light-gray: #f8f9fa;
+$border-gray: #e9ecef;
+$text-dark: #212529;
+
+.custom-price-btn {
+    position: relative;
+    background-color: $bg-light-gray !important;
+    border: 1px solid $border-gray !important;
+    color: $text-dark !important;
+    border-radius: 6px;
+    transition: all 0.15s ease-in-out;
+    overflow: hidden; // Giữ góc tam giác không bị tràn khỏi bo góc button
+
+    // Hiệu ứng khi Hover chuột vào button
+    &:hover {
+        border-color: $primary-blue !important;
+        color: $primary-blue !important;
+        background-color: #fff !important;
+    }
+
+    // Trạng thái khi được Click chọn (Active)
+    &.active {
+        border-color: $primary-blue !important;
+        color: $primary-blue !important;
+        background-color: #fff !important;
+        font-weight: 500;
+    }
+
+    // Khối chứa dấu tích màu xanh ở góc phải (Chỉ hiển thị khi button có class .active)
+    .active-checkmark-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 22px 22px 0;
+        border-color: transparent $primary-blue transparent transparent;
+
+        // Căn chỉnh icon SVG nằm cân đối bên trong góc tam giác
+        svg {
+            position: absolute;
+            color: white;
+            top: 2px;
+            right: -20px;
+        }
+    }
+}

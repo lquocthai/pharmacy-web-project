@@ -1,10 +1,9 @@
 package com.quocthai.pharmacy_service.dto.request;
+
 import com.quocthai.pharmacy_service.entity.Message;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Getter
-@Setter
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,17 +11,24 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChatMessageRequest {
 
-    private String conversationId;
+    String conversationId;
 
-    private String senderId;
-    private String senderName;
+    /** ID của người gửi — nếu null sẽ được lấy từ JWT principal */
+    String senderId;
 
-    private Message.SenderRole senderRole;
+    /** Tên hiển thị của người gửi (tuỳ chọn, dùng để hiển thị trên UI) */
+    String senderName;
 
-    private Message.MessageType messageType;
+    Message.SenderRole senderRole;
 
-    private String content;
+    Message.MessageType messageType;
 
-    private String fileUrl;
-    private String fileName;
+    /** Nội dung text (với messageType = TEXT) */
+    String content;
+
+    /** URL file đã upload (với messageType = IMAGE hoặc FILE) */
+    String fileUrl;
+
+    /** Tên file gốc */
+    String fileName;
 }

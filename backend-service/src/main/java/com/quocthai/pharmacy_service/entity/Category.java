@@ -21,10 +21,10 @@ public class Category {
     @Column(length = 36)
     String id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false,unique = true)
     String name;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     String slug; // Dùng cho URL thân thiện (ví dụ: thuc-pham-chuc-nang)
 
     String description;
@@ -36,6 +36,6 @@ public class Category {
     @JoinColumn(name = "parent_id")
     Category parent; // Danh mục cha của danh mục này (Nếu null thì đây là danh mục gốc - Cấp 1)
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Category> children = new ArrayList<>(); // Danh sách các danh mục con (Cấp dưới)
 }

@@ -168,15 +168,15 @@ const MyOrders = () => {
             ) : error ? (
                 <Alert variant="danger" className="rounded-4 border-0 shadow-sm">{error}</Alert>
             ) : displayedOrders.length === 0 ? (
-                <div className="text-center py-5 bg-white">
+                <div className="text-center py-4 bg-white">
                     {/* Tiêu đề in đậm, màu chữ tối đặc trưng (fs-5 hoặc fw-bold) */}
                     <img src={orderEmpty} alt="No orders" className="img-fluid mb-3 d-block mx-auto" style={{ maxWidth: '300px' }} />
-                    <h5 className="fw-bold text-dark mb-2" style={{ color: '#2c333f' }}>
+                    <h6 className="text-dark mb-2" style={{ color: '#657384' }}>
                         Bạn chưa có đơn hàng nào.
-                    </h5>
+                    </h6>
 
                     {/* Đoạn mô tả chữ nhỏ hơn, màu xám nhạt và có khoảng cách dòng thoải mái */}
-                    <p className="text-muted small mb-4 px-3" style={{ maxWidth: '400px', margin: '0 auto', lineHeight: '1.5' }}>
+                    <p className="text-muted small mb-4 px-3" style={{ maxWidth: '400px', margin: '0 auto', lineHeight: '1.5', textColor: '#657384' }}>
                         Cùng khám phá hàng ngàn sản phẩm tại Nhà thuốc Quốc Thái nhé!
                     </p>
 

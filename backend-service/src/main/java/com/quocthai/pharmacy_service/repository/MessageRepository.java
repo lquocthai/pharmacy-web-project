@@ -10,4 +10,5 @@ public interface MessageRepository
 
     List<Message> findByConversationIdOrderByCreatedAtAsc(String conversationId);
 
+    long countByConversationId(String conversationId);
 }

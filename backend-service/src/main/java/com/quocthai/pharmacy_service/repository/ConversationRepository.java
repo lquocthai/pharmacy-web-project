@@ -10,16 +10,19 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface ConversationRepository
-        extends JpaRepository<Conversation, String> {
+public interface ConversationRepository extends JpaRepository<Conversation, String> {
 
-    List<Conversation> findByStatus(Conversation.ConversationStatus status);
+    /** Lấy danh sách theo status, sắp xếp mới nhất trước */
+    List<Conversation> findByStatusOrderByLastMessageAtDesc(Conversation.ConversationStatus status);
 
+    /** Lấy danh sách theo userId, sắp xếp mới nhất trước */
+    List<Conversation> findByUserIdOrderByLastMessageAtDesc(String userId);
+
+    /** Tìm conversation IN_PROGRESS không có hoạt động sau thời điểm time (dùng cho auto-close scheduler) */
     @Query("""
         SELECT c FROM Conversation c
         WHERE c.status = 'IN_PROGRESS'
         AND c.lastMessageAt < :time
     """)
     List<Conversation> findInactive(@Param("time") LocalDateTime time);
-
 }

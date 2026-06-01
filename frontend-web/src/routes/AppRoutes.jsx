@@ -72,6 +72,11 @@ import OrderDetail from '../pages/profile/OrderDetail';
 import AdminDashboardPage from '../admin/pages/AdminDashboardPage';
 import AdminProductPage from '../admin/pages/AdminProductPage';
 import ProductFormPage from '../admin/pages/ProductFormPage';
+import ChatBotPage from '../admin/pages/ChatBotPage';
+import AdminCategoryPage from '../admin/pages/AdminCategoryPage';
+import CategoryFormPage from '../admin/pages/CategoryFormPage';
+import CreatePrescription from '../pages/profile/CreatePrescription';
+import PrescriptionDetail from '../pages/profile/PrescriptionDetail';
 // import AdminProductListPage from '../admin/pages/products/AdminProductListPage';
 // import AdminCreateProductPage from '../admin/pages/products/AdminCreateProductPage';
 // import AdminEditProductPage from '../admin/pages/products/AdminEditProductPage';
@@ -197,6 +202,22 @@ const UserRoutes = () => (
                 </ProtectedRoute>
             }
         />
+        <Route
+            path="/create-prescription"
+            element={
+                <ProtectedRoute roles={[ROLES.USER]}>
+                    <CreatePrescription />
+                </ProtectedRoute>
+            }
+        />
+        <Route
+            path="/profile/prescriptions/:id"
+            element={
+                <ProtectedRoute roles={[ROLES.USER]}>
+                    <PrescriptionDetail />
+                </ProtectedRoute>
+            }
+        />
     </Route>
 );
 
@@ -227,6 +248,18 @@ const AdminRoutes = () => (
         <Route
             path="products/edit/:slug"
             element={<ProductFormPage />}
+        />
+        <Route
+            path="ai-assistant"
+            element={<ChatBotPage />}
+        />
+        <Route
+            path="categories"
+            element={<AdminCategoryPage />}
+        />
+        <Route
+            path="categories/create"
+            element={<CategoryFormPage />}
         />
 
         {/* admin fallback */}
