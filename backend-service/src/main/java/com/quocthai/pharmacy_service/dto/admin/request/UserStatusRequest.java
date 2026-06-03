@@ -1,14 +1,14 @@
 package com.quocthai.pharmacy_service.dto.admin.request;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ChildCategoryRequest {
-    String name;
-    String description;
-    String icon;
+public class UserStatusRequest {
+    Boolean active;
 }

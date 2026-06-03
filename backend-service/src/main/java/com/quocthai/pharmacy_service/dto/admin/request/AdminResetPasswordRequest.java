@@ -1,4 +1,6 @@
 package com.quocthai.pharmacy_service.dto.admin.request;
+
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -7,8 +9,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ChildCategoryRequest {
-    String name;
-    String description;
-    String icon;
+public class AdminResetPasswordRequest {
+    @NotBlank
+    private String password;
 }

@@ -50,7 +50,7 @@ public enum ErrorCode {
     ORDER_NOT_EXISTED(1031, "Đơn hàng không tồn tại", HttpStatus.NOT_FOUND),
     ORDER_CANNOT_CANCEL(1032, "Đơn hàng không thể hủy ở trạng thái hiện tại", HttpStatus.BAD_REQUEST),
     CART_EMPTY(1033, "Giỏ hàng trống, không thể đặt hàng", HttpStatus.BAD_REQUEST),
-    INVALID_STATUS_TRANSITION(1034, "Chuyển trạng thái đơn hàng không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_STATUS(1034, "Chuyển trạng thái đơn hàng không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_ORDER_AMOUNT(1035,"Giá đơn hàng không hợp lệ",HttpStatus.BAD_REQUEST),
 
     // category
@@ -81,7 +81,12 @@ public enum ErrorCode {
     ALREADY_EXISTS(1078, "Đã tồn tại", HttpStatus.BAD_REQUEST),
     INVALID_PARENT_CATEGORY(1079, "Danh mục không thể làm cha của chính nó", HttpStatus.BAD_REQUEST),
 
-    PRESCRIPTION_NOT_FOUND(1079, "Không tìm thấy đơn thuốc", HttpStatus.NOT_FOUND),
+    PRESCRIPTION_NOT_FOUND(1080, "Không tìm thấy đơn thuốc", HttpStatus.NOT_FOUND),
+
+    USER_LOCKED(1081, "Tài khoản của bạn đã bị khóa", HttpStatus.BAD_REQUEST),
+    ROLE_NOT_FOUND(1082, "Không tìm thấy quyền này", HttpStatus.NOT_FOUND),
+    CANNOT_UPDATE_OWN_STATUS(1083, "Không thể thay đổi trạng thái tài khoản của chính mình",HttpStatus.BAD_REQUEST),
+    CANNOT_UPDATE_OWN_ROLE(1084, "Không thể thay đổi quyền của chính mình",HttpStatus.BAD_REQUEST),
 
     ;
 

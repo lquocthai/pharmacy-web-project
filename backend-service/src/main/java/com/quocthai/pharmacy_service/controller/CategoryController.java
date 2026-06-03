@@ -1,6 +1,5 @@
 package com.quocthai.pharmacy_service.controller;
 
-import com.quocthai.pharmacy_service.dto.admin.request.CategoryRequest;
 import com.quocthai.pharmacy_service.dto.admin.request.SingleParentWithChildrenCategoryRequest;
 import com.quocthai.pharmacy_service.dto.admin.request.UpdateParentWithChildrenCategoryRequest;
 import com.quocthai.pharmacy_service.dto.response.ApiResponse;
@@ -47,13 +46,7 @@ public class CategoryController {
     // ENDPOINTS DÀNH CHO ADMIN (CRUD)
     // ==========================================
 
-//    // 1. Tạo đơn lẻ một danh mục (Cha hoặc con tùy parentId truyền vào)
-//    @PostMapping("/admin")
-//    public ApiResponse<CategoryResponse> createCategory(@RequestBody CategoryRequest request) {
-//        return ApiResponse.<CategoryResponse>builder()
-//                .result(categoryService.createCategory(request))
-//                .build();
-//    }
+
 
     // 2. Tạo nhanh 1 danh mục cha và một loạt danh mục con trực thuộc (Hàm tối ưu hiệu năng bạn vừa viết)
     @PostMapping("/admin")

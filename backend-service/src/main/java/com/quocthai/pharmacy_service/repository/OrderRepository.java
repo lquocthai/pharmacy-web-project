@@ -1,9 +1,11 @@
 package com.quocthai.pharmacy_service.repository;
 
 import com.quocthai.pharmacy_service.constants.OrderStatus;
+import com.quocthai.pharmacy_service.constants.PaymentStatus;
 import com.quocthai.pharmacy_service.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -65,4 +67,26 @@ public interface OrderRepository extends JpaRepository<Order, String> {
      * Tìm chính xác đơn hàng theo OrderCode (Dùng cho thanh toán)
      */
     Optional<Order> findByOrderCode(String orderCode);
+
+    // admin
+    @EntityGraph(attributePaths = {"user"})
+    @Query("""
+    SELECT o
+    FROM Order o
+    WHERE
+        (
+            :keyword IS NULL
+            OR LOWER(o.orderCode) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(o.user.username) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR o.user.phone LIKE CONCAT('%', :keyword, '%')
+        )
+    AND (:status IS NULL OR o.status = :status)
+    AND (:paymentStatus IS NULL OR o.paymentStatus = :paymentStatus)
+    """)
+    Page<Order> searchOrders(
+            @Param("keyword") String keyword,
+            @Param("status") OrderStatus status,
+            @Param("paymentStatus") PaymentStatus paymentStatus,
+            Pageable pageable
+    );
 }

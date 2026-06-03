@@ -158,20 +158,7 @@ public class CategoryService {
         category.setSlug(generateSlug(request.getName()));
         category.setDescription(request.getDescription());
         category.setIcon(request.getIcon());
-        // =====================================================
-        // XỬ LÝ PARENT (GIỮ NGUYÊN LOGIC CỦA MÀY)
-        // =====================================================
-        // Xử lý đổi danh mục cha cấp cao hơn (nếu có)
-        if (request.getParentId() != null && !request.getParentId().trim().isEmpty()) {
-            if (id.equals(request.getParentId())) {
-                throw new AppException(ErrorCode.INVALID_PARENT_CATEGORY);
-            }
-            Category grandParent = categoryRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-            category.setParent(grandParent);
-        } else {
-            category.setParent(null);
-        }
+
         // =====================================================
         // 3. LOAD CHILDREN
         // =====================================================
@@ -218,39 +205,7 @@ public class CategoryService {
                 children.removeIf(child ->
                         idsToDelete.contains(child.getId()));
             }
-            // =================================================
-            // 5.2 UPDATE / CREATE CHILD (BỎ TOÀN BỘ ĐOẠN CHECK TRÙNG CŨ) (này là k can check thg con trùng thoải mái)
-            // =================================================
-//            for (ChildCategoryUpdateRequest childReq : request.getChildren()) {
-//
-//                // ---------------------------------------------
-//                // UPDATE CHILD CŨ
-//                // ---------------------------------------------
-//                if (childReq.getId() != null && !childReq.getId().isBlank()) {
-//                    Category existingChild = childMap.get(childReq.getId());
-//                    if (existingChild == null) {
-//                        throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
-//                    }
-//                    existingChild.setName(childReq.getName());
-//                    // Để an toàn khi trùng tên, con cũ khi sửa tên nên sinh lại slug kèm ID của nó luôn
-//                    existingChild.setSlug(generateSlug(childReq.getName()) + "-" + existingChild.getId().substring(0, 8));
-//                    existingChild.setDescription(childReq.getDescription());
-//                    existingChild.setIcon(childReq.getIcon());
-//                }
-//                // ---------------------------------------------
-//                // THÊM CHILD MỚI (Trùng tên thoải mái)
-//                // ---------------------------------------------
-//                else {
-//                    Category newChild = Category.builder()
-//                            .name(childReq.getName())
-//                            .slug(generateSlug(childReq.getName()))
-//                            .description(childReq.getDescription())
-//                            .icon(childReq.getIcon())
-//                            .parent(category)
-//                            .build();
-//                    children.add(newChild);
-//                }
-//            }
+
             // =================================================
             // 5.2 GOM TÊN CẦN CHECK TRÙNG (ĐÃ SỬA CHỐNG TRÙNG NGAY TRÊN UI VÀ CHECK THEO CHA)
             // =================================================
@@ -363,13 +318,6 @@ public class CategoryService {
                 .icon(request.getIcon())
                 .children(new ArrayList<>())
                 .build();
-
-        // Nếu bản thân ông cha này lại có parentId cấp cao hơn truyền vào
-        if (request.getParentId() != null && !request.getParentId().trim().isEmpty()) {
-            Category grandParent = categoryRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-            parentCategory.setParent(grandParent);
-        }
 
         // Lưu cha để lấy ID (UUID)
         Category savedParent = categoryRepository.save(parentCategory);

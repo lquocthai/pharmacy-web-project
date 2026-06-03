@@ -13,7 +13,6 @@ public class UpdateParentWithChildrenCategoryRequest {
     String name;
     String description;
     String icon;
-    String parentId; // Giữ nguyên nếu muốn đổi cha cấp cao hơn
 
     // Danh sách con gửi lên để cập nhật
     List<ChildCategoryUpdateRequest> children;

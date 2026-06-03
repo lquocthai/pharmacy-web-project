@@ -74,7 +74,9 @@ public class AuthenticationService {
         log.info("pass: {}", request.getPassword());
         var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
+        if(!user.isActive()){
+            throw new AppException(ErrorCode.USER_LOCKED);
+        }
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 

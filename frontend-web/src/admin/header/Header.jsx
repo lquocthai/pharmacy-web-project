@@ -6,8 +6,8 @@ import { useSelector } from "react-redux";
 const Header = ({ onToggle, sidebarOpen, isDark, onToggleTheme }) => {
     const { user } = useSelector(state => state.auth);
     return (
-        <header className="sticky top-0 z-[999] flex w-full border-b border-[#E2E8F0] bg-white shadow-sm dark:border-[#1E293B] dark:bg-[#111827]">
-            <div className="flex w-full items-center justify-between px-6 py-4">
+        <header className="sticky top-0 z-[999] flex w-full border-b border-[#E2E8F0] bg-white  dark:border-[#1E293B] dark:bg-[#111827]">
+            <div className="flex w-full items-center justify-between px-6 py-3">
 
                 {/* LEFT SIDE: TOGGLE BUTTON & SEARCH BAR */}
                 <div className="flex flex-1 items-center gap-6">

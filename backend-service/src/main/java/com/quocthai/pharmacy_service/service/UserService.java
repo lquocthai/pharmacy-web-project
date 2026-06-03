@@ -2,15 +2,20 @@ package com.quocthai.pharmacy_service.service;
 
 import com.quocthai.pharmacy_service.constants.AuthProvider;
 import com.quocthai.pharmacy_service.constants.PredefinedRole;
+import com.quocthai.pharmacy_service.dto.admin.request.AdminCreateUserRequest;
+import com.quocthai.pharmacy_service.dto.admin.request.AdminUpdateRoleRequest;
+import com.quocthai.pharmacy_service.dto.admin.response.AdminUserDetailResponse;
 import com.quocthai.pharmacy_service.dto.request.ResendOtpRequest;
 import com.quocthai.pharmacy_service.dto.request.UserCreationRequest;
 import com.quocthai.pharmacy_service.dto.request.UserUpdateRequest;
 import com.quocthai.pharmacy_service.dto.request.VerifyOtpRequest;
+import com.quocthai.pharmacy_service.dto.response.PageResponse;
 import com.quocthai.pharmacy_service.dto.response.UserResponse;
 import com.quocthai.pharmacy_service.entity.Role;
 import com.quocthai.pharmacy_service.entity.User;
 import com.quocthai.pharmacy_service.exeption.AppException;
 import com.quocthai.pharmacy_service.exeption.ErrorCode;
+import com.quocthai.pharmacy_service.mapper.AdminUserMapper;
 import com.quocthai.pharmacy_service.mapper.UserMapper;
 import com.quocthai.pharmacy_service.repository.RoleRepository;
 import com.quocthai.pharmacy_service.repository.UserRepository;
@@ -18,13 +23,19 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -39,6 +50,7 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     StringRedisTemplate stringRedisTemplate;
     EmailService emailService;
+    AdminUserMapper adminUserMapper;
     Random random = new Random();
 
     public String register(UserCreationRequest request) {
@@ -197,5 +209,138 @@ public class UserService {
 
         userRepository.save(user);
         stringRedisTemplate.delete("OTP:" + email);
+    }
+
+    // chức năng admin
+    @PreAuthorize("hasRole('ADMIN')")
+    public PageResponse<UserResponse> getUsers(
+            int page,
+            int size,
+            String search,
+            Boolean active
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<User> users = userRepository.searchUsers(
+                search,
+                active,
+                pageable
+        );
+
+        List<UserResponse> content = users.getContent()
+                .stream()
+                .map(userMapper::toUserResponse)
+                .toList();
+
+        return PageResponse.<UserResponse>builder()
+                .content(content)
+                .page(users.getNumber())
+                .size(users.getSize())
+                .totalElements(users.getTotalElements())
+                .totalPages(users.getTotalPages())
+                .last(users.isLast())
+                .build();
+    }
+
+    // lấy chi tiết user admin
+    @PreAuthorize("hasRole('ADMIN')")
+    public AdminUserDetailResponse getUserDetail(String userId) {
+
+        User user = userRepository.findDetailById(userId)
+                .orElseThrow(() ->
+                        new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        return adminUserMapper.toAdminUserDetailResponse(user);
+    }
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse createUser(AdminCreateUserRequest request) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
+        Role role = roleRepository.findById(request.getRole())
+                .orElseThrow(() ->
+                        new AppException(ErrorCode.ROLE_NOT_FOUND));
+
+        User user = User.builder()
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .sex(request.getSex())
+                .dob(request.getDob())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .active(Boolean.TRUE.equals(request.getActive()))
+                .provider(AuthProvider.DEFAULT)
+                .build();
+        HashSet<Role> roles = new HashSet<>();
+        roles.add(role);
+
+        user.setRoles(roles);
+        userRepository.save(user);
+
+        return userMapper.toUserResponse(user);
+    }
+
+    // update user admin
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse updateUser(
+            String userId,
+            AdminUpdateRoleRequest request
+    ) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new AppException(ErrorCode.USER_NOT_EXISTED));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        User currentUser  = userRepository.findByEmail(auth.getName()).orElseThrow(()->
+                new AppException((ErrorCode.USER_NOT_EXISTED)));
+        if(userId.equals(currentUser.getId())){
+            throw new AppException(ErrorCode.CANNOT_UPDATE_OWN_STATUS);
+        }
+        if (request.getRole() != null) {
+            Role role = roleRepository.findById(request.getRole())
+                    .orElseThrow(() ->
+                            new AppException(ErrorCode.ROLE_NOT_FOUND));
+            HashSet<Role> roles = new HashSet<>();
+            roles.add(role);
+            user.setRoles(roles);
+        }
+        userRepository.save(user);
+
+        return userMapper.toUserResponse(user);
+    }
+    // set quyền
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void updateStatus(String userId, Boolean active) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new AppException(ErrorCode.USER_NOT_EXISTED));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        User currentUser  = userRepository.findByEmail(auth.getName()).orElseThrow(()->
+                new AppException((ErrorCode.USER_NOT_EXISTED)));
+
+        if(userId.equals(currentUser .getId())){
+            throw new AppException(ErrorCode.CANNOT_UPDATE_OWN_STATUS);
+        }
+        user.setActive(active);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void resetPasswordAdmin(String userId,String password){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new AppException(ErrorCode.USER_NOT_EXISTED));
+        user.setPassword(passwordEncoder.encode(password));
     }
 }

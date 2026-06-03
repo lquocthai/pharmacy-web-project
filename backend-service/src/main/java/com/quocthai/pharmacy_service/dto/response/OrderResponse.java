@@ -25,6 +25,7 @@ public class OrderResponse {
     BigDecimal totalAmount;
     BigDecimal shippingFee;
     BigDecimal finalAmount;
+    Integer productCount;
     String note;
 
     // Snapshot địa chỉ giao hàng

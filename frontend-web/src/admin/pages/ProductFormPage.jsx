@@ -334,20 +334,23 @@ const ProductFormPage = () => {
             <div className="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
                     <h2 className="text-xl font-bold text-[#1C2434]">
-                        {isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm'}
+                        Quản lý sản phẩm
                     </h2>
                 </div>
-                <p className="text-xs text-[#64748B]">
-                    Home &gt; {isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm'}
-                </p>
+                <button
+                    onClick={() => navigate('/admin/products')}
+                    className="flex items-center gap-1.5  font-medium text-[#64748B] hover:text-[#3C50E0] transition-colors"
+                >
+                    &larr; Quay lại danh sách
+                </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
 
                 {/* KHỐI 1: PRODUCTS DESCRIPTION */}
-                <div style={{ borderRadius: '1rem' }} className="bg-white rounded-sm shadow-sm border border-[#E2E8F0]">
-                    <div style={{ borderRadius: '1rem 0 0 0' }} className="border-b border-[#E2E8F0] p-2 bg-[#F8FAFC]">
-                        <h5 className="font-bold text-sm">Sản phẩm</h5>
+                <div style={{ borderRadius: '1rem' }} className="bg-white rounded-sm  border border-[#E2E8F0]">
+                    <div style={{ borderRadius: '1rem 0 0 0' }} className="border-b border-[#E2E8F0] p-3 bg-[#F8FAFC]">
+                        <h5 className="font-bold text-sm">{isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm'}</h5>
                     </div>
                     <div className="p-6 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -418,7 +421,7 @@ const ProductFormPage = () => {
                                         onChange={handleInputChange}
                                         className="rounded border-[#D2D6DC] text-[#3C50E0] focus:ring-[#3C50E0] w-4 h-4 cursor-pointer"
                                     />
-                                    Sản phẩm này cần kê đơn thuốc độc quyền của bác sĩ
+                                    Sản phẩm này cần kê đơn thuốc độc quyền của dược sĩ
                                 </label>
                             </div>
                         </div>
@@ -438,7 +441,7 @@ const ProductFormPage = () => {
                 </div>
 
                 {/* KHỐI 2: HÌNH ẢNH SẢN PHẨM (ĐÃ CHUYỂN ĐỔI CHỌN FILE VÀ HIỂN THỊ ẢNH THẬT) */}
-                <div style={{ borderRadius: '1rem' }} className="bg-white rounded-sm shadow-sm border border-[#E2E8F0] overflow-hidden">
+                <div style={{ borderRadius: '1rem' }} className="bg-white rounded-sm  border border-[#E2E8F0] overflow-hidden">
                     <div className="border-b border-[#E2E8F0] p-3 bg-[#F8FAFC]">
                         <h5 className="font-bold text-sm">Hình ảnh sản phẩm</h5>
                     </div>
@@ -487,7 +490,7 @@ const ProductFormPage = () => {
                                     <label className="block text-xs font-semibold text-[#1C2434]">Album ảnh phụ kèm theo</label>
                                     <p className="text-[10px] text-[#8A99AD] mt-0.5">Có thể chọn cùng lúc một hoặc nhiều tệp ảnh</p>
                                 </div>
-                                <label className="bg-[#3C50E0] text-white px-3 py-1.5 rounded text-[11px] font-medium hover:bg-opacity-90 cursor-pointer shadow-sm transition-all">
+                                <label className="bg-[#3C50E0] text-white px-3 py-1.5 rounded text-[11px] font-medium hover:bg-opacity-90 cursor-pointer  transition-all">
                                     + Thêm ảnh từ máy tính
                                     <input
                                         type="file"
@@ -511,7 +514,7 @@ const ProductFormPage = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveSubImage(item.id)}
-                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors shadow-sm cursor-pointer"
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors  cursor-pointer"
                                                 title="Xóa hình này"
                                             >
                                                 ✕
@@ -529,7 +532,7 @@ const ProductFormPage = () => {
                 </div>
 
                 {/* KHỐI 3: THÔNG SỐ ĐẶC THÙ */}
-                <div style={{ borderRadius: '1rem' }} className="bg-white rounded-sm shadow-sm border border-[#E2E8F0]">
+                <div style={{ borderRadius: '1rem' }} className="bg-white rounded-sm  border border-[#E2E8F0]">
                     <div style={{ borderRadius: '1rem 0 0 0' }} className="border-b border-[#E2E8F0] p-2 bg-[#F8FAFC] flex justify-between items-center">
                         <h5 className="font-bold text-sm">Thông số chi tiết</h5>
                         <button
@@ -576,7 +579,7 @@ const ProductFormPage = () => {
                 </div>
 
                 {/* KHỐI 4: QUẢN LÝ BIẾN THỂ & GIÁ CẢ */}
-                <div style={{ borderRadius: '1rem' }} className="bg-white rounded-sm shadow-sm border border-[#E2E8F0]">
+                <div style={{ borderRadius: '1rem' }} className="bg-white rounded-sm  border border-[#E2E8F0]">
                     <div style={{ borderRadius: '1rem 0 0 0' }} className="border-b border-[#E2E8F0] p-2 bg-[#F8FAFC] flex justify-between items-center">
                         <h5 className="font-bold text-sm">Biến thể sản phẩm</h5>
                         <button
@@ -683,7 +686,7 @@ const ProductFormPage = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-2.5 bg-[#3C50E0] text-white rounded-md text-xs font-medium hover:bg-opacity-90 transition-all shadow-sm disabled:opacity-50"
+                        className="px-6 py-2.5 bg-[#3C50E0] text-white rounded-md text-xs font-medium hover:bg-opacity-90 transition-all disabled:opacity-50"
                     >
                         {
                             loading

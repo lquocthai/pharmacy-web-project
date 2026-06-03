@@ -62,6 +62,8 @@ public class Order {
     @Column(nullable = false, precision = 15, scale = 2)
     BigDecimal finalAmount;
 
+    Integer productCount;
+
     @Column(columnDefinition = "TEXT")
     String note;
 

@@ -14,7 +14,12 @@ const AdminProductPage = () => {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    // Giữ nguyên ô nhập input hiển thị mượt mà không bị khựng
     const [searchTerm, setSearchTerm] = useState('');
+    // State lưu từ khóa trì hoãn sau 1 giây để trigger gọi API
+    const [debouncedKeyword, setDebouncedKeyword] = useState('');
+
     const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('');
 
     // Pagination
@@ -26,28 +31,18 @@ const AdminProductPage = () => {
     const [activeDropdown, setActiveDropdown] = useState(null);
 
     // ─────────────────────────────────────────────
-    // MODAL STATES
+    // EFFECT: XỬ LÝ DEBOUNCE TÌM KIẾM 1 GIÂY
     // ─────────────────────────────────────────────
-    const [openProductModal, setOpenProductModal] = useState(false);
-    const [newProduct, setNewProduct] = useState({
-        name: '',
-        primaryImageUrl: '',
-        country: '',
-        prescription: false,
-        isFeatured: false,
-        isBestSeller: false,
-        category: '',
-        variants: [
-            {
-                id: Date.now().toString(),
-                variantName: '',
-                price: 0,
-                originalPrice: 0,
-                stockQuantity: 1,
-                variantDefault: true
-            }
-        ]
-    });
+    useEffect(() => {
+        // Cài đặt bộ đếm thời gian trì hoãn 1000ms (1 giây)
+        const timer = setTimeout(() => {
+            setDebouncedKeyword(searchTerm);
+            setPage(0); // Mỗi lần từ khóa thay đổi, reset về trang 1 (page = 0)
+        }, 1000);
+
+        // Hàm dọn dẹp (cleanup): Hủy bộ đếm cũ nếu người dùng vẫn đang gõ tiếp
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     // ─────────────────────────────────────────────
     // FETCH DATA
@@ -59,7 +54,6 @@ const AdminProductPage = () => {
     const fetchCategories = async () => {
         try {
             const res = await categoryService.getAll();
-            console.log('Fetched categories:', res.data?.result); // Debug log để kiểm tra dữ liệu trả về
             setCategories(res.data?.result || []);
         } catch (error) {
             console.error(error);
@@ -88,9 +82,10 @@ const AdminProductPage = () => {
 
     const categoryOptions = useMemo(() => flattenCategories(categories), [categories]);
 
+    // THAY ĐỔI: Lắng nghe thêm sự thay đổi của biến `debouncedKeyword` thay vì lọc thủ công ở Client
     useEffect(() => {
         fetchProducts();
-    }, [page, selectedCategoryFilter]);
+    }, [page, selectedCategoryFilter, debouncedKeyword]);
 
     const fetchProducts = async () => {
         try {
@@ -101,27 +96,27 @@ const AdminProductPage = () => {
                 sortBy: 'name',
                 sortDir: 'desc'
             };
-            // THAY ĐỔI: Truyền tham số categoryId lên API thay vì categorySlug
+
             if (selectedCategoryFilter) {
                 params.categoryId = selectedCategoryFilter;
             }
+
+            // THAY ĐỔI: Gắn từ khóa tìm kiếm (đã được bọc dữ liệu sau 1s) vào tham số `keyword` để gửi lên API Backend
+            if (debouncedKeyword.trim()) {
+                params.keyword = debouncedKeyword.trim();
+            }
+
             const res = await productAdminService.getAdminProducts(params);
             const result = res.data?.result;
             setProducts(result?.content || []);
             setTotalPages(result?.totalPages || 0);
         } catch (error) {
             console.error(error);
-            toast.error('Không tải được sản phẩm');
+            toast.error('Không tải được danh mục sản phẩm từ máy chủ');
         } finally {
             setLoading(false);
         }
     };
-
-    const filteredProducts = useMemo(() => {
-        return products.filter(product =>
-            product.name?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [products, searchTerm]);
 
     // Click đóng dropdown hành động khi bấm ra ngoài
     useEffect(() => {
@@ -133,31 +128,19 @@ const AdminProductPage = () => {
 
     return (
         <div className="min-h-screen bg-[#F1F5F9] p-4 md:p-6 text-[#1C2434] font-satoshi">
-            {/* Thêm style ẩn thanh cuộn cho trình duyệt */}
             <style>{`
-                .no-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
-                .no-scrollbar {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
 
             <div className="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
-                    <h2 className="text-xl font-bold text-[#1C2434]">
-                        Danh sách sản phẩm
-                    </h2>
+                    <h2 className="text-xl font-bold text-[#1C2434]">Quản lý sản phẩm</h2>
                 </div>
-                <p className="text-xs text-[#64748B]">
-                    Home &gt; Danh sách sản phẩm
-                </p>
+                <p className="text-xs text-[#64748B]">Home &gt; Danh sách sản phẩm</p>
             </div>
 
-            {/* 🌟 GỘP CHUNG TẤT CẢ VÀO MỘT KHỐI DUY NHẤT 🌟 */}
-            {/* THAY ĐỔI: Bỏ overflow-hidden ở đây để các phần tử con dropdown có thể tràn ra ngoài thoải mái nếu cần */}
-            <div style={{ borderRadius: '1rem' }} className="bg-white shadow-sm border border-[#E2E8F0]">
+            <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0]">
 
                 {/* ── 1. HEADER SECTION ── */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-3 border-b border-[#E2E8F0]">
@@ -174,7 +157,7 @@ const AdminProductPage = () => {
                         </button>
                         <button
                             onClick={() => navigate('/admin/products/create')}
-                            className="flex items-center justify-center gap-1.5 bg-[#3C50E0] text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-opacity-90 transition-all shadow-sm w-full sm:w-auto"
+                            className="flex items-center justify-center gap-1.5 bg-[#3C50E0] text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-opacity-90 transition-all w-full sm:w-auto"
                         >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -196,10 +179,16 @@ const AdminProductPage = () => {
                         <input
                             type="text"
                             className="w-full bg-white border border-[#E2E8F0] rounded-md pl-8 pr-3 py-1.5 text-xs text-[#1C2434] placeholder-[#8A99AD] focus:outline-none focus:border-[#3C50E0] transition-all"
-                            placeholder="Search..."
+                            placeholder="Tìm kiếm theo từ khóa..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
+                        {/* Hiển thị một icon nhỏ xoay nhẹ báo hiệu đang chờ người dùng dừng gõ */}
+                        {searchTerm !== debouncedKeyword && (
+                            <span className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
+                                <div className="animate-spin w-3 h-3 border-2 border-[#3C50E0] border-t-transparent rounded-full"></div>
+                            </span>
+                        )}
                     </div>
 
                     {/* Category Filter & Filter Button */}
@@ -237,7 +226,6 @@ const AdminProductPage = () => {
                     </div>
                 ) : (
                     <>
-                        {/* THAY ĐỔI: Thêm class `no-scrollbar` để ẩn thanh cuộn và đổi thành `overflow-x-initial` hoặc kiểm soát trượt */}
                         <div className="max-w-full overflow-x-auto no-scrollbar">
                             <table className="w-full table-auto text-left border-collapse">
                                 <thead>
@@ -253,134 +241,121 @@ const AdminProductPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="text-xs divide-y divide-[#E2E8F0]">
-                                    {filteredProducts.map((product, index) => {
-                                        const defaultVariant = product.variants?.find(v => v.variantDefault) || product.variants?.[0];
-                                        const isOutOfStock = !defaultVariant || defaultVariant.stockQuantity <= 0;
+                                    {/* THAY ĐỔI: Duyệt trực tiếp danh sách mảng sản phẩm `products` trả từ API về (Vì API đã tự lọc theo keyword cho bạn rồi) */}
+                                    {products.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="6" className="text-center p-8 text-[#64748B] font-medium">
+                                                Không có sản phẩm nào phù hợp với từ khóa tìm kiếm.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        products.map((product) => {
+                                            const defaultVariant = product.variants?.find(v => v.variantDefault) || product.variants?.[0];
+                                            const isOutOfStock = !defaultVariant || defaultVariant.stockQuantity <= 0;
 
-                                        return (
-                                            <tr key={product.id} className="hover:bg-[#F8FAFC] transition-colors">
-                                                <td className="p-2.5 pl-4">
-                                                    <input type="checkbox" className="rounded border-[#D2D6DC] text-[#3C50E0] focus:ring-[#3C50E0] w-3.5 h-3.5 cursor-pointer" />
-                                                </td>
-                                                <td className="p-2.5 max-w-[280px]">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className="w-9 h-9 rounded bg-[#F8FAFC] border border-[#E2E8F0] p-0.5 flex-shrink-0 flex items-center justify-center">
-                                                            <img
-                                                                src={product.primaryImageUrl || 'https://via.placeholder.com/50'}
-                                                                alt={product.name}
-                                                                className="max-w-full max-h-full object-contain"
-                                                            />
-                                                        </div>
-                                                        <div className="overflow-hidden">
-                                                            <p className="font-semibold text-xs text-[#1C2434] truncate hover:text-[#3C50E0] cursor-pointer">
-                                                                {product.name}
-                                                            </p>
-                                                            <p className="text-[10px] text-[#64748B] mt-0.5 truncate">
-                                                                Origin: {product.country || 'N/A'}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="p-2.5 text-[#64748B] font-medium">
-                                                    {product.categoryName || 'Uncategorized'}
-                                                </td>
-                                                <td className="p-2.5">
-                                                    {product.prescription ? (
-                                                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-100">
-                                                            Kê đơn
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-50 text-[#64748B] border border-[#E2E8F0]">
-                                                            Không kê đơn
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="p-2.5">
-                                                    <div className="flex flex-col gap-1 max-w-[240px]">
-                                                        {product.variants?.map((v) => (
-                                                            <div
-                                                                key={v.id}
-                                                                className={`flex items-center justify-between text-[11px] p-1 px-1.5 rounded ${v.variantDefault
-                                                                    ? 'bg-[#EBF0FF] text-[#3C50E0] font-semibold'
-                                                                    : 'bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B]'
-                                                                    }`}
-                                                            >
-                                                                <span className="truncate mr-1.5">📦 {v.variantName || 'Default'}</span>
-                                                                <span className="font-bold whitespace-nowrap">
-                                                                    {v.price?.toLocaleString('vi-VN')}đ ({v.stockQuantity})
-                                                                </span>
+                                            return (
+                                                <tr key={product.id} className="hover:bg-[#F8FAFC] transition-colors">
+                                                    <td className="p-2.5 pl-4">
+                                                        <input type="checkbox" className="rounded border-[#D2D6DC] text-[#3C50E0] focus:ring-[#3C50E0] w-3.5 h-3.5 cursor-pointer" />
+                                                    </td>
+                                                    <td className="p-2.5 max-w-[280px]">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="w-9 h-9 rounded bg-[#F8FAFC] border border-[#E2E8F0] p-0.5 flex-shrink-0 flex items-center justify-center">
+                                                                <img
+                                                                    src={product.primaryImageUrl || 'https://via.placeholder.com/50'}
+                                                                    alt={product.name}
+                                                                    className="max-w-full max-h-full object-contain"
+                                                                />
                                                             </div>
-                                                        ))}
-                                                        <div className="mt-0.5">
-                                                            {isOutOfStock ? (
-                                                                <span className="inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-[#FEE2E2] text-[#EF4444]">
-                                                                    Out of Stock
-                                                                </span>
-                                                            ) : (
-                                                                <span className="inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-[#DCFCE7] text-[#10B981]">
-                                                                    In Stock
-                                                                </span>
-                                                            )}
+                                                            <div className="overflow-hidden">
+                                                                <p className="font-semibold text-xs text-[#1C2434] truncate hover:text-[#3C50E0] cursor-pointer">
+                                                                    {product.name}
+                                                                </p>
+                                                                <p className="text-[10px] text-[#64748B] mt-0.5 truncate">
+                                                                    Origin: {product.country || 'N/A'}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </td>
-
-                                                {/* THAY ĐỔI TRỌNG TÂM: Quản lý z-index của Actions cell và dropdown */}
-                                                <td className="p-2.5 text-right pr-4 relative" style={{ zIndex: activeDropdown === product.id ? 40 : 'auto' }}>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setActiveDropdown(activeDropdown === product.id ? null : product.id);
-                                                        }}
-                                                        className="text-[#64748B] hover:text-[#1C2434] p-1 rounded-full hover:bg-[#F1F5F9] transition-colors"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM18 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                        </svg>
-                                                    </button>
-
-                                                    {activeDropdown === product.id && (
-                                                        /* THAY ĐỔI: Chuyển vị trí hiển thị lên trên `top-full` và tăng `z-[100]` cực cao để vượt qua Pagination */
-                                                        <div className="absolute right-4 top-[80%] w-32 bg-white border border-[#E2E8F0] rounded shadow-xl py-1 z-[100] text-left token-dropdown">
-                                                            <button className="w-full px-3 py-1.5 text-xs text-[#1C2434] hover:bg-[#F8FAFC] transition-colors flex items-center gap-1.5">
-                                                                Chi tiết
-                                                            </button>
-                                                            <button onClick={() => navigate(`/admin/products/edit/${product.slug}`)} className="w-full px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors flex items-center gap-1.5">
-                                                                Sửa
-                                                            </button>
-                                                            <button className="w-full px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1.5">
-                                                                Xóa
-                                                            </button>
+                                                    </td>
+                                                    <td className="p-2.5 text-[#64748B] font-medium">
+                                                        {product.categoryName || 'Uncategorized'}
+                                                    </td>
+                                                    <td className="p-2.5">
+                                                        {product.prescription ? (
+                                                            <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-100">Kê đơn</span>
+                                                        ) : (
+                                                            <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-50 text-[#64748B] border border-[#E2E8F0]">Không kê đơn</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-2.5">
+                                                        <div className="flex flex-col gap-1 max-w-[240px]">
+                                                            {product.variants?.map((v) => (
+                                                                <div
+                                                                    key={v.id}
+                                                                    className={`flex items-center justify-between text-[11px] p-1 px-1.5 rounded ${v.variantDefault ? 'bg-[#EBF0FF] text-[#3C50E0] font-semibold' : 'bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B]'}`}
+                                                                >
+                                                                    <span className="truncate mr-1.5">📦 {v.variantName || 'Default'} ({v.sku})</span>
+                                                                    <span className="font-bold whitespace-nowrap">
+                                                                        {v.price?.toLocaleString('vi-VN')}đ ({v.stockQuantity})
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                            <div className="mt-0.5">
+                                                                {isOutOfStock ? (
+                                                                    <span className="inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-[#FEE2E2] text-[#EF4444]">Out of Stock</span>
+                                                                ) : (
+                                                                    <span className="inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-[#DCFCE7] text-[#10B981]">In Stock</span>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                                    </td>
+
+                                                    <td className="p-2.5 text-right pr-4 relative" style={{ zIndex: activeDropdown === product.id ? 40 : 'auto' }}>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveDropdown(activeDropdown === product.id ? null : product.id);
+                                                            }}
+                                                            className="text-[#64748B] hover:text-[#1C2434] p-1 rounded-full hover:bg-[#F1F5F9] transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM18 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                            </svg>
+                                                        </button>
+
+                                                        {activeDropdown === product.id && (
+                                                            <div className="absolute right-4 top-[80%] w-32 bg-white border border-[#E2E8F0] rounded shadow-xl py-1 z-[100] text-left token-dropdown">
+                                                                <button className="w-full px-3 py-1.5 text-xs text-[#1C2434] hover:bg-[#F8FAFC] transition-colors flex items-center gap-1.5">Chi tiết</button>
+                                                                <button onClick={() => navigate(`/admin/products/edit/${product.slug}`)} className="w-full px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors flex items-center gap-1.5">Sửa</button>
+                                                                <button className="w-full px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1.5">Xóa</button>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
                                 </tbody>
                             </table>
                         </div>
 
                         {/* ── 4. PAGINATION BAR ── */}
-                        {/* THAY ĐỔI: Thêm `relative z-10` nhưng giữ thấp hơn Z-index của dropdown (z-[100]) */}
                         <div className="flex justify-between items-center px-4 py-3 border-t border-[#E2E8F0] bg-white relative z-10">
-                            <span className="text-xs text-[#64748B]">
-                                Page {page + 1} of {totalPages || 1}
-                            </span>
+                            <span className="text-xs text-[#64748B]">Trang {page + 1}/{totalPages || 1}</span>
                             <div className="flex items-center gap-1.5">
                                 <button
                                     className="px-2.5 py-1 text-[11px] font-medium border border-[#E2E8F0] rounded text-[#1C2434] bg-white hover:bg-[#F8FAFC] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                     disabled={page === 0}
                                     onClick={() => setPage(prev => prev - 1)}
                                 >
-                                    Previous
+                                    Trước
                                 </button>
                                 <button
                                     className="px-2.5 py-1 text-[11px] font-medium border border-[#E2E8F0] rounded text-[#1C2434] bg-white hover:bg-[#F8FAFC] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                     disabled={page + 1 >= totalPages}
                                     onClick={() => setPage(prev => prev + 1)}
                                 >
-                                    Next
+                                    Sau
                                 </button>
                             </div>
                         </div>

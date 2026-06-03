@@ -1,6 +1,7 @@
-package com.quocthai.pharmacy_service.dto.response;
+package com.quocthai.pharmacy_service.dto.admin.response;
 
-import com.quocthai.pharmacy_service.constants.AuthProvider;
+import com.quocthai.pharmacy_service.dto.response.RoleResponse;
+import com.quocthai.pharmacy_service.dto.response.UserAddressResponse;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -13,15 +14,16 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
+public class AdminUserDetailResponse {
     String id;
     String username;
     String email;
-    LocalDate dob;
     String phone;
     String sex;
-    AuthProvider authProvider;
-    String provider;
+    LocalDate dob;
     boolean active;
+
     Set<RoleResponse> roles;
+
+    List<UserAddressResponse> addresses;
 }

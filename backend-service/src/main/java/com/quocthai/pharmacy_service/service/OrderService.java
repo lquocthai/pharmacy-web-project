@@ -3,6 +3,8 @@ package com.quocthai.pharmacy_service.service;
 import com.quocthai.pharmacy_service.constants.OrderStatus;
 import com.quocthai.pharmacy_service.constants.PaymentMethod;
 import com.quocthai.pharmacy_service.constants.PaymentStatus;
+import com.quocthai.pharmacy_service.dto.admin.request.UpdateOrderStatusRequest;
+import com.quocthai.pharmacy_service.dto.admin.response.AdminOrderResponse;
 import com.quocthai.pharmacy_service.dto.request.CancelOrderRequest;
 import com.quocthai.pharmacy_service.dto.request.CreateOrderRequest;
 import com.quocthai.pharmacy_service.dto.request.OrderItemRequest;
@@ -10,11 +12,17 @@ import com.quocthai.pharmacy_service.dto.response.*;
 import com.quocthai.pharmacy_service.entity.*;
 import com.quocthai.pharmacy_service.exeption.AppException;
 import com.quocthai.pharmacy_service.exeption.ErrorCode;
+import com.quocthai.pharmacy_service.mapper.AdminOrderMapper;
 import com.quocthai.pharmacy_service.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,9 +51,11 @@ public class OrderService {
     ProductVariantRepository productVariantRepository;
     ProductImageRepository productImageRepository;
     ProductRepository productRepository;
+    InventoryAllocationRepository inventoryAllocationRepository;
     // ── Phí vận chuyển cố định (có thể mở rộng sau) ──────────────────────────
     private static final BigDecimal SHIPPING_FEE = BigDecimal.valueOf(30_000);
     private static final Random RD = new Random();
+    private final AdminOrderMapper adminOrderMapper;
 
 
     // ── Lấy email từ JWT ──────────────────────────────────────────────────────
@@ -88,6 +98,7 @@ public class OrderService {
                 .totalAmount(order.getTotalAmount())
                 .shippingFee(order.getShippingFee())
                 .finalAmount(order.getFinalAmount())
+                .productCount(order.getProductCount())
                 .note(order.getNote())
                 .shippingFullName(order.getShippingFullName())
                 .shippingPhone(order.getShippingPhone())
@@ -134,35 +145,53 @@ public class OrderService {
     }
 
     // ── THUẬT TOÁN TRỪ KHO THEO LÔ FIFO (REAL-TIME NĂM 2026) ───────────────────
-    private void deductInventoryFIFO(OrderItem item) {
-        String variantId = item.getVariant().getId();
-        int quantityNeeded = item.getQuantity();
-
-        // Lấy các lô hàng chưa hết hạn, xếp theo hạn sử dụng từ gần đến xa
-        List<InventoryBatch> batches = inventoryRepository.findAvailableBatchesByVariantId(variantId, LocalDate.now());
-
+    private List<InventoryAllocation> deductInventoryFIFO(OrderItem orderItem) {
+        String variantId = orderItem.getVariant().getId();
+        int quantityNeeded = orderItem.getQuantity();
+        List<InventoryBatch> batches =
+                inventoryRepository.findAvailableBatchesByVariantId(
+                        variantId,
+                        LocalDate.now()
+                );
+        List<InventoryAllocation> allocations =
+                new ArrayList<>();
         int remainingToDeduct = quantityNeeded;
-
         for (InventoryBatch batch : batches) {
-            if (remainingToDeduct <= 0) break;
+            if (remainingToDeduct <= 0) {
+                break;
+            }
+            int stock = batch.getRemainingQuantity();
+            if (stock <= 0) {
+                continue;
+            }
 
-            int currentBatchStock = batch.getRemainingQuantity();
-            if (currentBatchStock <= 0) continue;
+            int deductAmount =
+                    Math.min(stock, remainingToDeduct);
 
-            // Số lượng thực trừ từ lô này
-            int deductAmount = Math.min(currentBatchStock, remainingToDeduct);
+            batch.setRemainingQuantity(
+                    stock - deductAmount
+            );
 
-            batch.setRemainingQuantity(currentBatchStock - deductAmount);
             remainingToDeduct -= deductAmount;
 
-            // Lưu cập nhật của lô vào DB
-            inventoryRepository.save(batch);
+            allocations.add(
+                    InventoryAllocation.builder()
+                            .orderItem(orderItem)
+                            .batch(batch)
+                            .quantity(deductAmount)
+                            .build()
+            );
         }
 
-        // Nếu duyệt hết toàn bộ các lô khả dụng mà vẫn chưa trừ đủ số lượng -> Báo lỗi chặn thanh toán
         if (remainingToDeduct > 0) {
-            throw new AppException(ErrorCode.INSUFFICIENT_STOCK);
+            throw new AppException(
+                    ErrorCode.INSUFFICIENT_STOCK
+            );
         }
+
+        inventoryRepository.saveAll(batches);
+
+        return allocations;
     }
 
     // ── HOÀN LẠI TỒN KHO KHI HỦY ĐƠN (QUAY LẠI LÔ GỐC) ─────────────────────────
@@ -272,6 +301,7 @@ public class OrderService {
                 .totalAmount(calculatedTotal)
                 .shippingFee(shippingFee)
                 .finalAmount(finalAmount)
+                .productCount(orderItems.size())
                 .note(request.getNote())
 
                 // Snapshot địa chỉ giao nhận thuốc tại chỗ
@@ -290,9 +320,19 @@ public class OrderService {
         orderItemRepository.saveAll(orderItems);
 
         // 9. Thực thi trừ kho Lô theo thuật toán FIFO cấu hình hạn dùng tăng dần
+        List<InventoryAllocation> allocations =
+                new ArrayList<>();
+
         for (OrderItem item : orderItems) {
-            deductInventoryFIFO(item);
+
+            allocations.addAll(
+                    deductInventoryFIFO(item)
+            );
         }
+        inventoryAllocationRepository.saveAll(
+                allocations
+        );
+
 
         // 10. Tạo bản ghi Audit Log tiến trình đơn hàng trước tiên
         OrderStatusHistory history = OrderStatusHistory.builder()
@@ -463,5 +503,168 @@ public class OrderService {
                 .findByOrderId(orderId).stream().map(this::toHistoryResponse).toList();
 
         return toResponse(order, itemResponses, historyResponses);
+    }
+    // admin
+    @PreAuthorize("hasRole('ADMIN')")
+    public PageResponse<AdminOrderResponse> getOrders(
+            int page,
+            int size,
+            String keyword,
+            OrderStatus status,
+            PaymentStatus paymentStatus
+    ) {
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Page<Order> orders = orderRepository.searchOrders(
+                keyword,
+                status,
+                paymentStatus,
+                pageable
+        );
+
+        List<AdminOrderResponse> content = orders.getContent()
+                .stream()
+                .map(adminOrderMapper::toAdminOrderResponse)
+                .toList();
+
+        return PageResponse.<AdminOrderResponse>builder()
+                .content(content)
+                .page(orders.getNumber())
+                .size(orders.getSize())
+                .totalElements(orders.getTotalElements())
+                .totalPages(orders.getTotalPages())
+                .last(orders.isLast())
+                .build();
+    }
+    // update status order
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void updateStatus(
+            String orderId,
+            UpdateOrderStatusRequest request
+    ) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() ->
+                        new AppException(ErrorCode.ORDER_NOT_EXISTED));
+
+        validateStatusTransition(
+                order.getStatus(),
+                request.getStatus()
+        );
+
+        order.setStatus(request.getStatus());
+
+        if (request.getStatus() == OrderStatus.CANCELLED) {
+            order.setCancelledAt(LocalDateTime.now());
+            order.setCancelReason(request.getNote());
+        }
+        String adminEmail = getCurrentUserEmail();
+        OrderStatusHistory history =
+                OrderStatusHistory.builder()
+                        .order(order)
+                        .status(request.getStatus())
+                        .note(request.getNote())
+                        .changedBy(adminEmail)
+                        .build();
+
+        orderStatusHistoryRepository.save(history);
+    }
+    // cancel order admin
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void cancelOrderByAdmin(
+            String orderId,
+            CancelOrderRequest request
+    ) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() ->
+                        new AppException(ErrorCode.ORDER_NOT_EXISTED));
+        if (order.getStatus() == OrderStatus.SHIPPING) {
+            throw new AppException(ErrorCode.ORDER_CANNOT_CANCEL);
+        }
+
+        if (order.getStatus() == OrderStatus.DELIVERED) {
+            throw new AppException(ErrorCode.ORDER_CANNOT_CANCEL);
+        }
+
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new AppException(ErrorCode.ORDER_ALREADY_CANCELLED);
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setCancelledAt(LocalDateTime.now());
+        order.setCancelReason(request.getCancelReason());
+
+        String adminEmail = getCurrentUserEmail();
+
+        OrderStatusHistory history =
+                OrderStatusHistory.builder()
+                        .order(order)
+                        .status(OrderStatus.CANCELLED)
+                        .note(request.getCancelReason())
+                        .changedBy(adminEmail)
+                        .build();
+
+        orderStatusHistoryRepository.save(history);
+    }
+    // xem lịch sử đơn hàng
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<OrderStatusHistoryResponse> getOrderHistory(String orderId) {
+        if (!orderRepository.existsById(orderId)) {
+            throw new AppException(
+                    ErrorCode.ORDER_NOT_EXISTED
+            );
+        }
+        return orderStatusHistoryRepository.findByOrderId(orderId)
+                .stream().map(this::toHistoryResponse).toList();
+    }
+    // validate status tránh cập nhật lộn xộn (validate theo business rule)
+    private void validateStatusTransition(
+            OrderStatus current,
+            OrderStatus next
+    ) {
+        if (current == next) {
+            throw new AppException(
+                    ErrorCode.INVALID_ORDER_STATUS
+            );
+        }
+        switch (current) {
+            case PENDING -> {
+                if (next != OrderStatus.CONFIRMED
+                        && next != OrderStatus.CANCELLED) {
+                    throw new AppException(
+                            ErrorCode.INVALID_ORDER_STATUS
+                    );
+                }
+            }
+
+            case CONFIRMED -> {
+                if (next != OrderStatus.SHIPPING
+                        && next != OrderStatus.CANCELLED) {
+                    throw new AppException(
+                            ErrorCode.INVALID_ORDER_STATUS
+                    );
+                }
+            }
+
+            case SHIPPING -> {
+                if (next != OrderStatus.DELIVERED) {
+                    throw new AppException(
+                            ErrorCode.INVALID_ORDER_STATUS
+                    );
+                }
+            }
+
+            case DELIVERED, CANCELLED -> {
+                throw new AppException(
+                        ErrorCode.INVALID_ORDER_STATUS
+                );
+            }
+        }
     }
 }

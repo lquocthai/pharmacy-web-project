@@ -77,6 +77,8 @@ const MyOrders = () => {
         switch (status) {
             case 'PENDING':
                 return { text: 'Đang xử lý', color: 'text-warning' };
+            case 'CONFIRMED':
+                return { text: 'Đã xác nhận', color: 'text-info' };
             case 'SHIPPING':
                 return { text: 'Đang giao', color: 'text-info' };
             case 'DELIVERED':
@@ -106,8 +108,30 @@ const MyOrders = () => {
 
     return (
         <div className="w-100">
+            {/* Thanh tìm kiếm bên phải */}
+            <InputGroup className="bg-light rounded-full overflow-hidden border-0 shadow-sm" style={{ maxWidth: '500px' }}>
+                <Form.Control
+                    placeholder="Tìm theo tên đơn, mã đơn, hoặc tên sản phẩm..."
+                    className="bg-light border-0 small py-2 ps-3 shadow-none"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            setDebouncedSearch(searchTerm); // Kích hoạt tìm kiếm ngay lập tức khi nhấn Enter
+                        }
+                    }}
+                />
+                <InputGroup.Text
+                    className="bg-light border-0 text-secondary pe-3"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setDebouncedSearch(searchTerm)} // Kích hoạt tìm kiếm ngay khi click
+                >
+                    <Search size={18} />
+                </InputGroup.Text>
+            </InputGroup>
             {/* THANH ĐIỀU HƯỚNG TABS VÀ TÌM KIẾM (Giao diện chuẩn ảnh) */}
             <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4 border-bottom bg-white rounded-3 p-2 shadow-sm">
+
 
                 {/* Thanh Tabs ngang sử dụng Nav Pills mượt mà */}
                 <Nav
@@ -123,6 +147,9 @@ const MyOrders = () => {
                         <Nav.Link eventKey="PENDING" className={`px-3 py-2 fw-medium ${activeTab === 'PENDING' ? 'active-tab' : 'text-secondary'}`}>Đang xử lý</Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
+                        <Nav.Link eventKey="CONFIRMED" className={`px-3 py-2 fw-medium ${activeTab === 'CONFIRMED' ? 'active-tab' : 'text-secondary'}`}>Đã xác nhận</Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
                         <Nav.Link eventKey="SHIPPING" className={`px-3 py-2 fw-medium ${activeTab === 'SHIPPING' ? 'active-tab' : 'text-secondary'}`}>Đang giao</Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
@@ -136,27 +163,7 @@ const MyOrders = () => {
                     </Nav.Item>
                 </Nav>
 
-                {/* Thanh tìm kiếm bên phải */}
-                <InputGroup className="bg-light rounded-3 overflow-hidden border-0 shadow-sm" style={{ maxWidth: '380px' }}>
-                    <Form.Control
-                        placeholder="Tìm theo tên đơn, mã đơn, hoặc tên sản phẩm..."
-                        className="bg-light border-0 small py-2 ps-3 shadow-none"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                setDebouncedSearch(searchTerm); // Kích hoạt tìm kiếm ngay lập tức khi nhấn Enter
-                            }
-                        }}
-                    />
-                    <InputGroup.Text
-                        className="bg-light border-0 text-secondary pe-3"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => setDebouncedSearch(searchTerm)} // Kích hoạt tìm kiếm ngay khi click
-                    >
-                        <Search size={18} />
-                    </InputGroup.Text>
-                </InputGroup>
+
             </div>
 
             {/* PHẦN LOGIC HIỂN THỊ CHÍNH */}
