@@ -1,23 +1,35 @@
 package com.quocthai.pharmacy_service.service;
 
-import com.quocthai.pharmacy_service.dto.request.CreateConversationRequest;
+import com.quocthai.pharmacy_service.constants.PredefinedRole;
 import com.quocthai.pharmacy_service.dto.response.ConversationResponse;
+import com.quocthai.pharmacy_service.dto.response.MessageResponse;
+import com.quocthai.pharmacy_service.dto.response.PageResponse;
 import com.quocthai.pharmacy_service.entity.Conversation;
+import com.quocthai.pharmacy_service.entity.Message;
+import com.quocthai.pharmacy_service.entity.User;
 import com.quocthai.pharmacy_service.exeption.AppException;
 import com.quocthai.pharmacy_service.exeption.ErrorCode;
 import com.quocthai.pharmacy_service.repository.ConversationRepository;
+import com.quocthai.pharmacy_service.repository.MessageRepository;
+import com.quocthai.pharmacy_service.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * REST-facing service: đọc danh sách conversation, đọc lịch sử message.
+ * Không chứa logic send/claim/resolve — thuộc ChatService.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,113 +37,155 @@ import java.util.stream.Collectors;
 public class ConversationService {
 
     ConversationRepository conversationRepository;
+    MessageRepository messageRepository;
+    UserRepository userRepository;
+    ChatService chatService;
 
-    /**
-     * User tạo cuộc hội thoại mới → trạng thái PENDING.
-     */
-    @Transactional
-    public ConversationResponse create(String userId, CreateConversationRequest req) {
-        Conversation c = Conversation.builder()
-                .userId(userId)
-                .status(Conversation.ConversationStatus.PENDING)
+    // ─────────────────────────────────────────────────────────────────────────
+    // USER: lịch sử conversation của chính mình
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public PageResponse<ConversationResponse> getMyConversations(int page, int size) {
+        String email = currentEmail();
+        User user = resolveUser(email);
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Conversation> result = conversationRepository
+                .findByUserIdOrderByLastMessageAtDesc(user.getId(), pageable);
+
+        return toPageResponse(result);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PHARMACIST: waiting list (PENDING) + own IN_PROGRESS
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public PageResponse<ConversationResponse> getWaitingConversations(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Conversation> result = conversationRepository
+                .findByStatusOrderByLastMessageAtDesc(Conversation.ConversationStatus.PENDING, pageable);
+        return toPageResponseWithSummary(result);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<ConversationResponse> getConversationsByStatus(
+            Conversation.ConversationStatus status, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Conversation> result = conversationRepository
+                .findByStatusOrderByLastMessageAtDesc(status, pageable);
+        return toPageResponseWithSummary(result);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ADMIN: tất cả conversation
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public PageResponse<ConversationResponse> getAllConversations(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Conversation> result = conversationRepository
+                .findAllByOrderByLastMessageAtDesc(pageable);
+        return toPageResponse(result);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MESSAGE HISTORY (user & pharmacist & admin)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public PageResponse<MessageResponse> getMessages(String conversationId, int page, int size) {
+        // Ownership/access check
+        String email = currentEmail();
+        User caller = resolveUser(email);
+
+        Conversation conv = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND));
+
+        boolean isAdmin = hasRole(caller, PredefinedRole.ADMIN_ROLE);
+        boolean isPharmacist = hasRole(caller, PredefinedRole.PHARMACIST_ROLE);
+        boolean isOwner = conv.getUserId().equals(caller.getId());
+        boolean isAssignedPharmacist = caller.getId().equals(conv.getPharmacistId());
+
+        if (!isAdmin && !isPharmacist && !isOwner) {
+            throw new AppException(ErrorCode.NOT_YOUR_CONVERSATION);
+        }
+
+        // Pharmacist chỉ đọc được conversation của họ hoặc conversation PENDING/IN_PROGRESS
+        if (isPharmacist && !isAdmin && !isOwner && !isAssignedPharmacist
+                && conv.getStatus() != Conversation.ConversationStatus.PENDING) {
+            throw new AppException(ErrorCode.CONVERSATION_FORBIDDEN);
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Message> msgs = messageRepository
+                .findByConversationIdOrderByCreatedAtAsc(conversationId, pageable);
+
+        return PageResponse.<MessageResponse>builder()
+                .content(msgs.getContent().stream()
+                        .map(chatService::toMessageResponse)
+                        .collect(Collectors.toList()))
+                .page(msgs.getNumber())
+                .size(msgs.getSize())
+                .totalElements(msgs.getTotalElements())
+                .totalPages(msgs.getTotalPages())
+                .last(msgs.isLast())
                 .build();
-
-        conversationRepository.save(c);
-        log.info("Conversation {} created by user {}", c.getId(), userId);
-        return toResponse(c);
     }
 
-    /**
-     * Dược sĩ / Admin lấy danh sách hội thoại theo trạng thái.
-     * Mặc định trả về PENDING nếu không truyền status.
-     */
-    public List<ConversationResponse> list(Conversation.ConversationStatus status) {
-        Conversation.ConversationStatus filter =
-                status != null ? status : Conversation.ConversationStatus.PENDING;
-        return conversationRepository.findByStatusOrderByLastMessageAtDesc(filter)
-                .stream()
-                .map(this::toResponse)
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private String currentEmail() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) throw new AppException(ErrorCode.UNAUTHENTICATED);
+        return auth.getName();
+    }
+
+    private User resolveUser(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+    }
+
+    private boolean hasRole(User user, String roleName) {
+        return user.getRoles().stream().anyMatch(r -> r.getName().equals(roleName));
+    }
+
+    private PageResponse<ConversationResponse> toPageResponse(Page<Conversation> page) {
+        List<ConversationResponse> content = page.getContent().stream()
+                .map(chatService::toConversationResponse)
                 .collect(Collectors.toList());
+        return buildPageResponse(page, content);
     }
 
-    /**
-     * Dược sĩ nhận tư vấn (claim).
-     * Dùng optimistic lock — nếu hai dược sĩ claim cùng lúc, người sau nhận ALREADY_TAKEN.
-     */
-    @Transactional
-    public ConversationResponse claim(String conversationId, String pharmacistId) {
-        Conversation c = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND));
-
-        if (c.getStatus() != Conversation.ConversationStatus.PENDING) {
-            throw new AppException(ErrorCode.CONVERSATION_ALREADY_TAKEN);
-        }
-
-        c.setStatus(Conversation.ConversationStatus.IN_PROGRESS);
-        c.setPharmacistId(pharmacistId);
-        c.setUpdatedAt(LocalDateTime.now());
-
-        try {
-            conversationRepository.saveAndFlush(c);
-        } catch (OptimisticLockingFailureException e) {
-            // Dược sĩ khác vừa claim trước
-            throw new AppException(ErrorCode.CONVERSATION_ALREADY_TAKEN);
-        }
-
-        log.info("Conversation {} claimed by pharmacist {}", conversationId, pharmacistId);
-        return toResponse(c);
-    }
-
-    /**
-     * Dược sĩ / Admin đánh dấu tư vấn hoàn tất → RESOLVED.
-     */
-    @Transactional
-    public ConversationResponse resolve(String conversationId, String pharmacistId) {
-        Conversation c = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND));
-
-        if (c.getStatus() != Conversation.ConversationStatus.IN_PROGRESS) {
-            throw new AppException(ErrorCode.CONVERSATION_NOT_IN_PROGRESS);
-        }
-
-        c.setStatus(Conversation.ConversationStatus.RESOLVED);
-        c.setUpdatedAt(LocalDateTime.now());
-        conversationRepository.save(c);
-
-        log.info("Conversation {} resolved by {}", conversationId, pharmacistId);
-        return toResponse(c);
-    }
-
-    /**
-     * Lấy chi tiết một conversation.
-     */
-    public ConversationResponse getById(String conversationId) {
-        return toResponse(
-                conversationRepository.findById(conversationId)
-                        .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND))
-        );
-    }
-
-    /**
-     * Lấy danh sách conversation của một user cụ thể.
-     */
-    public List<ConversationResponse> listByUser(String userId) {
-        return conversationRepository.findByUserIdOrderByLastMessageAtDesc(userId)
-                .stream()
-                .map(this::toResponse)
+    /** Thêm summary (count + lastMessage) cho waiting-list — tránh N+1 bằng cách load riêng */
+    private PageResponse<ConversationResponse> toPageResponseWithSummary(Page<Conversation> page) {
+        List<ConversationResponse> content = page.getContent().stream()
+                .map(c -> {
+                    ConversationResponse resp = chatService.toConversationResponse(c);
+                    resp.setMessageCount(messageRepository.countByConversationId(c.getId()));
+                    Message last = messageRepository.findTopByConversationIdOrderByCreatedAtDesc(c.getId());
+                    if (last != null) {
+                        resp.setLastMessageContent(last.getContent());
+                        resp.setLastMessageSenderRole(last.getSenderRole() != null
+                                ? last.getSenderRole().name() : null);
+                    }
+                    return resp;
+                })
                 .collect(Collectors.toList());
+        return buildPageResponse(page, content);
     }
 
-    // ── helpers ──────────────────────────────────────────────────────────────
-
-    private ConversationResponse toResponse(Conversation c) {
-        return ConversationResponse.builder()
-                .id(c.getId())
-                .userId(c.getUserId())
-                .pharmacistId(c.getPharmacistId())
-                .status(c.getStatus())
-                .lastMessageAt(c.getLastMessageAt())
-                .createdAt(c.getCreatedAt())
+    private <T> PageResponse<T> buildPageResponse(Page<?> page, List<T> content) {
+        return PageResponse.<T>builder()
+                .content(content)
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .last(page.isLast())
                 .build();
     }
 }

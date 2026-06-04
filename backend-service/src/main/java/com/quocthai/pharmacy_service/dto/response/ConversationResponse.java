@@ -15,8 +15,14 @@ public class ConversationResponse {
 
     String id;
     String userId;
+    String userDisplayName;
     String pharmacistId;
     Conversation.ConversationStatus status;
     LocalDateTime lastMessageAt;
     LocalDateTime createdAt;
+
+    // Summary fields — populated separately to avoid N+1
+    Long messageCount;
+    String lastMessageContent;
+    String lastMessageSenderRole;
 }

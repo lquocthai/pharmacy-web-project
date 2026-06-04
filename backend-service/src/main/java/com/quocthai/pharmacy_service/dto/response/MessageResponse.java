@@ -16,7 +16,7 @@ public class MessageResponse {
     String id;
     String conversationId;
     String senderId;
-    String senderName;
+    String senderDisplayName;
     Message.SenderRole senderRole;
     Message.MessageType messageType;
     String content;
