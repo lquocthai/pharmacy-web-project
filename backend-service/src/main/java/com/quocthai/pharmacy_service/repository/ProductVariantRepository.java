@@ -25,4 +25,25 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     List<ProductVariant> findAllWithProductByIds(
             @Param("ids") List<String> ids
     );
+
+    /**
+     * Lấy danh sách variant hết hàng: không có batch nào còn hàng và còn hạn.
+     * Dùng cho API out-of-stock.
+     * JOIN FETCH product để tránh N+1 khi map sang DTO.
+     */
+    @Query("""
+        SELECT pv
+        FROM ProductVariant pv
+        JOIN FETCH pv.product p
+        WHERE pv.id NOT IN (
+            SELECT DISTINCT ib.variant.id
+            FROM InventoryBatch ib
+            WHERE ib.expiryDate > :today
+              AND ib.remainingQuantity > 0
+        )
+        ORDER BY p.name ASC, pv.variantName ASC
+    """)
+    org.springframework.data.domain.Page<ProductVariant> findOutOfStockVariants(
+            @Param("today") java.time.LocalDate today,
+            org.springframework.data.domain.Pageable pageable);
 }

@@ -33,6 +33,17 @@ import UserDetailAdminPage from '../admin/pages/UserDetailAdminPage';
 import CreateCategoryPage from '../admin/pages/CreateCategoryPage';
 import AdminOrderPage from '../admin/pages/AdminOrderPage';
 
+// INVENTORY PAGES
+import InventoryDashboardPage from '../admin/pages/inventory/InventoryDashboardPage';
+import InventoryBatchListPage from '../admin/pages/inventory/InventoryBatchListPage';
+import InventoryBatchDetailPage from '../admin/pages/inventory/InventoryBatchDetailPage';
+import ImportInventoryPage from '../admin/pages/inventory/ImportInventoryPage';
+import EditInventoryBatchPage from '../admin/pages/inventory/EditInventoryBatchPage';
+import InventoryTransactionsPage from '../admin/pages/inventory/InventoryTransactionsPage';
+import LowStockPage from '../admin/pages/inventory/LowStockPage';
+import ExpiringBatchesPage from '../admin/pages/inventory/ExpiringBatchesPage';
+import OutOfStockPage from '../admin/pages/inventory/OutOfStockPage';
+
 
 // ─────────────────────────────────────────────
 // ROLES
@@ -236,7 +247,16 @@ const AdminRoutes = () => (
             element={<AdminOrderPage />}
         />
 
-
+        {/* ── INVENTORY ── */}
+        <Route path="inventory/dashboard" element={<InventoryDashboardPage />} />
+        <Route path="inventory/batches" element={<InventoryBatchListPage />} />
+        <Route path="inventory/batches/:id" element={<InventoryBatchDetailPage />} />
+        <Route path="inventory/batches/:id/edit" element={<EditInventoryBatchPage />} />
+        <Route path="inventory/import" element={<ImportInventoryPage />} />
+        <Route path="inventory/transactions" element={<InventoryTransactionsPage />} />
+        <Route path="inventory/low-stock" element={<LowStockPage />} />
+        <Route path="inventory/expiring" element={<ExpiringBatchesPage />} />
+        <Route path="inventory/out-of-stock" element={<OutOfStockPage />} />
 
         {/* admin fallback */}
         <Route

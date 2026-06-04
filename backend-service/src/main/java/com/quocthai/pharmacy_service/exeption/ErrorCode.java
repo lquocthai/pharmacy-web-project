@@ -68,6 +68,10 @@ public enum ErrorCode {
     INVALID_REQUEST(1047,"Thiếu dữ liệu",HttpStatus.BAD_REQUEST),
     PRODUCT_UNAVAILABLE(1068, "Sản phẩm không có sẵn", HttpStatus.BAD_REQUEST),
 
+    // Inventory errors
+    BATCH_NOT_FOUND(1085, "Lô hàng không tồn tại", HttpStatus.NOT_FOUND),
+    BATCH_EXPIRY_INVALID(1086, "Ngày hết hạn phải sau ngày hôm nay", HttpStatus.BAD_REQUEST),
+
     // Chat / Conversation errors
     CONVERSATION_NOT_FOUND(1069, "Cuộc hội thoại không tồn tại", HttpStatus.NOT_FOUND),
     CONVERSATION_ALREADY_TAKEN(1070, "Cuộc hội thoại đã được dược sĩ khác nhận", HttpStatus.CONFLICT),

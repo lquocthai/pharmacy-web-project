@@ -31,11 +31,15 @@ const AdminLayout = () => {
             pathname.includes('users/')
         );
     };
+    const checkIsInventoryRoute = (pathname) => {
+        return pathname.startsWith('/admin/inventory');
+    };
 
     // Khởi tạo trạng thái mở của E-commerce dựa trên URL hiện tại
     const [ecommerceOpen, setEcommerceOpen] = useState(checkIsEcommerceRoute(location.pathname));
     const [ordersOpen, setOrdersOpen] = useState(checkIsOrdersRoute(location.pathname));
     const [usersOpen, setUsersOpen] = useState(checkIsUsersRoute(location.pathname));
+    const [inventoryOpen, setInventoryOpen] = useState(checkIsInventoryRoute(location.pathname));
     /**
      * ⚡ AUTOMATIC SIDEBAR CONTROL
      */
@@ -58,6 +62,14 @@ const AdminLayout = () => {
             setUsersOpen(false);
         } else {
             setUsersOpen(true);
+        }
+    }, [location.pathname]);
+
+    useEffect(() => {
+        if (!checkIsInventoryRoute(location.pathname)) {
+            setInventoryOpen(false);
+        } else {
+            setInventoryOpen(true);
         }
     }, [location.pathname]);
 
@@ -87,6 +99,12 @@ const AdminLayout = () => {
     // Style cho nút Users (Chỉ xanh khi đang ở trong các trang con của nó)
     const isUsersActive = checkIsUsersRoute(location.pathname);
     const usersParentClass = isUsersActive
+        ? `flex w-full items-center rounded-[6px] py-2 text-[15px] font-medium no-underline transition-all duration-200 bg-[#EBF0FF] text-[#3C50E0] dark:bg-[#1E3A8A] dark:text-[#BFDBFE] ${sidebarOpen ? 'justify-between px-2' : 'justify-center px-0'}`
+        : `flex w-full items-center rounded-[6px] py-2 text-[15px] font-medium no-underline transition-all duration-200 text-[#4A5568] hover:bg-[#F1F5F9] hover:text-[#1C2434] dark:text-[#CBD5E1] dark:hover:bg-[#1E293B] dark:hover:text-white ${sidebarOpen ? 'justify-between px-2' : 'justify-center px-0'}`;
+
+    // Style cho nút Inventory
+    const isInventoryActive = checkIsInventoryRoute(location.pathname);
+    const inventoryParentClass = isInventoryActive
         ? `flex w-full items-center rounded-[6px] py-2 text-[15px] font-medium no-underline transition-all duration-200 bg-[#EBF0FF] text-[#3C50E0] dark:bg-[#1E3A8A] dark:text-[#BFDBFE] ${sidebarOpen ? 'justify-between px-2' : 'justify-center px-0'}`
         : `flex w-full items-center rounded-[6px] py-2 text-[15px] font-medium no-underline transition-all duration-200 text-[#4A5568] hover:bg-[#F1F5F9] hover:text-[#1C2434] dark:text-[#CBD5E1] dark:hover:bg-[#1E293B] dark:hover:text-white ${sidebarOpen ? 'justify-between px-2' : 'justify-center px-0'}`;
 
@@ -308,7 +326,36 @@ const AdminLayout = () => {
                             </div>
                         </div>
 
-                        {/* 5. CALENDAR */}
+                        {/* 5. CỤM MENU QUẢN LÝ KHO (ACCORDION) */}
+                        <div>
+                            <button
+                                type="button"
+                                onClick={() => setInventoryOpen(!inventoryOpen)}
+                                className={inventoryParentClass}
+                            >
+                                <div className="flex items-center gap-3.5">
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                    <span className='menu-item'>Quản lý kho</span>
+                                </div>
+                                <svg className={`sidebar-expanded-only w-4 h-4 text-gray-400 transition-transform duration-200 ${inventoryOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            <div className={`sidebar-expanded-only flex flex-col gap-1 overflow-hidden transition-all duration-300 ${inventoryOpen ? 'max-h-[500px] mt-1 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                <NavLink to="/admin/inventory/dashboard" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Dashboard</NavLink>
+                                <NavLink to="/admin/inventory/batches" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Lô hàng</NavLink>
+                                <NavLink to="/admin/inventory/import" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Nhập kho</NavLink>
+                                <NavLink to="/admin/inventory/transactions" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Giao dịch kho</NavLink>
+                                <NavLink to="/admin/inventory/low-stock" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Tồn thấp</NavLink>
+                                <NavLink to="/admin/inventory/expiring" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Sắp hết hạn</NavLink>
+                                <NavLink to="/admin/inventory/out-of-stock" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Hết hàng</NavLink>
+                            </div>
+                        </div>
+
+                        {/* 6. CALENDAR */}
                         <button
                             onClick={() => navigate('/admin/calendar')}
                             className={getMenuClass(location.pathname === '/admin/calendar')}
