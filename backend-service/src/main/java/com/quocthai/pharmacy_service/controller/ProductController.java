@@ -11,6 +11,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -27,13 +29,19 @@ public class ProductController {
             int page,
             @RequestParam(defaultValue = "20")
             int size,
-            @RequestParam(defaultValue = "createdAt")
+            @RequestParam(defaultValue = "name")
             String sortBy,
             @RequestParam(defaultValue = "desc")
-            String sortDir) {
+            String sortDir,
+            // NEW FILTERS
+            @RequestParam(required = false) String manufacturer,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice) {
         return ApiResponse
                 .<PageResponse<ProductSummaryResponse>>builder()
-                .result(productService.getProductsByCategory(categorySlug, page, size, sortBy, sortDir))
+                .result(productService.getProductsByCategory(categorySlug, page, size, sortBy,
+                        sortDir,manufacturer,country,minPrice,maxPrice))
                 .build();
     }
 

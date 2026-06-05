@@ -85,18 +85,5 @@ public class RatingController {
                 .build();
     }
 
-    /**
-     * POST /ratings/{ratingId}/replies
-     * Dược sĩ trả lời đánh giá — cần đăng nhập (ROLE_PHARMACIST kiểm tra ở service hoặc @PreAuthorize).
-     */
-    @PostMapping("/{ratingId}/replies")
-    ApiResponse<RatingResponse> replyRating(
-            @PathVariable String ratingId,
-            @RequestBody @Valid CreateRatingReplyRequest request
-    ) {
-        log.info("POST /ratings/{}/replies", ratingId);
-        return ApiResponse.<RatingResponse>builder()
-                .result(ratingService.replyRating(ratingId, request))
-                .build();
-    }
+
 }

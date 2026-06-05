@@ -1,5 +1,6 @@
 package com.quocthai.pharmacy_service.entity;
 
+import com.quocthai.pharmacy_service.constants.RatingStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -42,6 +43,8 @@ public class Rating {
 
     @UpdateTimestamp
     LocalDateTime updatedAt;
+
+    RatingStatus status;
 
     // Thiết kế sẵn để mở rộng: dược sĩ trả lời đánh giá
     @OneToMany(mappedBy = "rating", cascade = CascadeType.ALL, orphanRemoval = true)

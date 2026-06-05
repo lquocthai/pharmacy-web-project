@@ -107,7 +107,7 @@ public class ConversationController {
      * GET /conversations?status=IN_PROGRESS&page=0&size=20
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('ROLE_PHARMACIST', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('PHARMACIST', 'ADMIN')")
     public ApiResponse<PageResponse<ConversationResponse>> getByStatus(
             @RequestParam(required = false) Conversation.ConversationStatus status,
             @RequestParam(defaultValue = "0")  int page,

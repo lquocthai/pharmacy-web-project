@@ -3,6 +3,7 @@ package com.quocthai.pharmacy_service.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -17,6 +18,7 @@ public class ProductSummaryResponse {
     boolean isPrescription;
     String manufacturer;
     String country;
+    BigDecimal priceDefault;
 
     // Ảnh primary để hiển thị ngoài danh sách
     String primaryImageUrl;

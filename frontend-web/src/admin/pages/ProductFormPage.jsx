@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import categoryService from '../../services/categoryService';
 import productAdminService from '../service/productAdminService';
+import BackButton from '../../components/Common/BackButton';
 
 const ProductFormPage = () => {
     const { slug } = useParams();
@@ -337,12 +338,7 @@ const ProductFormPage = () => {
                         Quản lý sản phẩm
                     </h2>
                 </div>
-                <button
-                    onClick={() => navigate('/admin/products')}
-                    className="flex items-center gap-1.5  font-medium text-[#64748B] hover:text-[#3C50E0] transition-colors"
-                >
-                    &larr; Quay lại danh sách
-                </button>
+                <BackButton to="/admin/products" />
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">

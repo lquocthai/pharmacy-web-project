@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class Product {
 
     @Column(unique = true)
     String slug;
-
+    BigDecimal priceDefault;
     boolean isPrescription;
     @Column(columnDefinition = "LONGTEXT")
     String description;

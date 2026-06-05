@@ -69,9 +69,51 @@ const InventoryBatchListPage = () => {
 
     const getExpiryBadge = (expiryDate) => {
         if (!expiryDate) return null;
-        const days = Math.ceil((new Date(expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
-        if (days <= 30) return <span className="ml-1 inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-red-50 text-red-600 border border-red-100">≤30 ngày</span>;
-        if (days <= 90) return <span className="ml-1 inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-amber-50 text-amber-600 border border-amber-100">≤90 ngày</span>;
+
+        // Tính số ngày chênh lệch (Lấy mốc cuối ngày hoặc đầu ngày để chính xác)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset giờ về 0 để so sánh chuẩn ngày
+        const expiry = new Date(expiryDate);
+        expiry.setHours(0, 0, 0, 0);
+
+        const days = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+
+        // 1. Trường hợp ĐÃ HẾT HẠN (Số ngày nhỏ hơn 0)
+        if (days < 0) {
+            return (
+                <span className="ml-1 inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-600 text-white border border-red-700 animate-pulse">
+                    Hết hạn
+                </span>
+            );
+        }
+
+        // 2. Trường hợp HẾT HẠN TRONG NGÀY HÔM NAY
+        if (days === 0) {
+            return (
+                <span className="ml-1 inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-100 text-red-700 border border-red-300">
+                    Hết hạn hôm nay
+                </span>
+            );
+        }
+
+        // 3. Trường hợp Cực kì nguy cấp (Ngưỡng nguy hiểm dưới 30 ngày)
+        if (days <= 30) {
+            return (
+                <span className="ml-1 inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-red-50 text-red-600 border border-red-100">
+                    ≤30 ngày
+                </span>
+            );
+        }
+
+        // 4. Trường hợp Sắp hết hạn (Dưới 90 ngày)
+        if (days <= 90) {
+            return (
+                <span className="ml-1 inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-amber-50 text-amber-600 border border-amber-100">
+                    ≤90 ngày
+                </span>
+            );
+        }
+
         return null;
     };
 
@@ -207,7 +249,7 @@ const InventoryBatchListPage = () => {
                                             </td>
                                             <td className="p-2.5 text-[#64748B]">{formatDate(batch.manufactureDate)}</td>
                                             <td className="p-2.5 text-[#64748B]">{batch.lowStockThreshold ?? '—'}</td>
-                                            <td className="p-2.5 text-right pr-4 relative" style={{ zIndex: activeDropdown === batch.id ? 40 : 'auto' }}>
+                                            <td className="p-2.5 text-center pr-4 relative" style={{ zIndex: activeDropdown === batch.id ? 40 : 'auto' }}>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === batch.id ? null : batch.id); }}
                                                     className="text-[#64748B] hover:text-[#1C2434] p-1 rounded-full hover:bg-[#F1F5F9] transition-colors"
@@ -217,7 +259,7 @@ const InventoryBatchListPage = () => {
                                                     </svg>
                                                 </button>
                                                 {activeDropdown === batch.id && (
-                                                    <div className="absolute right-4 top-[80%] w-32 bg-white border border-[#E2E8F0] rounded shadow-xl py-1 z-[100] text-left">
+                                                    <div className="absolute right-4 top-[80%] w-32 bg-white border border-[#E2E8F0] rounded shadow-xl py-1 z-[100] text-center">
                                                         <button
                                                             onClick={() => navigate(`/admin/inventory/batches/${batch.id}`)}
                                                             className="w-full px-3 py-1.5 text-xs text-[#1C2434] hover:bg-[#F8FAFC] transition-colors"

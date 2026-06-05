@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductImageRepository extends JpaRepository<ProductImage, String> {
 
@@ -23,4 +24,11 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Stri
     List<ProductImage> findAllByProductIdInAndIsPrimaryTrue(
             List<String> productIds
     );
+    @Query("""
+    SELECT pi
+    FROM ProductImage pi
+    WHERE pi.product.id = :productId
+      AND pi.isPrimary = true
+    """)
+    Optional<ProductImage> findDefaultImageByProductId(String productId);
 }

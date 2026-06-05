@@ -44,6 +44,21 @@ import LowStockPage from '../admin/pages/inventory/LowStockPage';
 import ExpiringBatchesPage from '../admin/pages/inventory/ExpiringBatchesPage';
 import OutOfStockPage from '../admin/pages/inventory/OutOfStockPage';
 
+// CHAT PAGES — ADMIN
+import ConversationManagementPage from '../admin/pages/ConversationManagementPage';
+
+// CHAT PAGES — PHARMACIST
+import PharmacistLayout from '../pharmacist/layout/PharmacistLayout';
+import WaitingConversationsPage from '../pharmacist/page/WaitingConversationsPage';
+import ConversationDetailPage from '../pharmacist/page/ConversationDetailPage';
+
+// CHAT PAGE — USER (full page version)
+import ChatPage from '../pages/Chat/ChatPage';
+import ReviewsPage from '../pharmacist/page/ReviewsPage';
+import ReviewDetailPage from '../pharmacist/page/ReviewDetailPage';
+import PharmacistDashboardPage from '../pharmacist/page/PharmacistDashboardPage';
+import UserProfile from '../components/UserProfile';
+
 
 // ─────────────────────────────────────────────
 // ROLES
@@ -179,6 +194,16 @@ const UserRoutes = () => (
                 </ProtectedRoute>
             }
         />
+
+        {/* USER CHAT — /chat */}
+        <Route
+            path="/chat"
+            element={
+                <ProtectedRoute roles={[ROLES.USER, ROLES.PHARMACIST, ROLES.ADMIN]}>
+                    <ChatPage />
+                </ProtectedRoute>
+            }
+        />
     </Route>
 );
 
@@ -258,6 +283,11 @@ const AdminRoutes = () => (
         <Route path="inventory/expiring" element={<ExpiringBatchesPage />} />
         <Route path="inventory/out-of-stock" element={<OutOfStockPage />} />
 
+        {/* ── CONVERSATIONS (admin read-only) ── */}
+        <Route path="conversations" element={<ConversationManagementPage />} />
+
+        <Route path="profile" element={<UserProfile />} />
+
         {/* admin fallback */}
         <Route
             path="*"
@@ -269,12 +299,33 @@ const AdminRoutes = () => (
 // ─────────────────────────────────────────────
 // APP ROUTES
 // ─────────────────────────────────────────────
+const PharmacistRoutes = () => (
+    <Route
+        path="/pharmacist"
+        element={
+            <ProtectedRoute roles={[ROLES.PHARMACIST]}>
+                <PharmacistLayout />
+            </ProtectedRoute>
+        }
+    >
+
+        <Route index element={<PharmacistDashboardPage />} />
+        <Route path="conversations" element={<WaitingConversationsPage />} />
+        <Route path="conversations/:id" element={<ConversationDetailPage />} />
+        <Route path="reviews" element={<ReviewsPage />} />
+        <Route path="reviews/:id" element={<ReviewDetailPage />} />
+        <Route path="profile" element={<UserProfile />} />
+        <Route path="*" element={<Navigate to="/pharmacist" replace />} />
+    </Route>
+);
+
 const AppRoutes = () => {
     return (
         <Routes>
 
             {UserRoutes()}
             {AdminRoutes()}
+            {PharmacistRoutes()}
 
             {/* GLOBAL FALLBACK */}
             <Route

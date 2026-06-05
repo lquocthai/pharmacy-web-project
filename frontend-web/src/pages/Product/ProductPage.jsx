@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronDown, FaChevronLeft, FaChevronRight, FaChevronUp } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import toast from 'react-hot-toast';
 import categoryService from '../../services/categoryService';
@@ -8,8 +8,10 @@ import productService from '../../services/productService'; // Khai báo service
 import { useDispatch, useSelector } from 'react-redux';
 import cartService from '../../services/cartService';
 import { setCart } from '../../redux/slices/cartSlice';
+import { openLoginModal } from '../../redux/slices/authSlice';
 import { Nav } from 'react-bootstrap';
 import '../Product/ProductPage.scss'
+import SearchNotFoundIcon from '../../assets/illustration-not-found.svg';
 
 export default function ProductPage() {
     const { slug } = useParams();
@@ -26,14 +28,65 @@ export default function ProductPage() {
     const [hasMore, setHasMore] = useState(false);
 
     const scrollRef = useRef(null);
-    const [selectedPrice, setSelectedPrice] = useState("Dưới 100.000đ");
+    const [selectedPrice, setSelectedPrice] = useState('all');
+    const [selectedManufacturer, setSelectedManufacturer] = useState('all');
+    const [selectedCountry, setSelectedCountry] = useState('all');
+    const [sortConfig, setSortConfig] = useState({ sortBy: 'name', sortDir: 'asc' });
+    const [isManufacturerOpen, setIsManufacturerOpen] = useState(false);
+    const [isCountryOpen, setIsCountryOpen] = useState(false);
 
     const priceOptions = [
-        "Dưới 100.000đ",
-        "100.000đ đến 300.000đ",
-        "300.000đ đến 500.000đ",
-        "Trên 500.000đ"
+        { label: 'Tất cả mức giá', value: 'all', minPrice: null, maxPrice: null },
+        { label: 'Dưới 100.000đ', value: 'under-100', minPrice: null, maxPrice: 100000 },
+        { label: '100.000đ đến 300.000đ', value: '100-300', minPrice: 100000, maxPrice: 300000 },
+        { label: '300.000đ đến 500.000đ', value: '300-500', minPrice: 300000, maxPrice: 500000 },
+        { label: 'Trên 500.000đ', value: 'over-500', minPrice: 500000, maxPrice: null }
     ];
+
+    const manufacturerOptions = [
+        { label: 'Tất cả nhà sản xuất', value: 'all' },
+        { label: 'Dược Hậu Giang', value: 'Dược Hậu Giang' },
+        { label: 'Traphaco', value: 'Traphaco' },
+        { label: 'Imexpharm', value: 'Imexpharm' },
+        { label: 'Sanofi', value: 'Sanofi' },
+        { label: 'GSK', value: 'GSK' },
+        { label: 'Pfizer', value: 'Pfizer' }
+    ];
+
+    const countryOptions = [
+        { label: 'Tất cả quốc gia', value: 'all' },
+        { label: 'Việt Nam', value: 'Việt Nam' },
+        { label: 'Pháp', value: 'Pháp' },
+        { label: 'Đức', value: 'Đức' },
+        { label: 'Mỹ', value: 'Mỹ' },
+        { label: 'Nhật Bản', value: 'Nhật Bản' },
+        { label: 'Hàn Quốc', value: 'Hàn Quốc' }
+    ];
+
+    const getPriceRange = (priceValue = selectedPrice) => {
+        const option = priceOptions.find(item => item.value === priceValue);
+        return {
+            minPrice: option?.minPrice ?? null,
+            maxPrice: option?.maxPrice ?? null
+        };
+    };
+
+    const getProductQuery = (overrides = {}) => {
+        const nextPrice = overrides.selectedPrice ?? selectedPrice;
+        const nextManufacturer = overrides.selectedManufacturer ?? selectedManufacturer;
+        const nextCountry = overrides.selectedCountry ?? selectedCountry;
+        const nextSortConfig = overrides.sortConfig ?? sortConfig;
+        const { minPrice, maxPrice } = getPriceRange(nextPrice);
+
+        return {
+            sortBy: nextSortConfig.sortBy,
+            sortDir: nextSortConfig.sortDir,
+            manufacturer: nextManufacturer === 'all' ? null : nextManufacturer,
+            country: nextCountry === 'all' ? null : nextCountry,
+            minPrice,
+            maxPrice
+        };
+    };
 
     // 1. Tải cây danh mục (Chạy 1 lần duy nhất khi đổi slug trên URL)
     const loadCategoryTree = async (mainSlug) => {
@@ -47,13 +100,23 @@ export default function ProductPage() {
             setCategoryLoading(false);
         }
     };
-    const loadProducts = async (targetSlug, currentPage, isLoadMore = false
-    ) => {
+    const loadProducts = async (targetSlug, currentPage, isLoadMore = false, queryOverrides = {}) => {
         setProductLoading(true);
         try {
+            const productQuery = getProductQuery(queryOverrides);
 
-            const { data } = await productService.getByCategory(targetSlug, currentPage, 8);
-            const pageData = data.result;
+            const { data } = await productService.getByCategory(
+                targetSlug,
+                currentPage,
+                8,
+                productQuery.sortBy,
+                productQuery.sortDir,
+                productQuery.manufacturer,
+                productQuery.country,
+                productQuery.minPrice,
+                productQuery.maxPrice
+            );
+            const pageData = data.result || {};
             if (isLoadMore) {
                 setProducts(prev => [
                     ...prev,
@@ -80,6 +143,27 @@ export default function ProductPage() {
         loadProducts(slug, 0, false);
     }, [slug]);
 
+
+    const handleClearAllFilters = () => {
+        // 1. Reset toàn bộ state hiển thị trên giao diện
+        setSelectedPrice('all');
+        setSelectedManufacturer('all');
+        setSelectedCountry('all');
+        setSortConfig({ sortBy: 'name', sortDir: 'asc' });
+        setPage(0); // Đưa trang về 0
+
+        // 2. Xác định chính xác slug hiện tại bằng state selectedSub chứ không dùng subSlug
+        const activeSlug = selectedSub === 'all' ? slug : selectedSub;
+
+        // 3. Ép object override các giá trị mặc định để loadProducts ăn ngay lập tức
+        loadProducts(activeSlug, 0, false, {
+            selectedPrice: 'all',
+            selectedManufacturer: 'all',
+            selectedCountry: 'all',
+            sortConfig: { sortBy: 'name', sortDir: 'asc' }
+        });
+    };
+
     // Theo dõi khi người dùng click chọn bộ lọc Danh mục con cấp 2
     const handleSubCategoryClick = (subSlug) => {
         setSelectedSub(subSlug);
@@ -88,6 +172,33 @@ export default function ProductPage() {
         // Nếu nhấn lại chính danh mục cha ('all') thì lấy theo slug của URL, ngược lại lấy theo subSlug
         const activeSlug = subSlug === 'all' ? slug : subSlug;
         loadProducts(activeSlug, 0, false);
+    };
+
+    const reloadProductsWithFilters = (overrides = {}) => {
+        setPage(0);
+        const activeSlug = selectedSub === 'all' ? slug : selectedSub;
+        loadProducts(activeSlug, 0, false, overrides);
+    };
+
+    const handlePriceClick = (priceValue) => {
+        setSelectedPrice(priceValue);
+        reloadProductsWithFilters({ selectedPrice: priceValue });
+    };
+
+    const handleManufacturerClick = (manufacturerValue) => {
+        setSelectedManufacturer(manufacturerValue);
+        reloadProductsWithFilters({ selectedManufacturer: manufacturerValue });
+    };
+
+    const handleCountryClick = (countryValue) => {
+        setSelectedCountry(countryValue);
+        reloadProductsWithFilters({ selectedCountry: countryValue });
+    };
+
+    const handleSortClick = (sortDir) => {
+        const nextSortConfig = { sortBy: 'priceDefault', sortDir };
+        setSortConfig(nextSortConfig);
+        reloadProductsWithFilters({ sortConfig: nextSortConfig });
     };
 
     // Xử lý khi nhấn nút "Xem thêm"
@@ -110,8 +221,6 @@ export default function ProductPage() {
         }
     };
 
-
-    console.log('products ', products);
     if (categoryLoading) {
         return <div className="container text-center py-5">Đang tải danh mục...</div>;
     }
@@ -189,7 +298,7 @@ export default function ProductPage() {
                     <FaChevronRight size={14} className="text-secondary" />
                 </button>
             </div>
-            <div className="container-xl rounded-3 bg-light p-3">
+            <div className="container-xl ">
 
 
                 {/* ── BỐ CỤC CHÍNH: BỘ LỌC BÊN TRÁI & DANH SÁCH SẢN PHẨM BÊN PHẢI ── */}
@@ -202,39 +311,21 @@ export default function ProductPage() {
                                 <span className="me-2">☰</span> Bộ lọc nâng cao
                             </h5>
                             <hr className="text-muted my-2" />
-
-                            {/* Đối tượng sử dụng */}
-                            <div className="mb-4">
-                                <h6 className="fw-bold text-dark mb-2" style={{ fontSize: '14px' }}>Đối tượng sử dụng</h6>
-                                <div className="form-check mb-2">
-                                    <input className="form-check-input" type="checkbox" defaultChecked id="allCheck" />
-                                    <label className="form-check-label" htmlFor="allCheck">Tất cả</label>
-                                </div>
-                                <div className="form-check mb-2">
-                                    <input className="form-check-input" type="checkbox" id="kidCheck" />
-                                    <label className="form-check-label" htmlFor="kidCheck">Trẻ em</label>
-                                </div>
-                                <div className="form-check mb-2">
-                                    <input className="form-check-input" type="checkbox" id="adultCheck" />
-                                    <label className="form-check-label" htmlFor="adultCheck">Người trưởng thành</label>
-                                </div>
-                            </div>
-
                             {/* Giá bán */}
-                            <div>
+                            <div className="mb-2 border-bottom pb-3">
                                 <h6 className="fw-bold text-dark mb-2" style={{ fontSize: '14px' }}>Giá bán</h6>
                                 <div className="d-flex flex-column gap-2">
                                     {priceOptions.map((option) => {
-                                        const isActive = selectedPrice === option;
+                                        const isActive = selectedPrice === option.value;
                                         return (
                                             <button
-                                                key={option}
+                                                key={option.value}
                                                 type="button"
-                                                onClick={() => setSelectedPrice(option)}
+                                                onClick={() => handlePriceClick(option.value)}
                                                 className={`btn w-100 text-start py-2 px-3 custom-price-btn ${isActive ? 'active' : ''}`}
                                                 style={{ fontSize: '13px' }}
                                             >
-                                                {option}
+                                                {option.label}
 
                                                 {/* Dấu tích góc trên bên phải khi được chọn */}
                                                 {isActive && (
@@ -249,6 +340,98 @@ export default function ProductPage() {
                                     })}
                                 </div>
                             </div>
+
+                            {/* Nhà sản xuất */}
+                            <div className="mb-2 border-bottom pb-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsManufacturerOpen(prev => !prev)}
+                                    className="btn w-100 p-0 border-0 bg-transparent d-flex align-items-center justify-content-between text-dark fw-bold mb-2"
+                                    style={{ fontSize: '14px', boxShadow: 'none' }}
+                                    aria-expanded={isManufacturerOpen}
+                                >
+                                    <span>Nhà sản xuất</span>
+                                    {isManufacturerOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                                </button>
+                                <div
+                                    className="d-flex flex-column gap-2"
+                                    style={{
+                                        maxHeight: isManufacturerOpen ? '360px' : '0',
+                                        opacity: isManufacturerOpen ? 1 : 0,
+                                        overflow: 'hidden',
+                                        transition: 'max-height 0.28s ease, opacity 0.2s ease'
+                                    }}
+                                >
+                                    {manufacturerOptions.map((option) => {
+                                        const isActive = selectedManufacturer === option.value;
+                                        return (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                onClick={() => handleManufacturerClick(option.value)}
+                                                className={`btn w-100 text-start py-2 px-3 custom-price-btn ${isActive ? 'active' : ''}`}
+                                                style={{ fontSize: '13px' }}
+                                            >
+                                                {option.label}
+                                                {isActive && (
+                                                    <span className="active-checkmark-badge">
+                                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                                        </svg>
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Quốc gia */}
+                            <div className="mb-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCountryOpen(prev => !prev)}
+                                    className="btn w-100 p-0 border-0 bg-transparent d-flex align-items-center justify-content-between text-dark fw-bold mb-2"
+                                    style={{ fontSize: '14px', boxShadow: 'none' }}
+                                    aria-expanded={isCountryOpen}
+                                >
+                                    <span>Quốc gia</span>
+                                    {isCountryOpen ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+                                </button>
+                                <div
+                                    className="d-flex flex-column gap-2"
+                                    style={{
+                                        maxHeight: isCountryOpen ? '360px' : '0',
+                                        opacity: isCountryOpen ? 1 : 0,
+                                        overflow: 'hidden',
+                                        transition: 'max-height 0.28s ease, opacity 0.2s ease'
+                                    }}
+                                >
+                                    {countryOptions.map((option) => {
+                                        const isActive = selectedCountry === option.value;
+                                        return (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                onClick={() => handleCountryClick(option.value)}
+                                                className={`btn w-100 text-start py-2 px-3 custom-price-btn ${isActive ? 'active' : ''}`}
+                                                style={{ fontSize: '13px' }}
+                                            >
+                                                {option.label}
+                                                {isActive && (
+                                                    <span className="active-checkmark-badge">
+                                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                                        </svg>
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+
                         </div>
                     </div>
 
@@ -261,9 +444,21 @@ export default function ProductPage() {
                             {/* Sắp xếp nhanh */}
                             <div className="d-flex gap-2 align-items-center">
                                 <span className="text-secondary" style={{ fontSize: '14px' }}>Sắp xếp theo:</span>
-                                <button className="btn btn-primary btn-sm rounded-pill px-3">Bán chạy</button>
-                                <button className="btn btn-light btn-sm rounded-pill px-3 border text-secondary">Giá thấp</button>
-                                <button className="btn btn-light btn-sm rounded-pill px-3 border text-secondary">Giá cao</button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => handleSortClick('asc')}
+                                    className={`btn btn-sm rounded-pill px-3 border ${sortConfig.sortBy === 'priceDefault' && sortConfig.sortDir === 'asc' ? 'btn-primary text-white' : 'btn-light text-secondary'}`}
+                                >
+                                    Giá thấp
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSortClick('desc')}
+                                    className={`btn btn-sm rounded-pill px-3 border ${sortConfig.sortBy === 'priceDefault' && sortConfig.sortDir === 'desc' ? 'btn-primary text-white' : 'btn-light text-secondary'}`}
+                                >
+                                    Giá cao
+                                </button>
                             </div>
                         </div>
 
@@ -276,9 +471,50 @@ export default function ProductPage() {
                         </div>
 
                         {/* Nếu rỗng không có sản phẩm */}
+                        {/* Nếu rỗng không có sản phẩm thỏa mãn bộ lọc */}
                         {!productLoading && products.length === 0 && (
-                            <div className="text-center py-5 bg-white rounded-3 shadow-sm mt-2 text-secondary">
-                                Chưa có sản phẩm nào trong danh mục này.
+                            <div className="text-center py-5  mt-2 px-3 d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '400px' }}>
+
+                                {/* 1. Hình ảnh minh họa / Kính lúp (Sử dụng CSS để tạo hình khối mượt hoặc ảnh từ URL) */}
+                                <div className="position-relative mb-4 d-flex align-items-center justify-content-center" style={{ width: '150px', height: '120px' }}>
+                                    {/* Vòng tròn đổ bóng phía dưới kính lúp */}
+                                    <div className="position-absolute bottom-0 start-50 translate-middle-x rounded-circle"
+                                        style={{ width: '100px', height: '16px', background: 'rgba(0,0,0,0.04)', filter: 'blur(4px)' }}>
+                                    </div>
+                                    {/* Bạn có thể thay src bằng một icon SVG hoặc ảnh kính lúp 3D tùy ý */}
+                                    <img
+                                        src={SearchNotFoundIcon}
+                                        alt="Không tìm thấy kết quả"
+                                        // style={{ width: '100px', objectFit: 'contain', animation: 'float 3s ease-in-out infinite' }}
+                                        className="position-relative"
+                                    />
+                                </div>
+
+                                {/* 2. Tiêu đề thông báo */}
+                                <h4 className="fw-bold text-dark mb-2" style={{ fontSize: '18px', color: '#334155' }}>
+                                    Không tìm thấy sản phẩm nào phù hợp!
+                                </h4>
+
+                                {/* 3. Dòng mô tả hướng dẫn */}
+                                <p className="text-muted mb-4 small text-center mx-auto" style={{ maxWidth: '340px', color: '#64748b', lineHeight: '1.5' }}>
+                                    Hãy thử lại bằng cách thay đổi điều kiện lọc <br /> hoặc
+                                </p>
+
+                                {/* 4. Nút Xóa tất cả bộ lọc */}
+                                <button
+                                    type="button"
+                                    onClick={() => handleClearAllFilters()}
+                                    className="btn btn-primary px-4 py-2 rounded-pill fw-semibold border-0 shadow-sm"
+                                    style={{
+                                        backgroundColor: '#1d55e3',
+                                        fontSize: '14px',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseOver={(e) => e.target.style.backgroundColor = '#1744b8'}
+                                    onMouseOut={(e) => e.target.style.backgroundColor = '#1d55e3'}
+                                >
+                                    Xóa tất cả bộ lọc
+                                </button>
                             </div>
                         )}
 
@@ -330,7 +566,6 @@ function ProductCard({ product }) {
             setSelectedVariant(defaultVariant);
         }
     }, [defaultVariant]);
-    console.log('selectedVariant ', selectedVariant);
     // xử lí chọn mua
     // Xử lý chọn mua (Mỗi lần bấm thêm đúng 1 sản phẩm)
     const handleAddToCart = async () => {
@@ -351,14 +586,12 @@ function ProductCard({ product }) {
         }
 
         setAddingToCart(true);
-        console.log('Thêm vào giỏ hàng variant: ', selectedVariant.id);
         try {
             // Truyền cứng số lượng là 1 và id của biến selectedVariant đang chọn
             const { data } = await cartService.addItem({
                 variantId: selectedVariant.id,
                 quantity: 1
             });
-            console.log("👉 DỮ LIỆU BACKEND TRẢ VỀ:", data);
             if (data.code === 0) {
                 dispatch(setCart(data.result));
                 toast.success(`Đã thêm 1 ${selectedVariant?.variantName || ''} vào giỏ hàng thành công`);
@@ -578,7 +811,6 @@ function ProductCard({ product }) {
                                     navigate(`/products/detail/${product.slug}`)
                                 } else {
                                     // Logic khi bấm vào nút "Chọn mua" bình thường
-                                    console.log('Thêm vào giỏ hàng: ', selectedVariant);
                                     handleAddToCart();
                                 }
                             }}

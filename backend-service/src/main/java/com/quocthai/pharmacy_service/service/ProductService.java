@@ -18,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -54,8 +55,12 @@ public class ProductService {
             int page,
             int size,
             String sortBy,
-            String sortDir
-    ) {
+            String sortDir,
+            String manufacturer,
+            String country,
+            BigDecimal minPrice,
+            BigDecimal maxPrice
+            ) {
 
         // 1. Find category
         Category category = categoryRepository.findBySlug(categorySlug)
@@ -74,20 +79,25 @@ public class ProductService {
 
         // Category cấp 1
         if (category.getParent() == null) {
-
             productPage =
                     productRepository.findByCategoryIdOrCategoryParentId(
                             category.getId(),
                             category.getId(),
+                            manufacturer,   // Tham số mới
+                            country,        // Tham số mới
+                            minPrice,       // Tham số mới
+                            maxPrice,
                             pageable
                     );
-
         } else {
-
             // Category cấp 2
             productPage =
                     productRepository.findByCategoryId(
                             category.getId(),
+                            manufacturer,   // Tham số mới
+                            country,        // Tham số mới
+                            minPrice,       // Tham số mới
+                            maxPrice,
                             pageable
                     );
         }

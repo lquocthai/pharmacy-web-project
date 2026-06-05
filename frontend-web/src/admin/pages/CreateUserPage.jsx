@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import userAdminService from '../service/userAdminService'; // Đảm bảo đường dẫn này đúng với dự án của bạn
+import BackButton from '../../components/Common/BackButton';
 
 const CreateUserPage = () => {
     const navigate = useNavigate();
@@ -68,12 +69,7 @@ const CreateUserPage = () => {
                 <div>
                     <h2 className="text-xl font-bold text-[#1C2434]">Quản lý người dùng</h2>
                 </div>
-                <button
-                    onClick={() => navigate('/admin/users')}
-                    className="flex items-center gap-1.5  font-medium text-[#64748B] hover:text-[#3C50E0] transition-colors"
-                >
-                    &larr; Quay lại danh sách
-                </button>
+                <BackButton to="/admin/users" />
             </div>
 
             {/* Main Form Block */}

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import categoryAdminService from '../service/CategoryAdminService'; // Điều chỉnh lại đường dẫn cho đúng thực tế dự án
 import fileUploadService from '../service/fileUploadService'; // Dịch vụ upload file riêng biệt
+import BackButton from '../../components/Common/BackButton';
 
 const CreateCategoryPage = () => {
     const { id } = useParams(); // Nếu URL có id -> Chế độ SỬA, ngược lại -> Chế độ THÊM MỚI
@@ -238,12 +239,7 @@ const CreateCategoryPage = () => {
                         {isEditMode ? 'Chỉnh sửa và đồng bộ danh mục' : 'Thêm nhóm danh mục phức hợp'}
                     </h2>
                 </div>
-                <button
-                    onClick={() => navigate('/admin/categories')}
-                    className="flex items-center gap-1.5 font-medium text-xs text-[#64748B] hover:text-[#3C50E0] transition-colors"
-                >
-                    &larr; Quay lại danh sách chính
-                </button>
+                <BackButton to="/admin/categories" />
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl">

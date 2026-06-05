@@ -34,7 +34,7 @@ const OutOfStockPage = () => {
 
             <div className="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
-                    <h2 className="text-xl font-bold text-[#1C2434]">🚫 Sản phẩm hết hàng</h2>
+                    <h2 className="text-start text-xl font-bold text-[#1C2434]">Sản phẩm hết hàng</h2>
                     <p className="text-xs text-[#64748B] mt-0.5">Variant không còn tồn kho khả dụng nào</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -84,7 +84,11 @@ const OutOfStockPage = () => {
                                         </tr>
                                     ) : variants.map((v) => (
                                         <tr key={v.variantId} className="hover:bg-[#F8FAFC] transition-colors">
-                                            <td className="p-2.5 pl-4 font-medium text-[#1C2434] max-w-[200px] truncate">{v.productName}</td>
+                                            {/* Thay max-w-[200px] bằng max-w-[320px] hoặc kích thước bạn muốn */}
+                                            <td className="p-2.5 pl-4 font-medium text-[#1C2434] max-w-[320px] truncate">
+                                                {v.productName}
+                                                <span className="block text-xs text-[#64748B]">ID: {v.variantId}</span>
+                                            </td>
                                             <td className="p-2.5 text-[#64748B]">{v.variantName}</td>
                                             <td className="p-2.5 font-semibold text-[#3C50E0]">{v.sku}</td>
                                             <td className="p-2.5 text-[#64748B]">{v.price?.toLocaleString('vi-VN')}đ</td>
@@ -95,7 +99,7 @@ const OutOfStockPage = () => {
                                                 <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-100">Hết hàng</span>
                                                 {!v.active && <span className="ml-1 inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-50 text-[#64748B] border border-[#E2E8F0]">Không kích hoạt</span>}
                                             </td>
-                                            <td className="p-2.5 text-right pr-4">
+                                            <td className="p-2.5 text-center pr-4">
                                                 <button
                                                     onClick={() => navigate('/admin/inventory/import')}
                                                     className="text-xs text-[#3C50E0] hover:underline"

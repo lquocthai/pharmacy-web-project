@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -71,15 +72,36 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     Optional<Product> findBySlugWithDetail(@Param("slug") String slug);
 
     // Category cấp 1
+    // NÂNG CẤP HÀM CHO CATEGORY CẤP 1 (CHA)
+    @Query("SELECT p FROM Product p WHERE " +
+            "(p.category.id = :categoryId OR p.category.parent.id = :parentId) " +
+            "AND (:manufacturer IS NULL OR :manufacturer = '' OR p.manufacturer = :manufacturer) " +
+            "AND (:country IS NULL OR :country = '' OR p.country = :country) " +
+            "AND (:minPrice IS NULL OR p.priceDefault >= :minPrice) " +
+            "AND (:maxPrice IS NULL OR p.priceDefault <= :maxPrice)")
     Page<Product> findByCategoryIdOrCategoryParentId(
-            String categoryId,
-            String parentId,
+            @Param("categoryId") String categoryId,
+            @Param("parentId") String parentId,
+            @Param("manufacturer") String manufacturer,
+            @Param("country") String country,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
             Pageable pageable
     );
 
-    // Category cấp 2
+    // NÂNG CẤP HÀM CHO CATEGORY CẤP 2 (CON)
+    @Query("SELECT p FROM Product p WHERE " +
+            "p.category.id = :categoryId " +
+            "AND (:manufacturer IS NULL OR :manufacturer = '' OR p.manufacturer = :manufacturer) " +
+            "AND (:country IS NULL OR :country = '' OR p.country = :country) " +
+            "AND (:minPrice IS NULL OR p.priceDefault >= :minPrice) " +
+            "AND (:maxPrice IS NULL OR p.priceDefault <= :maxPrice)")
     Page<Product> findByCategoryId(
-            String categoryId,
+            @Param("categoryId") String categoryId,
+            @Param("manufacturer") String manufacturer,
+            @Param("country") String country,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
             Pageable pageable
     );
 

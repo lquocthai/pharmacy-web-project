@@ -22,7 +22,12 @@ const productService = {
         page = 0,
         size = 20,
         sortBy = 'name',
-        sortDir = 'asc'
+        sortDir = 'asc',
+        // BỔ SUNG CÁC BỘ LỌC MỚI VÀO ĐÂY
+        manufacturer = null,
+        country = null,
+        minPrice = null,
+        maxPrice = null
     ) =>
         axiosClient.get('/products', {
             params: {
@@ -30,7 +35,12 @@ const productService = {
                 page,
                 size,
                 sortBy,
-                sortDir
+                sortDir,
+                // ĐƯA CÁC BỘ LỌC MỚI VÀO PARAMS
+                manufacturer,
+                country,
+                minPrice,
+                maxPrice
             }
         }),
 

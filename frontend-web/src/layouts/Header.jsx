@@ -197,21 +197,31 @@ export default function Header() {
 
                                 {/* Danh sách sản phẩm khi hover */}
                                 {totalItems > 0 && (
-                                    <div className="cart-dropdown shadow-sm border rounded p-3 bg-white position-absolute">
-                                        <h6 className="mb-3 text-secondary">Giỏ hàng</h6>
+                                    <div
+                                        style={{ width: '380px', right: 0 }}
+                                        className="cart-dropdown shadow-sm border rounded p-3 bg-white position-absolute">
+                                        <h6 className="text-start mb-3 text-secondary">Giỏ hàng</h6>
                                         {cart.items.slice(0, 4).map(item => (
                                             <div key={item.id} className="d-flex align-items-center gap-2 mb-3"
                                                 onClick={() => goToDetail(item.productSlug)}
                                                 style={{ cursor: 'pointer' }}
                                             >
-                                                <img src={item.imageUrl} alt={item.productName} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
+                                                <img className='border rounded' src={item.imageUrl} alt={item.productName} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
                                                 <div className="flex-grow-1" style={{ fontSize: '12px' }}>
-                                                    <div className="text-truncate" style={{ maxWidth: '150px' }}>{item.productName}</div>
-                                                    <div className="text-primary fw-bold">{item.price.toLocaleString()}đ</div>
+                                                    <div className="text-truncate" style={{ maxWidth: '250px' }}>{item.productName}</div>
+                                                    <div className="d-flex text-secondary" style={{ fontSize: '10px' }}>
+                                                        <div className="text-primary fw-bold">{item.price.toLocaleString()}đ</div>
+                                                        <div className="text-primary fw-bold">x{item.quantity} {item.variantName}</div>
+
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
-                                        <Link to="/cart" className="btn btn-primary w-100 btn-sm">Xem giỏ hàng</Link>
+                                        <div className="d-flex align-items-center justify-content-between pt-2 ">
+                                            <span className="text-start text-secondary small fw-bold">{totalItems} sản phẩm</span>
+                                            <Link to="/cart" style={{ backgroundColor: 'rgb(18 80 220)' }} className="btn btn-primary btn-sm rounded-pill">Xem giỏ hàng</Link>
+                                        </div>
+
                                     </div>
                                 )}
                             </div>

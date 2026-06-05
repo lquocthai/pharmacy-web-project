@@ -51,7 +51,7 @@ const LowStockPage = () => {
             </div>
 
             <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0]">
-                <div className="d-flex p-3 border-b border-[#E2E8F0] flex items-center gap-2">
+                <div className="d-flex p-3 border-b border-[#E2E8F0] flex items-center gap-2 justify-between">
                     <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-100">
                         {batches.length} lô cần nhập thêm (trang này)
                     </span>

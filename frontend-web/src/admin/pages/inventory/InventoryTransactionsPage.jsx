@@ -16,6 +16,9 @@ const InventoryTransactionsPage = () => {
 
     const [typeFilter, setTypeFilter] = useState('');
     const [variantIdFilter, setVariantIdFilter] = useState('');
+    // State trung gian phục vụ cơ chế Debounce tự động trigger API
+    const [debouncedVariantId, setDebouncedVariantId] = useState('');
+
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
 
@@ -23,16 +26,26 @@ const InventoryTransactionsPage = () => {
     const [size] = useState(15);
     const [totalPages, setTotalPages] = useState(0);
 
+    // 1. useEffect lắng nghe ô nhập Variant ID, dừng gõ 1s (1000ms) mới cập nhật biến chính
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedVariantId(variantIdFilter);
+            setPage(0); // Reset về trang đầu khi từ khóa thay đổi
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, [variantIdFilter]);
+
+    // 2. useEffect gọi API lắng nghe theo biến debouncedVariantId thay vì biến gốc
     useEffect(() => {
         fetchTransactions();
-    }, [page, typeFilter, fromDate, toDate]);
+    }, [page, typeFilter, debouncedVariantId, fromDate, toDate]);
 
     const fetchTransactions = async () => {
         try {
             setLoading(true);
             const params = { page, size };
             if (typeFilter) params.type = typeFilter;
-            if (variantIdFilter.trim()) params.variantId = variantIdFilter.trim();
+            if (debouncedVariantId.trim()) params.variantId = debouncedVariantId.trim();
             if (fromDate) params.fromDate = `${fromDate}T00:00:00`;
             if (toDate) params.toDate = `${toDate}T23:59:59`;
 
@@ -48,8 +61,6 @@ const InventoryTransactionsPage = () => {
         }
     };
 
-    const handleSearch = () => { setPage(0); fetchTransactions(); };
-
     const formatDateTime = (d) => d ? new Date(d).toLocaleString('vi-VN') : '—';
 
     return (
@@ -63,8 +74,8 @@ const InventoryTransactionsPage = () => {
 
             <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0]">
                 {/* Header */}
-                <div className="p-3 border-b border-[#E2E8F0]">
-                    <h2 className="text-lg font-bold text-[#1C2434]">Audit log tồn kho</h2>
+                <div className="p-3 border-b border-[#E2E8F0] text-start">
+                    <h2 className="text-lg font-bold text-[#1C2434]">Lịch sử giao dịch kho</h2>
                     <p className="text-xs text-[#64748B] mt-0.5">Toàn bộ nhập / xuất / hoàn / điều chỉnh kho</p>
                 </div>
 
@@ -83,13 +94,21 @@ const InventoryTransactionsPage = () => {
                         <option value="ADJUSTMENT">Điều chỉnh</option>
                     </select>
 
-                    <input
-                        type="text"
-                        className="bg-white border border-[#E2E8F0] rounded-md px-2 py-1.5 text-xs text-[#1C2434] placeholder-[#8A99AD] focus:outline-none focus:border-[#3C50E0] transition-all w-56"
-                        placeholder="Lọc theo Variant ID..."
-                        value={variantIdFilter}
-                        onChange={(e) => setVariantIdFilter(e.target.value)}
-                    />
+                    {/* Ô nhập Variant ID có thêm hiệu ứng loading xoay nhỏ góc phải khi đang trong quá trình chờ gõ */}
+                    <div className="relative">
+                        <input
+                            type="text"
+                            className="bg-white border border-[#E2E8F0] rounded-md pl-2 pr-7 py-1.5 text-xs text-[#1C2434] placeholder-[#8A99AD] focus:outline-none focus:border-[#3C50E0] transition-all w-56"
+                            placeholder="Lọc theo Variant ID..."
+                            value={variantIdFilter}
+                            onChange={(e) => { setVariantIdFilter(e.target.value); }}
+                        />
+                        {variantIdFilter !== debouncedVariantId && (
+                            <span className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                                <div className="animate-spin w-3 h-3 border-2 border-[#3C50E0] border-t-transparent rounded-full" />
+                            </span>
+                        )}
+                    </div>
 
                     <div className="flex items-center gap-1">
                         <input type="date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); setPage(0); }} className="bg-white border border-[#E2E8F0] rounded-md px-2 py-1.5 text-xs text-[#1C2434] focus:outline-none focus:border-[#3C50E0]" />
@@ -97,16 +116,14 @@ const InventoryTransactionsPage = () => {
                         <input type="date" value={toDate} onChange={(e) => { setToDate(e.target.value); setPage(0); }} className="bg-white border border-[#E2E8F0] rounded-md px-2 py-1.5 text-xs text-[#1C2434] focus:outline-none focus:border-[#3C50E0]" />
                     </div>
 
-                    <button
-                        onClick={handleSearch}
-                        className="flex items-center gap-1.5 bg-[#3C50E0] text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-opacity-90 transition-all"
-                    >
-                        Tìm kiếm
-                    </button>
+                    {/* Nút tìm kiếm cũ đã được loại bỏ */}
 
                     {(typeFilter || variantIdFilter || fromDate || toDate) && (
-                        <button onClick={() => { setTypeFilter(''); setVariantIdFilter(''); setFromDate(''); setToDate(''); setPage(0); }} className="text-xs text-red-500 hover:text-red-700 border border-red-200 px-2 py-1.5 rounded-md hover:bg-red-50 transition-all">
-                            Xóa filter
+                        <button
+                            onClick={() => { setTypeFilter(''); setVariantIdFilter(''); setDebouncedVariantId(''); setFromDate(''); setToDate(''); setPage(0); }}
+                            className="text-xs text-red-500 hover:text-red-700 border border-red-200 px-2 py-1.5 rounded-md hover:bg-red-50 transition-all"
+                        >
+                            Xóa Lọc
                         </button>
                     )}
                 </div>

@@ -1,5 +1,6 @@
 package com.quocthai.pharmacy_service.service;
 
+import com.quocthai.pharmacy_service.constants.RatingStatus;
 import com.quocthai.pharmacy_service.dto.request.CreateRatingReplyRequest;
 import com.quocthai.pharmacy_service.dto.request.CreateRatingRequest;
 import com.quocthai.pharmacy_service.dto.request.UpdateRatingRequest;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -140,6 +142,7 @@ public class RatingService {
                 .user(user)
                 .star(request.getStar())
                 .comment(request.getComment())
+                .status(RatingStatus.ACTIVE)
                 .build();
 
         ratingRepository.save(rating);
@@ -174,6 +177,7 @@ public class RatingService {
     }
 
     // ── POST /ratings/{ratingId}/replies  ───────────────────
+    @PreAuthorize("hasRole('PHARMACIST')")
     @Transactional
     public RatingResponse replyRating(String ratingId, CreateRatingReplyRequest request) {
         String email = getCurrentUserEmail();

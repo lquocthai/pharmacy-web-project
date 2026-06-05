@@ -167,7 +167,7 @@ const CartPage = () => {
                         </div>
 
                         {items.map(item => (
-                            <div key={item.id} className="row align-items-center border-bottom py-3 mx-0">
+                            <div key={item.id} className="row align-items-center border-bottom py-2 mx-0">
                                 <div className="col-1 p-0">
                                     <input
                                         type="checkbox"
@@ -176,7 +176,7 @@ const CartPage = () => {
                                         onChange={() => toggleItem(item.id)}
                                     />
                                 </div>
-                                <div className="col-1" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
+                                <div className="col-1 p-0" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
                                     <img src={item.imageUrl} className="img-fluid rounded border" alt="" />
                                 </div>
                                 <div className="col-3" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>

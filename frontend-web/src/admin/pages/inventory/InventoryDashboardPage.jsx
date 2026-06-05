@@ -45,7 +45,7 @@ const InventoryDashboardPage = () => {
         <div className="min-h-screen bg-[#F1F5F9] p-4 md:p-6 text-[#1C2434] font-satoshi">
             {/* Breadcrumb */}
             <div className="mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <div>
+                <div className="text-start">
                     <h2 className="text-xl font-bold text-[#1C2434]">Dashboard Kho</h2>
                     <p className="text-xs text-[#64748B] mt-0.5">Tổng quan tình trạng tồn kho nhà thuốc</p>
                 </div>
@@ -133,7 +133,7 @@ const InventoryDashboardPage = () => {
 
                     {/* Quick Actions */}
                     <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] p-5">
-                        <h3 className="text-sm font-bold text-[#1C2434] mb-4">Thao tác nhanh</h3>
+                        <h2 className="text-start text-sm font-bold text-[#1C2434] mb-4">Thao tác nhanh</h2>
                         <div className="flex flex-wrap gap-3">
                             <button
                                 onClick={() => navigate('/admin/inventory/import')}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import inventoryAdminService from '../../service/inventoryAdminService';
+import BackButton from '../../../components/Common/BackButton';
 
 const DetailRow = ({ label, value, highlight }) => (
     <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-[#F1F5F9] last:border-0">
@@ -49,20 +50,7 @@ const InventoryBatchDetailPage = () => {
                     <h2 className="text-xl font-bold text-[#1C2434]">Chi tiết lô hàng</h2>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => navigate('/admin/inventory/batches')}
-                        className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] text-[#1C2434] px-3 py-1.5 rounded-md text-xs font-medium hover:bg-[#F8FAFC] transition-all"
-                    >
-                        ← Quay lại
-                    </button>
-                    {batch && (
-                        <button
-                            onClick={() => navigate(`/admin/inventory/batches/${id}/edit`)}
-                            className="flex items-center gap-1.5 bg-[#3C50E0] text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-opacity-90 transition-all"
-                        >
-                            Chỉnh sửa
-                        </button>
-                    )}
+                    <BackButton to="/admin/inventory/batches" />
                 </div>
             </div>
 
@@ -75,7 +63,7 @@ const InventoryBatchDetailPage = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     {/* Main info */}
                     <div style={{ borderRadius: '1rem' }} className="lg:col-span-2 bg-white border border-[#E2E8F0] p-5">
-                        <h3 className="text-sm font-bold text-[#1C2434] mb-4 pb-3 border-b border-[#E2E8F0]">Thông tin lô hàng</h3>
+                        <h2 className=" text-sm font-bold text-[#1C2434] mb-4 pb-3 border-b border-[#E2E8F0]">Thông tin lô hàng</h2>
                         <DetailRow label="Số lô (Batch Number)" value={batch.batchNumber} highlight />
                         <DetailRow label="Sản phẩm" value={batch.productName} />
                         <DetailRow label="Phân loại (Variant)" value={batch.variantName} />
@@ -89,10 +77,10 @@ const InventoryBatchDetailPage = () => {
                     </div>
 
                     {/* Status sidebar */}
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-4 ">
                         {/* Expiry status */}
                         <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] p-5">
-                            <h3 className="text-sm font-bold text-[#1C2434] mb-3">Trạng thái hạn dùng</h3>
+                            <h2 className="text-sm font-bold text-[#1C2434] mb-3">Trạng thái hạn dùng</h2>
                             {(() => {
                                 const days = getDaysUntilExpiry();
                                 if (days === null) return <p className="text-xs text-[#64748B]">Không có thông tin</p>;
@@ -105,7 +93,7 @@ const InventoryBatchDetailPage = () => {
 
                         {/* Stock status */}
                         <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] p-5">
-                            <h3 className="text-sm font-bold text-[#1C2434] mb-3">Trạng thái tồn kho</h3>
+                            <h2 className="text-sm font-bold text-[#1C2434] mb-3">Trạng thái tồn kho</h2>
                             {batch.remainingQuantity === 0 ? (
                                 <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-100">Hết hàng</span>
                             ) : batch.lowStockAlert ? (
@@ -117,10 +105,10 @@ const InventoryBatchDetailPage = () => {
 
                         {/* Quick action */}
                         <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] p-5">
-                            <h3 className="text-sm font-bold text-[#1C2434] mb-3">Thao tác nhanh</h3>
+                            <h2 className="text-sm font-bold text-[#1C2434] mb-3">Thao tác nhanh</h2>
                             <button
                                 onClick={() => navigate('/admin/inventory/import')}
-                                className="w-full flex items-center justify-center gap-1.5 bg-[#3C50E0] text-white px-3 py-2 rounded-md text-xs font-medium hover:bg-opacity-90 transition-all"
+                                className="w-full flex items-center justify-center gap-1.5 bg-[#3C50E0] text-white px-3 py-2 rounded-full text-xs font-medium hover:bg-opacity-90 transition-all"
                             >
                                 Nhập thêm hàng
                             </button>

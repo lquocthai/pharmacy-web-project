@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import inventoryAdminService from '../../service/inventoryAdminService';
+import BackButton from '../../../components/Common/BackButton';
 
 const today = new Date().toISOString().split('T')[0];
 
@@ -95,21 +96,21 @@ const EditInventoryBatchPage = () => {
     return (
         <div className="min-h-screen bg-[#F1F5F9] p-4 md:p-6 text-[#1C2434] font-satoshi">
             <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <div>
+                <div className="text-start">
                     <h2 className="text-xl font-bold text-[#1C2434]">Chỉnh sửa lô hàng</h2>
                     <p className="text-xs text-[#64748B] mt-0.5">Chỉ được sửa: HSD, NSX, ngưỡng cảnh báo</p>
                 </div>
-                <p className="text-xs text-[#64748B]">Home &gt; Quản lý kho &gt; Lô hàng &gt; Chỉnh sửa</p>
+                <BackButton to="/admin/inventory/batches" />
             </div>
 
-            <div className="max-w-2xl">
+            <div className="max-w-4xl m-auto">
                 <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0]">
 
                     {/* Read-only info */}
                     {batchInfo && (
-                        <div className="p-4 bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                        <div style={{ borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem' }} className="p-4 bg-[#F8FAFC] border-b border-[#E2E8F0]">
                             <p className="text-xs font-semibold text-[#64748B] mb-2">Thông tin không thể sửa</p>
-                            <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="text-start grid grid-cols-2 gap-2 text-xs">
                                 <div><span className="text-[#8A99AD]">Số lô:</span> <span className="font-semibold text-[#1C2434] ml-1">{batchInfo.batchNumber}</span></div>
                                 <div><span className="text-[#8A99AD]">SKU:</span> <span className="font-semibold text-[#1C2434] ml-1">{batchInfo.sku}</span></div>
                                 <div><span className="text-[#8A99AD]">Sản phẩm:</span> <span className="font-semibold text-[#1C2434] ml-1">{batchInfo.productName}</span></div>
@@ -120,7 +121,7 @@ const EditInventoryBatchPage = () => {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                    <form onSubmit={handleSubmit} className="p-3 space-y-4">
                         {/* Dates */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
@@ -135,7 +136,7 @@ const EditInventoryBatchPage = () => {
                         </div>
 
                         {/* lowStockThreshold */}
-                        <div>
+                        <div className="text-start">
                             <label className="block text-xs font-semibold text-[#1C2434] mb-1">Ngưỡng cảnh báo tồn thấp</label>
                             <input type="number" name="lowStockThreshold" value={form.lowStockThreshold} onChange={handleChange} placeholder="VD: 10" min="0" className={fieldClass('lowStockThreshold')} />
                             {errors.lowStockThreshold && <p className="mt-1 text-[10px] text-red-500">{errors.lowStockThreshold}</p>}
