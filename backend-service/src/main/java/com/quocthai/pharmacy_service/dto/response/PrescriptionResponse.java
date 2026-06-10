@@ -23,8 +23,10 @@ public class PrescriptionResponse {
     String note;
 
     PrescriptionStatus status;
+    String pharmacistNote;
 
     List<String> imageUrls;
-
+    LocalDateTime consultedAt;
     LocalDateTime createdAt;
+    LocalDateTime updatedAt;
 }

@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-
+import java.time.LocalDateTime;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -42,6 +42,18 @@ public class ProductController {
                 .<PageResponse<ProductSummaryResponse>>builder()
                 .result(productService.getProductsByCategory(categorySlug, page, size, sortBy,
                         sortDir,manufacturer,country,minPrice,maxPrice))
+                .build();
+    }
+    @GetMapping("/all")
+    public ApiResponse<PageResponse<ProductSummaryResponse>> getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size, // Mặc định 8 sản phẩm cho trang chủ
+            @RequestParam(defaultValue = "createdAt") String sortBy, // Mặc định theo sản phẩm mới
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+        return ApiResponse
+                .<PageResponse<ProductSummaryResponse>>builder()
+                .result(productService.getAllProducts(page, size, sortBy, sortDir))
                 .build();
     }
 

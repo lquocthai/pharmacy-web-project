@@ -42,7 +42,7 @@ const InventoryDashboardPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F1F5F9] p-4 md:p-6 text-[#1C2434] font-satoshi">
+        <div className="min-h-screen bg-[#F1F5F9] p-0 md:p-6 text-[#1C2434] font-satoshi">
             {/* Breadcrumb */}
             <div className="mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div className="text-start">
@@ -61,7 +61,7 @@ const InventoryDashboardPage = () => {
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                         <StatCard
-                            title="Tổng số Variant"
+                            title="Tổng số biến thể sản phẩm"
                             value={data?.totalVariants}
                             subtitle="Tổng phân loại sản phẩm"
                             color="bg-[#EBF0FF]"
@@ -118,7 +118,7 @@ const InventoryDashboardPage = () => {
                             }
                         />
                         <StatCard
-                            title="Variant hết hàng"
+                            title="Sản phẩm hết hàng"
                             value={data?.outOfStockVariants}
                             subtitle="Tổng tồn kho = 0"
                             color="bg-red-50"
@@ -132,8 +132,8 @@ const InventoryDashboardPage = () => {
                     </div>
 
                     {/* Quick Actions */}
-                    <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] p-5">
-                        <h2 className="text-start text-sm font-bold text-[#1C2434] mb-4">Thao tác nhanh</h2>
+                    <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] p-3">
+                        {/* <h2 className="text-start text-sm font-bold text-[#1C2434] mb-4">Thao tác nhanh</h2> */}
                         <div className="flex flex-wrap gap-3">
                             <button
                                 onClick={() => navigate('/admin/inventory/import')}

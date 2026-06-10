@@ -1,6 +1,7 @@
 package com.quocthai.pharmacy_service.repository;
 
 import com.quocthai.pharmacy_service.entity.ProductImage;
+import com.quocthai.pharmacy_service.entity.ProductVariant;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,4 +32,6 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Stri
       AND pi.isPrimary = true
     """)
     Optional<ProductImage> findDefaultImageByProductId(String productId);
+
+    List<ProductImage> findAllByProductIdIn(List<String> productIds);
 }

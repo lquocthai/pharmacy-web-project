@@ -3,6 +3,7 @@ package com.quocthai.pharmacy_service.service;
 
 import com.quocthai.pharmacy_service.constants.PrescriptionStatus;
 import com.quocthai.pharmacy_service.dto.request.CreatePrescriptionRequest;
+import com.quocthai.pharmacy_service.dto.request.UpdateStatusRequest;
 import com.quocthai.pharmacy_service.dto.response.PrescriptionResponse;
 import com.quocthai.pharmacy_service.entity.Prescription;
 import com.quocthai.pharmacy_service.entity.PrescriptionImage;
@@ -15,12 +16,18 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -117,6 +124,66 @@ public class PrescriptionService {
                                 .toList()
                 )
                 .createdAt(prescription.getCreatedAt())
+                .build();
+    }
+    @Transactional(readOnly = true)
+    public Page<PrescriptionResponse> getPrescriptions(String fullName, PrescriptionStatus status, Pageable pageable) {
+        // Bước 1: Phân trang lấy danh sách IDs trước
+        Page<String> idPage = prescriptionRepository.findIdsWithFilter(fullName, status, pageable);
+
+        if (idPage.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        // Bước 2: Dùng danh sách IDs đó để FETCH JOIN kèm theo images (Chỉ tốn đúng 1 query này cho list)
+        List<Prescription> prescriptions = prescriptionRepository.findPrescriptionsWithImagesByIds(idPage.getContent());
+
+        // Bước 3: Map sang DTO trả về cho client
+        List<PrescriptionResponse> content = prescriptions.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(content, pageable, idPage.getTotalElements());
+    }
+
+    @Transactional
+    public PrescriptionResponse updateStatus(String id, UpdateStatusRequest request) {
+        Prescription prescription = prescriptionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRESCRIPTION_NOT_FOUND));
+
+        prescription.setStatus(request.getStatus());
+        if (request.getPharmacistNote() != null) {
+            prescription.setPharmacistNote(request.getPharmacistNote());
+        }
+
+        // Nếu chuyển sang trạng thái đã tư vấn thì ghi nhận thời gian
+        if (request.getStatus() == PrescriptionStatus.CONSULTED) {
+            prescription.setConsultedAt(LocalDateTime.now());
+        }
+
+        // Lưu cập nhật
+        Prescription updated = prescriptionRepository.save(prescription);
+        return mapToResponse(updated);
+    }
+
+    // Hàm helper chuyển đổi entity -> DTO
+    private PrescriptionResponse mapToResponse(Prescription prescription) {
+        return PrescriptionResponse.builder()
+                .id(prescription.getId())
+                .fullName(prescription.getFullName())
+                .phoneNumber(prescription.getPhoneNumber())
+                .note(prescription.getNote())
+                .status(prescription.getStatus())
+                .pharmacistNote(prescription.getPharmacistNote())
+                .consultedAt(prescription.getConsultedAt())
+                .createdAt(prescription.getCreatedAt())
+                .updatedAt(prescription.getUpdatedAt())
+                .imageUrls(
+                        prescription.getImages()
+                                .stream()
+                                .map(PrescriptionImage::getImageUrl)
+                                .toList()
+                )
                 .build();
     }
 }

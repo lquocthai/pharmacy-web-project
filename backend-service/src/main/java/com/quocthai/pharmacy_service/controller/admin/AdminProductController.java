@@ -50,24 +50,27 @@ public class AdminProductController {
                 )
                 .build();
     }
+
+    /**
+     * PUT /admin/products/{id}
+     * Cập nhật toàn bộ thông tin sản phẩm (thông tin cơ bản, ảnh, specs, variants).
+     * Sau khi update DB sẽ tự động sync Elasticsearch document.
+     *
+     * @param id           Product ID (UUID)
+     * @param request      JSON data (multipart part "data")
+     * @param primaryImage Ảnh chính mới — optional (null = giữ nguyên ảnh cũ)
+     * @param subImages    Danh sách ảnh phụ mới cần thêm — optional
+     */
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<ProductDetailResponse> updateProduct(
             @PathVariable String id,
-            @RequestPart("data")
-            UpdateProductRequest request,
-            @RequestPart(value = "primaryImage", required = false)
-            MultipartFile primaryImage,
-            @RequestPart(value = "subImages", required = false)
-            List<MultipartFile> subImages
+            @RequestPart("data") UpdateProductRequest request,
+            @RequestPart(value = "primaryImage", required = false) MultipartFile primaryImage,
+            @RequestPart(value = "subImages", required = false) List<MultipartFile> subImages
     ) {
         return ApiResponse.<ProductDetailResponse>builder()
                 .result(
-                        productService.updateProduct(
-                                id,
-                                request,
-                                primaryImage,
-                                subImages
-                        )
+                        productService.updateProduct(id, request, primaryImage, subImages)
                 )
                 .build();
     }

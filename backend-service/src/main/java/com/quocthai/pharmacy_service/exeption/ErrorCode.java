@@ -95,6 +95,7 @@ public enum ErrorCode {
     ROLE_NOT_FOUND(1082, "Không tìm thấy quyền này", HttpStatus.NOT_FOUND),
     CANNOT_UPDATE_OWN_STATUS(1083, "Không thể thay đổi trạng thái tài khoản của chính mình",HttpStatus.BAD_REQUEST),
     CANNOT_UPDATE_OWN_ROLE(1084, "Không thể thay đổi quyền của chính mình",HttpStatus.BAD_REQUEST),
+    RATING_NOT_FOUND(1085, "Không tìm thấy đánh giá",HttpStatus.NOT_FOUND),
 
     ;
 

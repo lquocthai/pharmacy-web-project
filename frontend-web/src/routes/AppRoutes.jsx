@@ -8,7 +8,7 @@ import MainLayout from '../layouts/MainLayout';
 // ADMIN LAYOUT
 import AdminLayout from '../admin/layouts/AdminLayout';
 // USER PAGES
-import HomePage from '../pages/Home/HomePage';
+import { HomePage } from '../pages/Home/HomePage';
 import CartPage from '../pages/Cart/CartPage';
 import ProfilePage from '../pages/profile/ProfilePage';
 import ProductDetailPage from '../pages/Product/ProductDetailPage';
@@ -44,20 +44,20 @@ import LowStockPage from '../admin/pages/inventory/LowStockPage';
 import ExpiringBatchesPage from '../admin/pages/inventory/ExpiringBatchesPage';
 import OutOfStockPage from '../admin/pages/inventory/OutOfStockPage';
 
-// CHAT PAGES — ADMIN
-import ConversationManagementPage from '../admin/pages/ConversationManagementPage';
 
 // CHAT PAGES — PHARMACIST
 import PharmacistLayout from '../pharmacist/layout/PharmacistLayout';
 import WaitingConversationsPage from '../pharmacist/page/WaitingConversationsPage';
-import ConversationDetailPage from '../pharmacist/page/ConversationDetailPage';
-
-// CHAT PAGE — USER (full page version)
-import ChatPage from '../pages/Chat/ChatPage';
+// import ConversationDetailPage from '../pharmacist/page/ConversationDetailPage';
+// NOTE: ChatPage đã được thay thế bởi ChatAdvisor (floating widget) trong MainLayout
 import ReviewsPage from '../pharmacist/page/ReviewsPage';
 import ReviewDetailPage from '../pharmacist/page/ReviewDetailPage';
-import PharmacistDashboardPage from '../pharmacist/page/PharmacistDashboardPage';
 import UserProfile from '../components/UserProfile';
+import { useEffect } from 'react';
+import OrderDetailPage from '../admin/pages/OrderDetailPage';
+import PharmacistProductPage from '../pharmacist/page/PharmacistProductPage';
+import PharmacistPrescriptionPage from '../pharmacist/page/PharmacistPresctiprionPage';
+import AdminProductDetailPage from '../admin/pages/AdminProductDetailPage';
 
 
 // ─────────────────────────────────────────────
@@ -75,10 +75,13 @@ export const ROLES = {
 const ProtectedRoute = ({ children, roles = [] }) => {
     const { isAuthenticated, user } = useSelector(state => state.auth);
     const dispatch = useDispatch();
-
+    useEffect(() => {
+        if (!isAuthenticated) {
+            dispatch(openLoginModal());
+        }
+    }, [isAuthenticated, dispatch]);
     // chưa login
     if (!isAuthenticated) {
-        dispatch(openLoginModal());
         return null;
     }
 
@@ -109,6 +112,7 @@ const UserRoutes = () => (
         <Route path="/products" element={<ProductPage />} />
         <Route path="/products/:slug" element={<ProductPage />} />
         <Route path="/products/detail/:slug" element={<ProductDetailPage />} />
+        <Route path="/products?search=:keyword" element={<ProductPage />} />
         {/* PRIVATE */}
         <Route
             path="/profile"
@@ -195,15 +199,7 @@ const UserRoutes = () => (
             }
         />
 
-        {/* USER CHAT — /chat */}
-        <Route
-            path="/chat"
-            element={
-                <ProtectedRoute roles={[ROLES.USER, ROLES.PHARMACIST, ROLES.ADMIN]}>
-                    <ChatPage />
-                </ProtectedRoute>
-            }
-        />
+        {/* USER CHAT — đã chuyển sang ChatAdvisor floating widget */}
     </Route>
 );
 
@@ -234,6 +230,10 @@ const AdminRoutes = () => (
         <Route
             path="products/edit/:slug"
             element={<ProductFormPage />}
+        />
+        <Route
+            path="products/detail/:slug"
+            element={<AdminProductDetailPage />}
         />
         <Route
             path="ai-assistant"
@@ -268,8 +268,8 @@ const AdminRoutes = () => (
             element={<AdminOrderPage />}
         />
         <Route
-            path="orders/detail/:id"
-            element={<AdminOrderPage />}
+            path="orders/detail/:orderCode"
+            element={<OrderDetailPage />}
         />
 
         {/* ── INVENTORY ── */}
@@ -283,8 +283,6 @@ const AdminRoutes = () => (
         <Route path="inventory/expiring" element={<ExpiringBatchesPage />} />
         <Route path="inventory/out-of-stock" element={<OutOfStockPage />} />
 
-        {/* ── CONVERSATIONS (admin read-only) ── */}
-        <Route path="conversations" element={<ConversationManagementPage />} />
 
         <Route path="profile" element={<UserProfile />} />
 
@@ -309,13 +307,20 @@ const PharmacistRoutes = () => (
         }
     >
 
-        <Route index element={<PharmacistDashboardPage />} />
+        <Route index element={<PharmacistProductPage />} />
+        <Route path="products" element={<PharmacistProductPage />} />
+        <Route path="prescriptions" element={<PharmacistPrescriptionPage />} />
         <Route path="conversations" element={<WaitingConversationsPage />} />
-        <Route path="conversations/:id" element={<ConversationDetailPage />} />
+        {/* <Route path="conversations/:id" element={<ConversationDetailPage />} /> */}
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="reviews/:id" element={<ReviewDetailPage />} />
         <Route path="profile" element={<UserProfile />} />
+        <Route
+            path="products/detail/:slug"
+            element={<AdminProductDetailPage Side="PHARMACIST" />}
+        />
         <Route path="*" element={<Navigate to="/pharmacist" replace />} />
+
     </Route>
 );
 

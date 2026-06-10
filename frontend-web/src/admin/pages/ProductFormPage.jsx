@@ -259,6 +259,11 @@ const ProductFormPage = () => {
             toast.error('Không thể xóa biến thể mặc định hiện tại. Vui lòng tích chọn dòng khác làm mặc định trước.');
             return;
         }
+        const variantToRemove = product.variants[index];
+        // Track id thực (từ server) để gửi lên backend soft-delete
+        if (variantToRemove.id && !variantToRemove.id.startsWith('local-') && isEditMode) {
+            setDeletedVariantIds(prev => [...prev, variantToRemove.id]);
+        }
         setProduct(prev => ({
             ...prev,
             variants: prev.variants.filter((_, i) => i !== index)
@@ -272,7 +277,6 @@ const ProductFormPage = () => {
         e.preventDefault();
         try {
             setLoading(true);
-            console.log("Submitting product data:", product);
             if (!product.primaryImageFile && !isEditMode) {
                 toast.error('Vui lòng chọn ảnh đại diện chính');
                 return;
@@ -282,19 +286,25 @@ const ProductFormPage = () => {
                 return;
             }
             if (isEditMode) {
-                const response = await productAdminService.updateProduct(slug, payload);
+                // Gom payload đúng format trước khi gọi API
+                const payload = {
+                    ...product,
+                    deletedImageIds: deletedImageIds.filter(id => !id.startsWith('local-')),
+                    deletedVariantIds,
+                };
+                console.log('sản phẩm update', payload)
+                const response = await productAdminService.updateProduct(product.id, payload);
                 if (response.data?.code === 0) {
                     toast.success('Cập nhật sản phẩm thành công!');
+                    navigate('/admin/products');
                 }
             } else {
-                const response =
-                    await productAdminService.createProduct(product);
-                console.log("Create product response:", response);
+                const response = await productAdminService.createProduct(product);
                 if (response.data?.code === 0) {
                     toast.success('Thêm sản phẩm thành công!');
+                    navigate('/admin/products');
                 }
             }
-            navigate('/admin/products');
         } catch (error) {
             console.error(error);
             toast.error(
@@ -329,7 +339,7 @@ const ProductFormPage = () => {
     }
 
     return (
-        <div className="p-4 md:p-6 font-satoshi text-left text-[#1C2434] bg-[#F1F5F9] min-h-screen">
+        <div className="p-0 md:p-6 font-satoshi text-left text-[#1C2434] bg-[#F1F5F9] min-h-screen">
 
             {/* Header điều hướng */}
             <div className="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -345,10 +355,10 @@ const ProductFormPage = () => {
 
                 {/* KHỐI 1: PRODUCTS DESCRIPTION */}
                 <div style={{ borderRadius: '1rem' }} className="bg-white rounded-sm  border border-[#E2E8F0]">
-                    <div style={{ borderRadius: '1rem 0 0 0' }} className="border-b border-[#E2E8F0] p-3 bg-[#F8FAFC]">
+                    <div style={{ borderRadius: '1rem 0 0 0' }} className="border-b border-[#E2E8F0] p-2 bg-[#F8FAFC]">
                         <h5 className="font-bold text-sm">{isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm'}</h5>
                     </div>
-                    <div className="p-6 space-y-4">
+                    <div className="p-3 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-semibold mb-2">Tên sản phẩm</label>
@@ -438,7 +448,7 @@ const ProductFormPage = () => {
 
                 {/* KHỐI 2: HÌNH ẢNH SẢN PHẨM (ĐÃ CHUYỂN ĐỔI CHỌN FILE VÀ HIỂN THỊ ẢNH THẬT) */}
                 <div style={{ borderRadius: '1rem' }} className="bg-white rounded-sm  border border-[#E2E8F0] overflow-hidden">
-                    <div className="border-b border-[#E2E8F0] p-3 bg-[#F8FAFC]">
+                    <div className="border-b border-[#E2E8F0] p-2 bg-[#F8FAFC]">
                         <h5 className="font-bold text-sm">Hình ảnh sản phẩm</h5>
                     </div>
                     <div className="p-6 space-y-6">
@@ -594,7 +604,6 @@ const ProductFormPage = () => {
                                     <th className="p-2 text-left min-w-[160px]">Tên phân loại / Quy cách</th>
                                     <th className="p-2 text-left w-32">Giá bán (đ)</th>
                                     <th className="p-2 text-left w-32">Giá gốc (đ)</th>
-                                    <th className="p-2 text-left w-24">Kho hàng</th>
                                     <th className="p-2 text-center w-16">Hành động</th>
                                 </tr>
                             </thead>
@@ -645,15 +654,7 @@ const ProductFormPage = () => {
                                                 min="0"
                                             />
                                         </td>
-                                        <td className="p-2">
-                                            <input
-                                                type="number"
-                                                value={v.stockQuantity}
-                                                onChange={(e) => handleVariantChange(index, 'stockQuantity', Number(e.target.value))}
-                                                className="w-full bg-white border border-[#E2E8F0] rounded p-1.5 text-xs outline-none focus:border-[#3C50E0]"
-                                                min="0"
-                                            />
-                                        </td>
+
                                         <td className="p-2 text-center">
                                             <button
                                                 type="button"

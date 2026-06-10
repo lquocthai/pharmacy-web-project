@@ -226,17 +226,17 @@ const CreateCategoryPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#F1F5F9] p-4 md:p-6 text-[#1C2434] font-satoshi">
+        <div className="min-h-screen bg-[#F1F5F9] p-0 md:p-6 text-[#1C2434] font-satoshi">
             <style>{`
                 .no-scrollbar::-webkit-scrollbar { display: none; }
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
 
             {/* Header Điều hướng nhanh */}
-            <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className=" flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
                     <h2 className="text-xl font-bold text-[#1C2434]">
-                        {isEditMode ? 'Chỉnh sửa và đồng bộ danh mục' : 'Thêm nhóm danh mục phức hợp'}
+                        {isEditMode ? 'Chỉnh sửa và đồng bộ danh mục' : 'Thêm nhóm danh mục '}
                     </h2>
                 </div>
                 <BackButton to="/admin/categories" />
@@ -246,13 +246,13 @@ const CreateCategoryPage = () => {
 
                 {/* ── KHU VỰC 1: THÔNG TIN DANH MỤC CHA (GỐC) ── */}
                 <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] space-y-4 overflow-hidden">
-                    <div className="border-b border-[#E2E8F0] p-3 bg-[#F8FAFC]">
+                    <div className="border-b border-[#E2E8F0] p-2 bg-[#F8FAFC]">
                         <h5 className="text-start font-bold text-sm text-[#3C50E0]">
                             {isEditMode ? '1. Chỉnh sửa thông tin danh mục gốc' : '1. Thiết lập thông tin danh mục gốc'}
                         </h5>
                     </div>
 
-                    <div className='p-4 text-start grid grid-cols-1 md:grid-cols-12 gap-4 text-xs'>
+                    <div className='p-2 text-start grid grid-cols-1 md:grid-cols-12 gap-4 text-xs'>
                         {/* Nhập text tên & mô tả */}
                         <div className="md:col-span-8 space-y-4">
                             <div>
@@ -316,7 +316,7 @@ const CreateCategoryPage = () => {
                 <div style={{ borderRadius: '1rem' }} className="bg-white  border border-[#E2E8F0] space-y-4 overflow-hidden">
                     <div className="flex justify-between items-center border-b border-[#E2E8F0] p-3 bg-[#F8FAFC]">
                         <div>
-                            <h5 className="text-start font-bold text-sm text-[#1C2434]">2. Danh sách danh mục cấp dưới (Sub-categories)</h5>
+                            <h5 className="text-start font-bold text-sm text-[#1C2434]">2. Danh sách danh mục cấp dưới </h5>
                             <p className="text-start text-[10px] text-[#64748B] mt-0.5">Ấn nút Thêm danh mục con để bổ sung các nhánh phân cấp bên dưới danh mục gốc</p>
                         </div>
                         <button
@@ -329,7 +329,7 @@ const CreateCategoryPage = () => {
                     </div>
 
                     {/* Vùng cuộn danh sách động */}
-                    <div className="p-4 text-start space-y-3.5 max-h-[450px] overflow-y-auto pr-1 no-scrollbar">
+                    <div className="p-2 text-start space-y-3.5 max-h-[450px] overflow-y-auto pr-1 no-scrollbar">
                         {subCategories.map((sub, index) => (
                             <div
                                 key={sub.clientId}

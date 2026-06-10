@@ -28,38 +28,25 @@ const AuthModal = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [resetLoading, setResetLoading] = useState(false);
     const [forgotLoading, setForgotLoading] = useState(false);
+    const [resendLoading, setResendLoading] = useState(false); // Thêm dòng này
 
     // 1. Gửi yêu cầu quên mật khẩu (Lấy OTP)
     const handleForgotPassword = async (e) => {
         e.preventDefault();
         setForgotLoading(true);
         try {
-            await authService.forgotPassword(email);
+            const res = await authService.forgotPassword(email);
             // alert("Mã xác thực đã được gửi!");
-            toast.success("Mã xác thực đã được gửi đến email của bạn!");
-            setMode('OTP'); // Chuyển sang nhập OTP
+            console.log(res.data)
+            toast.success(res?.data?.result || "Mật khẩu mới đã được gửi đến email của bạn!");
+
         } catch (error) {
             // alert(error.response?.data?.message || "Email không tồn tại");
             toast.error(error.response?.data?.message || "Email không tồn tại");
         } finally { setForgotLoading(false); }
     };
 
-    // const handleVerifyOtp = async () => {
-    //     setLoading(true);
-    //     try {
-    //         const res = await authService.verifyOtp({ email, otp: otp.join("") });
-    //         if (res.data.code === 0) {
-    //             // Nếu không có username nghĩa là đang ở luồng Quên mật khẩu
-    //             if (!username) setMode('RESET_PASSWORD');
-    //             else {
-    //                 toast.success("Đăng ký thành công!");
-    //                 setMode('LOGIN');
-    //             }
-    //         }
-    //     } catch (error) {
-    //         alert("Mã OTP không đúng hoặc hết hạn");
-    //     } finally { setLoading(false); }
-    // };
+
 
     const handleResetPassword = async (e) => {
         e.preventDefault();
@@ -215,6 +202,7 @@ const AuthModal = () => {
     // Xử lý gửi lại mã
     const handleResendOtp = async () => {
         if (resendTimer > 0) return;
+        setResendLoading(true); // Bắt đầu loading khi user click
 
         try {
             const res = await authService.resendOtp({ email });
@@ -229,6 +217,8 @@ const AuthModal = () => {
             const msg = error.response?.data?.message || "Không thể gửi lại mã";
             // alert(msg);
             toast.error(msg);
+        } finally {
+            setResendLoading(false); // Tắt loading dù thành công hay thất bại
         }
     };
 
@@ -269,7 +259,7 @@ const AuthModal = () => {
                                 <input type="email" className="form-control mb-3" placeholder="Nhập Email của bạn"
                                     required onChange={e => setEmail(e.target.value)} />
                                 <button className="btn btn-primary w-100 fw-bold" disabled={forgotLoading}>
-                                    {forgotLoading ? 'ĐANG GỬI...' : 'GỬI MÃ XÁC THỰC'}
+                                    {forgotLoading ? 'ĐANG GỬI...' : 'GỬI MẬT KHẨU MỚI'}
                                 </button>
                                 <p className="text-center mt-3 small">
                                     <span className="text-primary cursor-pointer" onClick={() => {
@@ -434,6 +424,10 @@ const AuthModal = () => {
                                     {resendTimer > 0 ? (
                                         <span className="text-secondary fw-bold">
                                             Gửi lại sau ({resendTimer}s)
+                                        </span>
+                                    ) : resendLoading ? (
+                                        <span className="text-primary fw-bold">
+                                            Đang gửi lại mã...
                                         </span>
                                     ) : (
                                         <span

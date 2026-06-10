@@ -31,8 +31,10 @@ spring:
     uris: http://localhost:9200
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
       connect-timeout: 5000ms
     elasticsearch:
       repositories:

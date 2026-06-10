@@ -26,6 +26,17 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+// Thêm import này ở đầu file nếu chưa có
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import java.net.URLDecoder;
+// Thêm import này ở đầu file VnPayService.java nếu chưa có để parse ngày tháng
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Service
@@ -220,6 +231,10 @@ public class VnPayService {
 
                 return;
             }
+            log.warn(
+                    "VNPay payment successful {}",
+                    responseCode
+            );
 
             String orderCode =
                     params.get("vnp_TxnRef");
@@ -276,7 +291,28 @@ public class VnPayService {
                 return;
             }
 
+            // SUCCESS
             order.setPaymentStatus(PaymentStatus.PAID);
+
+            // --- BỔ SUNG LƯU TRANSACTION ID VÀ THỜI GIAN THÀNH CÔNG ---
+            String transactionNo = params.get("vnp_TransactionNo");
+            order.setPaymentTransactionId(transactionNo);
+
+            String payDateStr = params.get("vnp_PayDate"); // Định dạng: yyyyMMddHHmmss
+            if (payDateStr != null && !payDateStr.isBlank()) {
+                try {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+                    order.setPaidAt(LocalDateTime.parse(payDateStr, formatter));
+                } catch (Exception e) {
+                    log.error("Không thể parse vnp_PayDate: {}", payDateStr, e);
+                    order.setPaidAt(LocalDateTime.now()); // Fallback nếu lỗi parse
+                }
+            } else {
+                order.setPaidAt(LocalDateTime.now());
+            }
+            // ---------------------------------------------------------
+
+            log.info("VNPay RETURN payment success for order {}, TxnNo: {}", orderCode, transactionNo);
 
             orderRepository.save(order);
 
@@ -402,44 +438,76 @@ public class VnPayService {
      * Verify chữ ký callback VNPay
      */
     public boolean verifySignature(Map<String, String> inputData) {
+        try {
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes == null) {
+                return false;
+            }
+            HttpServletRequest request = attributes.getRequest();
+            String queryString = request.getQueryString();
 
-        Map<String, String> fields = new HashMap<>(inputData);
-
-        String secureHash = fields.remove("vnp_SecureHash");
-
-        fields.remove("vnp_SecureHashType");
-
-        List<String> fieldNames = new ArrayList<>(fields.keySet());
-
-        Collections.sort(fieldNames);
-
-        List<String> hashParts = new ArrayList<>();
-
-        for (String fieldName : fieldNames) {
-
-            String fieldValue = fields.get(fieldName);
-
-            if (fieldValue == null || fieldValue.isBlank()) {
-                continue;
+            if (queryString == null || queryString.isBlank()) {
+                log.error("Query string thô trống rỗng!");
+                return false;
             }
 
-            String encodedValue =
-                    URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII);
+            // 1. Tách các tham số từ Query String thô để giữ nguyên định dạng (ví dụ: dấu + hay %3A)
+            String[] pairs = queryString.split("&");
+            Map<String, String> rawParams = new HashMap<>();
+            String receivedHash = "";
 
-            hashParts.add(fieldName + "=" + encodedValue);
+            for (String pair : pairs) {
+                int idx = pair.indexOf("=");
+                if (idx == -1) continue;
+
+                String key = pair.substring(0, idx);
+                String value = pair.substring(idx + 1);
+
+                if ("vnp_SecureHash".equals(key)) {
+                    receivedHash = value;
+                } else if (!"vnp_SecureHashType".equals(key)) {
+                    // Giải mã key để sort theo Alphabet chuẩn, nhưng GIỮ NGUYÊN value thô (chứa dấu +)
+                    rawParams.put(URLDecoder.decode(key, StandardCharsets.UTF_8), value);
+                }
+            }
+
+            // 2. Sắp xếp key theo alphabet
+            List<String> fieldNames = new ArrayList<>(rawParams.keySet());
+            Collections.sort(fieldNames);
+
+            // 3. Nối chuỗi băm bằng chính các Value thô thu được từ trình duyệt
+            List<String> hashParts = new ArrayList<>();
+            for (String fieldName : fieldNames) {
+                String rawValue = rawParams.get(fieldName);
+                if (rawValue == null || rawValue.isBlank()) {
+                    continue;
+                }
+                // Mã hóa lại cái Key theo chuẩn gửi lên nếu cần, nhưng quan trọng nhất là VALUE phải giữ gốc
+                String encodedKey = URLEncoder.encode(fieldName, StandardCharsets.US_ASCII);
+                hashParts.add(encodedKey + "=" + rawValue);
+            }
+
+            String hashData = String.join("&", hashParts);
+            String calculatedHash = hmacSHA512(hashSecret, hashData);
+
+            log.info("========== VERIFY VNPAY ĐÃ FIX INTERCEPT ==========");
+            log.info("CHUỖI NỐI THỰC TẾ: {}", hashData);
+            log.info("MÃ BĂM TÍNH TOÁN : {}", calculatedHash);
+            log.info("MÃ BĂM VNPay GỬI  : {}", receivedHash);
+
+            boolean isMatch = calculatedHash.equalsIgnoreCase(receivedHash);
+            if (isMatch) {
+                log.info("👉 KẾT QUẢ: CHỮ KÝ HỢP LỆ! CHUẨN BỊ ĐỔI STATUS SANG PAID.");
+            } else {
+                log.error("👉 KẾT QUẢ: VẪN SAI. Kiểm tra lại vnpay.hash-secret trong file config!");
+            }
+
+            return isMatch;
+
+        } catch (Exception e) {
+            log.error("Lỗi trong quá trình verify chữ ký thô", e);
+            return false;
         }
-
-        String hashData = String.join("&", hashParts);
-
-        String calculatedHash =
-                hmacSHA512(hashSecret, hashData);
-
-        log.info("========== VERIFY VNPAY ==========");
-        log.info("HASH DATA: {}", hashData);
-        log.info("CALCULATED HASH: {}", calculatedHash);
-        log.info("RECEIVED HASH: {}", secureHash);
-
-        return calculatedHash.equalsIgnoreCase(secureHash);
     }
 
     private String hmacSHA512(

@@ -1,0 +1,168 @@
+{
+  "analysis": {
+    "filter": {
+    "drug_synonym_filter": {
+      "type": "synonym_graph",
+      "synonyms": [
+
+        "panadol, hapacol, efferalgan, acetaminophen, acetaminophine => paracetamol",
+
+        "nurofen => ibuprofen",
+
+        "voltaren => diclofenac",
+
+        "mobic => meloxicam",
+
+        "glucosamin, glucosamine, sun ca map => glucosamine",
+
+        "amox, amoxicilin, clamoxyl => amoxicillin",
+
+        "augmentin, klamentin => amoxicillin clavulanate",
+
+        "zithromax => azithromycin",
+
+        "cefixim => cefixime",
+
+        "cipro => ciprofloxacin",
+
+        "klacid => clarithromycin",
+
+        "telfast, fexofenadin => fexofenadine",
+
+        "aerius, desloratadin => desloratadine",
+
+        "zyrtec, cetirizin => cetirizine",
+
+        "singulair => montelukast",
+
+        "chlorpheniramine, clorpheniramin => chlorpheniramine",
+
+        "nexium, esomeprazol => esomeprazole",
+
+        "losec, omeprazol => omeprazole",
+
+        "motilium => domperidone",
+
+        "glucophage => metformin",
+
+        "diamicron => gliclazide",
+
+        "lipitor => atorvastatin",
+
+        "crestor => rosuvastatin",
+
+        "amlor, amlodipin => amlodipine",
+
+        "concor => bisoprolol",
+
+        "coversyl => perindopril",
+
+        "smecta, dioctahedral smectite => smecta",
+
+        "imodium => loperamide",
+
+        "duphalac, lactulose => lactulose"
+      ]
+    },
+
+    "symptom_synonym_filter": {
+      "type": "synonym_graph",
+      "synonyms": [
+
+        "sot, fever => sot",
+
+        "ho, cough => ho",
+
+        "cam cum, cam lanh, flu => cam cum",
+
+        "dau hong, viem hong => dau hong",
+
+        "nghet mui, sung mui => nghet mui",
+
+        "di ung, allergy => di ung",
+
+        "dau da day, viem da day => dau da day",
+
+        "tieu chay, dau bung => tieu chay",
+
+        "tao bon => tao bon",
+
+        "mat ngu => mat ngu",
+
+        "dau dau => dau dau",
+
+        "dau khop => dau khop"
+      ]
+    },
+
+    "category_synonym_filter": {
+      "type": "synonym_graph",
+      "synonyms": [
+
+        "vtm, vit, acit => vitamin",
+
+        "vit c, vtm c => vitamin c",
+
+        "vit d3, vtm d3 => vitamin d3",
+
+        "vit e, vtm e => vitamin e",
+
+        "vit b, vtm b => vitamin b",
+
+        "tcn, tpcn => thuc pham chuc nang",
+
+        "kt, ktyt => khau trang y te",
+
+        "bcs, condom => bao cao su",
+
+        "suc mieng, gargle, nsm => nuoc suc mieng",
+
+        "nuoc muoi, sinh ly, shl => nuoc muoi sinh ly",
+
+        "keo ngam ho, vien ngam ho => keo ngam ho",
+
+        "siro ho, thuoc ho => siro ho",
+
+        "cao dan, mieng dan giam dau => salonpas",
+
+        "con, con 70, con 90 => con y te",
+
+        "bong, bang, gac => bong bang y te",
+
+        "kim tiem, xi lanh, ong tiem => ong tiem",
+
+        "nhiet ke, do nhiet do => nhiet ke",
+
+        "huyet ap, may do huyet ap => may do huyet ap",
+
+        "tieu duong, may do tieu duong => may do duong huyet",
+
+        "srm => sua rua mat",
+
+        "kem chong nang, sunscreen => kem chong nang",
+
+        "omega3, omega 3 => omega 3",
+
+        "canxi, calcium => calcium",
+
+        "sat, iron => iron",
+
+        "dha => dha"
+      ]
+    }
+  },
+
+  "analyzer": {
+    "pharmacy_search_analyzer": {
+      "tokenizer": "standard",
+      "filter": [
+        "lowercase",
+        "asciifolding",
+        "drug_synonym_filter",
+        "symptom_synonym_filter",
+        "category_synonym_filter"
+      ]
+    }
+  }
+}
+}

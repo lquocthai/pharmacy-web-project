@@ -316,13 +316,7 @@ const AdminLayout = () => {
 
                             <div className={`sidebar-expanded-only flex flex-col gap-1 overflow-hidden transition-all duration-300 ${ordersOpen ? 'max-h-[400px] mt-1 opacity-100' : 'max-h-0 opacity-0'}`}>
                                 <NavLink to="/admin/orders" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Đơn hàng</NavLink>
-                                <NavLink
-                                    to={location.pathname.includes('/admin/orders/') ? location.pathname : "/admin/orders"}
-                                    className={getDynamicSubMenuClass(location.pathname.includes('/admin/orders/') && location.pathname !== '/admin/orders')}
-                                    style={{ color: 'unset', textDecoration: 'none' }}
-                                >
-                                    Chi tiết đơn
-                                </NavLink>
+
                             </div>
                         </div>
 
@@ -349,24 +343,13 @@ const AdminLayout = () => {
                                 <NavLink to="/admin/inventory/batches" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Lô hàng</NavLink>
                                 <NavLink to="/admin/inventory/import" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Nhập kho</NavLink>
                                 <NavLink to="/admin/inventory/transactions" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Giao dịch kho</NavLink>
-                                <NavLink to="/admin/inventory/low-stock" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Tồn thấp</NavLink>
-                                <NavLink to="/admin/inventory/expiring" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Sắp hết hạn</NavLink>
+                                <NavLink to="/admin/inventory/low-stock" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Hàng Tồn thấp</NavLink>
+                                <NavLink to="/admin/inventory/expiring" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Hàng Sắp hết hạn</NavLink>
                                 <NavLink to="/admin/inventory/out-of-stock" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Hết hàng</NavLink>
                             </div>
                         </div>
 
-                        {/* 6. CALENDAR */}
-                        <button
-                            onClick={() => navigate('/admin/conversations')}
-                            className={getMenuClass(location.pathname === '/admin/conversations')}
-                        >
-                            <div className="flex items-center gap-3.5">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                </svg>
-                                <span className="menu-item">Hội thoại</span>
-                            </div>
-                        </button>
+
 
                         {/* 6. USER PROFILE */}
                         <button

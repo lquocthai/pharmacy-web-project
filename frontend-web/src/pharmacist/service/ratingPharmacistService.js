@@ -40,6 +40,12 @@ const ratingPharmacistService = {
             `/pharmacist/ratings/${ratingId}/replies`,
             data
         ),
+
+    updateRatingStatus: (ratingId, status) => {
+        return axiosClient.patch(`/pharmacist/ratings/${ratingId}/status`, null, {
+            params: { status }
+        });
+    }
 };
 
 export default ratingPharmacistService;

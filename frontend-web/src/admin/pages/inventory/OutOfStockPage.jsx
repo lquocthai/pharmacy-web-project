@@ -8,7 +8,7 @@ const OutOfStockPage = () => {
     const [variants, setVariants] = useState([]);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(0);
-    const [size] = useState(15);
+    const [size] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
 
     useEffect(() => { fetchOutOfStock(); }, [page]);
@@ -29,10 +29,10 @@ const OutOfStockPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F1F5F9] p-4 md:p-6 text-[#1C2434] font-satoshi">
+        <div className="min-h-screen bg-[#F1F5F9] p-0 md:p-6 text-[#1C2434] font-satoshi">
             <style>{`.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`}</style>
 
-            <div className="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className=" flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
                     <h2 className="text-start text-xl font-bold text-[#1C2434]">Sản phẩm hết hàng</h2>
                     <p className="text-xs text-[#64748B] mt-0.5">Variant không còn tồn kho khả dụng nào</p>
@@ -51,7 +51,7 @@ const OutOfStockPage = () => {
             <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0]">
                 <div className="p-3 border-b border-[#E2E8F0] flex items-center gap-2">
                     <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-100">
-                        {variants.length} variant hết hàng (trang này)
+                        {variants.length} variant hết hàng
                     </span>
                 </div>
 

@@ -65,19 +65,9 @@ public class UserController {
     // 5. Yêu cầu quên mật khẩu (Gửi mã OTP khôi phục)
     @PostMapping("/forgot-password")
     ApiResponse<String> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
-        userService.forgotPassword(request.getEmail());
+        String message = userService.forgotPassword(request.getEmail());
         return ApiResponse.<String>builder()
-                .result("Mã xác thực khôi phục mật khẩu đã được gửi vào Email của bạn.")
+                .result(message)
                 .build();
     }
-
-    // 6. Đặt lại mật khẩu mới (Sau khi đã verify OTP thành công ở Front-end)
-    @PostMapping("/reset-password")
-    ApiResponse<String> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
-        userService.resetPassword(request.getEmail(),request.getNewPassword());
-        return ApiResponse.<String>builder()
-                .result("Mật khẩu của bạn đã được thay đổi thành công.")
-                .build();
-    }
-
 }

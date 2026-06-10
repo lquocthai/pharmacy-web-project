@@ -134,3 +134,16 @@ code {
 .cursor-pointer {
   cursor: pointer;
 }
+
+/* ── Skeleton loading animation ── */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #e0e3e5 25%, #f2f4f6 50%, #e0e3e5 75%);
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}

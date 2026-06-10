@@ -9,8 +9,6 @@ let stompClient = null;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONNECT
-// Lấy JWT từ localStorage và gửi trong Authorization header khi CONNECT.
-// reconnectDelay: tự reconnect sau 5s nếu mất kết nối.
 // ─────────────────────────────────────────────────────────────────────────────
 const connectSocket = ({ onConnect, onError, onDisconnect } = {}) => {
     if (stompClient && stompClient.connected) return stompClient;
@@ -60,7 +58,7 @@ const disconnectSocket = () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SUBSCRIBE — chat room của 1 conversation
-// Trả về subscription object. Gọi .unsubscribe() để hủy.
+// /topic/conversation/{id} → nhận MessageResponse realtime
 // ─────────────────────────────────────────────────────────────────────────────
 const subscribeConversation = (conversationId, callback) => {
     if (!stompClient || !stompClient.connected) {
@@ -69,8 +67,7 @@ const subscribeConversation = (conversationId, callback) => {
     }
     return stompClient.subscribe(`/topic/conversation/${conversationId}`, (message) => {
         try {
-            const parsed = JSON.parse(message.body);
-            callback(parsed);
+            callback(JSON.parse(message.body));
         } catch (e) {
             console.error('[WS] Failed to parse message:', e);
         }
@@ -78,19 +75,20 @@ const subscribeConversation = (conversationId, callback) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SUBSCRIBE — waiting list (dược sĩ)
+// SUBSCRIBE — shared inbox (pharmacist/admin)
+// /topic/conversations → nhận ConversationResponse khi có tin mới
+// Dùng để cập nhật danh sách conversation, đưa conversation mới nhất lên đầu
 // ─────────────────────────────────────────────────────────────────────────────
-const subscribeWaitingList = (callback) => {
+const subscribeInbox = (callback) => {
     if (!stompClient || !stompClient.connected) {
-        console.warn('[WS] Not connected — cannot subscribe waiting list');
+        console.warn('[WS] Not connected — cannot subscribe inbox');
         return null;
     }
     return stompClient.subscribe('/topic/conversations', (message) => {
         try {
-            const parsed = JSON.parse(message.body);
-            callback(parsed);
+            callback(JSON.parse(message.body));
         } catch (e) {
-            console.error('[WS] Failed to parse waiting list update:', e);
+            console.error('[WS] Failed to parse inbox update:', e);
         }
     });
 };
@@ -102,8 +100,7 @@ const subscribeErrors = (callback) => {
     if (!stompClient || !stompClient.connected) return null;
     return stompClient.subscribe('/user/queue/errors', (message) => {
         try {
-            const parsed = JSON.parse(message.body);
-            callback(parsed);
+            callback(JSON.parse(message.body));
         } catch (e) {
             callback({ message: message.body });
         }
@@ -128,12 +125,13 @@ const sendMessage = (payload) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CLOSE CONVERSATION via WS
+// MARK AS READ via WebSocket
+// Gửi conversationId để backend reset unreadCount
 // ─────────────────────────────────────────────────────────────────────────────
-const closeConversationWs = (conversationId) => {
+const markAsReadWs = (conversationId) => {
     if (!stompClient || !stompClient.connected) return false;
     stompClient.publish({
-        destination: '/app/conversation.close',
+        destination: '/app/chat.read',
         body: conversationId,
     });
     return true;
@@ -149,10 +147,10 @@ export {
     connectSocket,
     disconnectSocket,
     subscribeConversation,
-    subscribeWaitingList,
+    subscribeInbox,
     subscribeErrors,
     sendMessage,
-    closeConversationWs,
+    markAsReadWs,
     getClient,
     isConnected,
 };

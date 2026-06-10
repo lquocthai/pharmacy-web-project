@@ -1,7 +1,6 @@
 package com.quocthai.pharmacy_service.controller;
 
 import com.quocthai.pharmacy_service.dto.request.SendMessageRequest;
-import com.quocthai.pharmacy_service.dto.response.ConversationResponse;
 import com.quocthai.pharmacy_service.dto.response.MessageResponse;
 import com.quocthai.pharmacy_service.dto.response.WsErrorResponse;
 import com.quocthai.pharmacy_service.exeption.AppException;
@@ -17,13 +16,16 @@ import org.springframework.stereotype.Controller;
 import java.security.Principal;
 
 /**
- * WebSocket / STOMP controller.
+ * WebSocket / STOMP controller — Messenger/Zalo style Shared Inbox.
  *
- * Destinations (client gửi đến /app/...):
- *   /app/chat.send                — gửi tin nhắn
- *   /app/conversation.close       — user chủ động đóng conversation
+ * Client destinations (gửi đến /app/...):
+ *   /app/chat.send         — gửi tin nhắn (tự động tạo conversation nếu chưa có)
+ *   /app/chat.read         — đánh dấu đã đọc (reset unreadCount)
  *
- * Principal.getName() = email (set bởi JwtChannelInterceptor).
+ * Server topics (client subscribe):
+ *   /topic/conversation/{id}   — chat room realtime
+ *   /topic/conversations        — shared inbox update (dược sĩ)
+ *   /user/queue/errors          — lỗi cá nhân
  */
 @Slf4j
 @Controller
@@ -33,13 +35,17 @@ public class ChatWsController {
     private final ChatService chatService;
 
     /**
-     * Client gửi: SEND destination:/app/chat.send
+     * Gửi tin nhắn.
      *
-     * Flow:
-     *   1. Phân quyền theo role trong Principal
-     *   2. Auto-tạo conversation nếu cần (USER)
-     *   3. Lưu message
-     *   4. Broadcast tới /topic/conversation/{id}
+     * Flow USER:
+     *   - Nếu chưa có conversation → tự động tạo mới + bot chào
+     *   - Broadcast tới /topic/conversation/{id}
+     *   - Broadcast conversation update tới /topic/conversations (shared inbox)
+     *   - unreadCount++
+     *
+     * Flow PHARMACIST / ADMIN:
+     *   - Cần conversationId trong payload
+     *   - Broadcast tương tự
      */
     @MessageMapping("/chat.send")
     public void sendMessage(@Payload SendMessageRequest req, Principal principal) {
@@ -48,14 +54,14 @@ public class ChatWsController {
     }
 
     /**
-     * User chủ động kết thúc tư vấn.
-     * Client gửi: SEND destination:/app/conversation.close
+     * Dược sĩ mở conversation → đánh dấu đã đọc, reset unreadCount.
+     * Client gửi: SEND destination:/app/chat.read
      * Payload: conversationId (plain string)
      */
-    @MessageMapping("/conversation.close")
-    public void closeConversation(@Payload String conversationId, Principal principal) {
-        ConversationResponse result = chatService.closeConversation(conversationId.trim(), principal);
-        log.debug("Conversation {} closed by {}", result.getId(), principal.getName());
+    @MessageMapping("/chat.read")
+    public void markAsRead(@Payload String conversationId, Principal principal) {
+        chatService.markAsRead(conversationId.trim());
+        log.debug("Conversation {} marked as read by {}", conversationId.trim(), principal.getName());
     }
 
     // ─────────────────────────────────────────────────────────────────────────

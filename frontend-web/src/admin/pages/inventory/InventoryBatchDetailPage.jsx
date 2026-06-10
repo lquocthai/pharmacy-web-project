@@ -44,8 +44,8 @@ const InventoryBatchDetailPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F1F5F9] p-4 md:p-6 text-[#1C2434] font-satoshi">
-            <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div className="min-h-screen bg-[#F1F5F9] p-0 md:p-6 text-[#1C2434] font-satoshi">
+            <div className=" flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
                     <h2 className="text-xl font-bold text-[#1C2434]">Chi tiết lô hàng</h2>
                 </div>
@@ -66,6 +66,7 @@ const InventoryBatchDetailPage = () => {
                         <h2 className=" text-sm font-bold text-[#1C2434] mb-4 pb-3 border-b border-[#E2E8F0]">Thông tin lô hàng</h2>
                         <DetailRow label="Số lô (Batch Number)" value={batch.batchNumber} highlight />
                         <DetailRow label="Sản phẩm" value={batch.productName} />
+                        <DetailRow label="Variant Id" value={batch.variantId} />
                         <DetailRow label="Phân loại (Variant)" value={batch.variantName} />
                         <DetailRow label="SKU" value={batch.sku} />
                         <DetailRow label="Tồn kho hiện tại" value={`${batch.remainingQuantity?.toLocaleString('vi-VN')} đơn vị`} highlight={batch.lowStockAlert} />

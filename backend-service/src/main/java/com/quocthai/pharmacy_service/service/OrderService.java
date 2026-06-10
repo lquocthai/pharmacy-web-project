@@ -406,6 +406,10 @@ public class OrderService {
         }
 
         String adminEmail = getCurrentUserEmail();
+        if(request.getStatus().equals(OrderStatus.DELIVERED)){
+            order.setPaymentStatus(PaymentStatus.PAID);
+            orderRepository.save(order);
+        }
         orderStatusHistoryRepository.save(OrderStatusHistory.builder()
                 .order(order)
                 .status(request.getStatus())
@@ -474,6 +478,17 @@ public class OrderService {
                 orderStatusHistoryRepository.findByOrderId(order.getId()).stream()
                         .map(this::toHistoryResponse).toList());
     }
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
+    public OrderResponse getOrderDetailByCodeAdmin(String orderCode) {
+        Order order = orderRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+        return toResponse(order,
+                orderItemRepository.findByOrderId(order.getId()).stream()
+                        .map(this::toItemResponse).toList(),
+                orderStatusHistoryRepository.findByOrderId(order.getId()).stream()
+                        .map(this::toHistoryResponse).toList());
+    }
 
     @Transactional(readOnly = true)
     public List<OrderStatusHistoryResponse> getOrderTracking(String orderId) {
@@ -532,8 +547,8 @@ public class OrderService {
         if (current == next) throw new AppException(ErrorCode.INVALID_ORDER_STATUS);
 
         boolean valid = switch (current) {
-            case PENDING   -> next == OrderStatus.CONFIRMED || next == OrderStatus.CANCELLED;
-            case CONFIRMED -> next == OrderStatus.SHIPPING  || next == OrderStatus.CANCELLED;
+            case PENDING   -> next == OrderStatus.CONFIRMED || next == OrderStatus.SHIPPING || next == OrderStatus.DELIVERED || next == OrderStatus.CANCELLED;
+            case CONFIRMED -> next == OrderStatus.SHIPPING  || next == OrderStatus.DELIVERED || next == OrderStatus.CANCELLED;
             case SHIPPING  -> next == OrderStatus.DELIVERED;
             default        -> false; // DELIVERED, CANCELLED không thể chuyển
         };

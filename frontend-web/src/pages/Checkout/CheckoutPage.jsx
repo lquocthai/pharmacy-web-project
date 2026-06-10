@@ -349,40 +349,9 @@ const CheckoutPage = () => {
                                     />
                                 </div>
                             </div>
-
-                            {/* MOMO */}
-                            <div
-                                className={`border rounded-3 p-3 cursor-pointer transition ${paymentMethod === 'MOMO'
-                                    ? 'border-primary bg-light'
-                                    : ''
-                                    }`}
-                                onClick={() => setPaymentMethod('MOMO')}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <div className="d-flex align-items-center justify-content-between">
-                                    <div>
-                                        <div className="text-start fw-bold small">
-                                            Ví MoMo
-                                        </div>
-                                        <div className="text-muted small mt-1">
-                                            Thanh toán bằng ví điện tử MoMo
-                                        </div>
-                                    </div>
-
-                                    <input
-                                        type="radio"
-                                        checked={paymentMethod === 'MOMO'}
-                                        onChange={() => setPaymentMethod('MOMO')}
-                                    />
-                                </div>
-                            </div>
                         </div>
                     </div>
-
-
                 </div>
-
-
                 <div className="col-lg-4">
                     <p className=''> </p>
                     <div className="card border-0 shadow-sm p-4 sticky-top" style={{ top: '20px', zIndex: 1 }}>

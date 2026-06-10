@@ -34,6 +34,7 @@ public class PaymentController {
         );
     }
 
+
     /**
      * VNPay IPN callback
      * RAW response theo chuẩn VNPay
@@ -56,7 +57,7 @@ public class PaymentController {
             @RequestParam Map<String, String> params,
             HttpServletResponse response
     ) throws IOException {
-//        vnPayService.handleVnPayReturn(params);
+        vnPayService.handleVnPayReturn(params);
         String queryString = buildQueryString(params);
 
         response.sendRedirect(

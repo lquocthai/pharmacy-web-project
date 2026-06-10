@@ -1,7 +1,6 @@
 import axios from 'axios';
-import { store } from '../redux/store'; // Import store để sử dụng dispatch
-import { setLogout } from '../redux/slices/authSlice';
 
+// ✅ KHÔNG import store hay setLogout ở đầu file để tránh Circular Dependency và lỗi đứng App
 const axiosClient = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/pharmacy',
 });
@@ -18,9 +17,14 @@ axiosClient.interceptors.response.use(
         const originalRequest = error.config;
 
         if (originalRequest.url.includes('/auth/refresh')) {
+            // 🔥 Cú pháp Dynamic Import đúng trong hàm: Sử dụng hàm import() và await
+            const { store } = await import('../redux/store');
+            const { setLogout } = await import('../redux/slices/authSlice');
+
             store.dispatch(setLogout()); // Nếu refresh token cũng lỗi thì logout luôn
             return Promise.reject(error);
         }
+
         // Nếu lỗi 401 (Hết hạn token) và chưa thử lại lần nào
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
@@ -43,12 +47,13 @@ axiosClient.interceptors.response.use(
                 return axiosClient(originalRequest);
 
             } catch (err) {
-                
+                // 🔥 Cú pháp Dynamic Import đúng trong khối catch
+                const { store } = await import('../redux/store');
+                const { setLogout } = await import('../redux/slices/authSlice');
+
                 // Khi Refresh Token cũng hết hạn hoặc lỗi
                 store.dispatch(setLogout()); // Xóa sạch state trong Redux & LocalStorage
 
-                // Chuyển hướng về trang chủ hoặc thông báo yêu cầu đăng nhập lại
-                // window.location.href = '/'; 
                 return Promise.reject(err);
             }
         }

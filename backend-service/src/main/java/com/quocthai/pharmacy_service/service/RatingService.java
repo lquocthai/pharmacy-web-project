@@ -84,7 +84,7 @@ public class RatingService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         // Query 1: Lấy ratings + user (JOIN FETCH trong query)
-        Page<Rating> ratingPage = ratingRepository.findByProductId(productId, star, pageable);
+        Page<Rating> ratingPage = ratingRepository.findByProductId(productId, star, pageable, RatingStatus.ACTIVE);
 
         List<Rating> ratings = ratingPage.getContent();
         if (ratings.isEmpty()) {

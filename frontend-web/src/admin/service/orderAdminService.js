@@ -3,8 +3,8 @@ import axiosClient from '../../configs/axiosConfig.js';
 const orderAdminService = {
     getOrders: (params) =>
         axiosClient.get('/admin/orders', { params }),
-    getOrderById: (id) =>
-        axiosClient.get(`/admin/orders/${id}`),
+    getOrderByCode: (orderCode) =>
+        axiosClient.get(`/admin/orders/${orderCode}`),
     updateStatus(orderId, data) {
         return axiosClient.patch(`/admin/orders/${orderId}/status`, data);
     },

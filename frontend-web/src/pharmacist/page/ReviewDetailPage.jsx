@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ratingPharmacistService from '../service/ratingPharmacistService';
+import BackButton from '../../components/Common/BackButton';
 
 const formatTime = (value) => value ? new Date(value).toLocaleString('vi-VN') : '—';
 
@@ -34,6 +35,7 @@ export default function ReviewDetailPage() {
             setLoading(true);
             const res = await ratingPharmacistService.getRatingDetail(id);
             setRating(res.data?.result || null);
+
         } catch (error) {
             console.error(error);
             toast.error(error?.response?.data?.message || 'Không tải được chi tiết đánh giá');
@@ -71,20 +73,13 @@ export default function ReviewDetailPage() {
 
     return (
         <div className="min-h-screen bg-[#F1F5F9] text-[#1C2434] font-satoshi">
-            <div className="mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className=" flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div className="text-start">
-                    <h2 className="text-xl font-bold text-[#1C2434]">Chi tiết đánh giá</h2>                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => navigate('/pharmacist/reviews')}
-                        className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] text-[#1C2434] px-3 py-1.5 rounded-md text-xs font-medium hover:bg-[#F8FAFC] transition-all"
-                    >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                        </svg>
-                        Quay lại
-                    </button>
+                    <h2 className="text-xl font-bold text-[#1C2434]">Chi tiết đánh giá</h2>
                 </div>
+
+                <BackButton to={'/pharmacist/reviews'} />
+
             </div>
 
             {loading ? (
@@ -96,8 +91,8 @@ export default function ReviewDetailPage() {
                 <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-4">
                     <div className="space-y-4">
                         <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] overflow-hidden">
-                            <div className="border-b border-[#E2E8F0] px-4 py-3">
-                                <h3 className="text-base font-bold text-[#1C2434]">Thông tin sản phẩm</h3>
+                            <div className="border-b border-[#E2E8F0] px-4 py-2">
+                                <h2 className="text-start text-base font-bold text-[#1C2434]">Thông tin sản phẩm</h2>
                             </div>
                             <div className="p-4 flex flex-col sm:flex-row gap-4">
                                 <img
@@ -106,8 +101,8 @@ export default function ReviewDetailPage() {
                                     className="h-24 w-24 rounded-md border border-[#E2E8F0] object-cover bg-[#F8FAFC] flex-shrink-0"
                                 />
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-base font-bold text-[#1C2434]">{rating.productName || 'Sản phẩm'}</p>
-                                    <p className="mt-1 text-xs text-[#8A99AD] break-all">{rating.productId}</p>
+                                    <p className="text-start text-base font-bold text-[#1C2434]">{rating.productName || 'Sản phẩm'}</p>
+                                    <p className="text-start mt-1 text-xs text-[#8A99AD] break-all">{rating.productId}</p>
                                     <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-[#64748B]">
                                         <span className="font-semibold text-[#1C2434]">{rating.userFullName || 'Khách hàng'}</span>
                                         <span>{formatTime(rating.createdAt)}</span>
@@ -118,7 +113,7 @@ export default function ReviewDetailPage() {
 
                         <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] overflow-hidden">
                             <div className="border-b border-[#E2E8F0] px-4 py-3 flex flex-wrap items-center justify-between gap-2">
-                                <h3 className="text-base font-bold text-[#1C2434]">Nội dung đánh giá</h3>
+                                <h2 className="text-start text-base font-bold text-[#1C2434]">Nội dung đánh giá</h2>
                                 {rating.status && (
                                     <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border bg-slate-50 text-slate-600 border-slate-200">
                                         {rating.status}
@@ -134,8 +129,8 @@ export default function ReviewDetailPage() {
                         </div>
 
                         <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] overflow-hidden">
-                            <div className="border-b border-[#E2E8F0] px-4 py-3">
-                                <h3 className="text-base font-bold text-[#1C2434]">Phản hồi ({rating.replies?.length || 0})</h3>
+                            <div className="border-b border-[#E2E8F0] px-4 py-2">
+                                <h2 className="text-start text-base font-bold text-[#1C2434]">Phản hồi ({rating.replies?.length || 0})</h2>
                             </div>
                             <div className="p-4 space-y-3">
                                 {!rating.replies?.length ? (
@@ -153,9 +148,9 @@ export default function ReviewDetailPage() {
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmitReply} style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] p-4 h-fit">
-                        <h3 className="text-base font-bold text-[#1C2434]">Trả lời đánh giá</h3>
-                        <p className="text-[11px] text-[#8A99AD] mt-0.5">Phản hồi sẽ được hiển thị trong chi tiết đánh giá của sản phẩm.</p>
+                    <form onSubmit={handleSubmitReply} style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0] p-4 py-2 h-fit">
+                        <h2 className="text-start text-base font-bold text-[#1C2434]">Trả lời đánh giá</h2>
+                        <p className="text-start text-[11px] text-[#8A99AD] mt-0.5">Phản hồi sẽ được hiển thị trong chi tiết đánh giá của sản phẩm.</p>
                         <textarea
                             id="replyContent"
                             value={replyContent}

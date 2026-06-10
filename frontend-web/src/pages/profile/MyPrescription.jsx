@@ -240,20 +240,7 @@ const MyPrescription = () => {
                                             </p>
 
 
-                                            <Button
-                                                className="rounded-pill px-3 py-1 fw-medium d-flex align-items-center gap-1 shadow-sm"
-                                                style={{
-                                                    backgroundColor:
-                                                        '#1250dc',
-                                                    border:
-                                                        'none',
-                                                    fontSize:
-                                                        '1rem'
-                                                }}
-                                            >
-                                                Tư vấn lại cho
-                                                tôi
-                                            </Button>
+
 
                                         </div>
                                     </Card.Body>

@@ -161,7 +161,7 @@ const AdminUserPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F1F5F9] p-4 md:p-6 text-[#1C2434] font-satoshi">
+        <div className="min-h-screen bg-[#F1F5F9] p-0 md:p-6 text-[#1C2434] font-satoshi">
             <style>{`
                 .no-scrollbar::-webkit-scrollbar { display: none; }
                 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -179,16 +179,16 @@ const AdminUserPage = () => {
             <div style={{ borderRadius: '1rem' }} className="bg-white  border border-[#E2E8F0]">
 
                 {/* ── 1. HEADER SECTION ── */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-3 border-b border-[#E2E8F0]">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-2 border-b border-[#E2E8F0]">
                     <div>
                         <h2 className="text-lg text-start font-bold text-[#1C2434]">Danh sách người dùng</h2>
                     </div>
                     <div className="flex items-center gap-2.5 w-full sm:w-auto">
-                        <button className="flex items-center justify-center gap-1.5 bg-white border border-[#E2E8F0] text-[#1C2434] px-3 py-1.5 rounded-md text-xs font-medium hover:bg-[#F8FAFC] transition-all">
-                            <svg className="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16v1a3 3 0 003 3h12a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        <button onClick={fetchUsers} className="flex items-center justify-center gap-1.5 bg-white border border-[#E2E8F0] text-[#1C2434] px-3 py-1.5 rounded-md text-xs font-medium hover:bg-[#F8FAFC] transition-all">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
-                            Export
+                            Tải lại
                         </button>
                         <button
                             onClick={() => navigate('/admin/users/create')}

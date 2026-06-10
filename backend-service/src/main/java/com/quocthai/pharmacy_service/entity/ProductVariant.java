@@ -1,7 +1,6 @@
 package com.quocthai.pharmacy_service.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.groups.Default;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

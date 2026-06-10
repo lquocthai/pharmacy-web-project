@@ -14,18 +14,18 @@ const STAR_OPTIONS = [
 
 const STATUS_OPTIONS = [
     { label: 'Tất cả trạng thái', value: '' },
-    { label: 'Đang hiển thị', value: 'ACTIVE' },
-    { label: 'Đã ẩn', value: 'HIDDEN' },
+    { label: 'Hiển thị', value: 'ACTIVE' },
+    { label: 'Ẩn', value: 'HIDDEN' },
 ];
 
 const statusBadgeClass = {
-    ACTIVE: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-    HIDDEN: 'bg-gray-100 text-gray-500 border-gray-200',
+    ACTIVE: 'bg-emerald-50 text-emerald-600 border-emerald-200 focus:ring-emerald-200',
+    HIDDEN: 'bg-gray-100 text-gray-500 border-gray-200 focus:ring-gray-200',
 };
 
 const statusLabel = {
-    ACTIVE: 'Đang hiển thị',
-    HIDDEN: 'Đã ẩn',
+    ACTIVE: 'Hiển thị',
+    HIDDEN: 'Ẩn',
 };
 
 const formatTime = (value) => value ? new Date(value).toLocaleString('vi-VN') : '—';
@@ -50,23 +50,20 @@ export default function ReviewsPage() {
     const navigate = useNavigate();
     const [ratings, setRatings] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [updatingId, setUpdatingId] = useState(null); // State theo dõi phần tử đang chạy API update status
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    // State tạm thời để hiển thị ký tự trên input ngay lập tức khi gõ
     const [searchTerm, setSearchTerm] = useState('');
-
     const [filters, setFilters] = useState({
         status: '',
         star: '',
         productName: '',
     });
 
-    // EFFECT DEBOUNCE: Chờ user dừng gõ 1 giây (1000ms) rồi mới cập nhật vào filter chính
     useEffect(() => {
         const handler = setTimeout(() => {
             setFilters(prev => {
-                // Chỉ cập nhật và reset page nếu giá trị search thực sự thay đổi
                 if (prev.productName !== searchTerm) {
                     setPage(0);
                     return { ...prev, productName: searchTerm };
@@ -75,13 +72,12 @@ export default function ReviewsPage() {
             });
         }, 1000);
 
-        // Clear timeout cũ nếu user vẫn tiếp tục gõ trong khoảng < 1s
         return () => clearTimeout(handler);
     }, [searchTerm]);
 
     const requestParams = useMemo(() => ({
         page,
-        size: 10,
+        size: 2,
         ...(filters.status && { status: filters.status }),
         ...(filters.star && { star: Number(filters.star) }),
         ...(filters.productName.trim() && { productName: filters.productName.trim() }),
@@ -92,6 +88,7 @@ export default function ReviewsPage() {
             setLoading(true);
             const res = await ratingPharmacistService.getRatings(requestParams);
             const result = res.data?.result;
+            console.log(result)
             setRatings(result?.content || []);
             setTotalPages(result?.totalPages || 0);
         } catch (error) {
@@ -106,13 +103,34 @@ export default function ReviewsPage() {
         fetchRatings();
     }, [fetchRatings]);
 
+    // Xử lý gọi API cập nhật trạng thái khi Dược sĩ tương tác đổi select option
+    const handleStatusChange = async (ratingId, newStatus) => {
+        try {
+            setUpdatingId(ratingId);
+            await ratingPharmacistService.updateRatingStatus(ratingId, newStatus);
+
+            // Cập nhật lại UI local ngay lập tức mà không cần gọi lại fetchRatings toàn bộ danh sách
+            setRatings(prevRatings =>
+                prevRatings.map(item =>
+                    item.id === ratingId ? { ...item, status: newStatus } : item
+                )
+            );
+            toast.success('Cập nhật trạng thái đánh giá thành công!');
+        } catch (error) {
+            console.error(error);
+            toast.error(error?.response?.data?.message || 'Thay đổi trạng thái thất bại');
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
     const handleFilterChange = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: value }));
         setPage(0);
     };
 
     const handleResetFilters = () => {
-        setSearchTerm(''); // Reset ô search input về rỗng
+        setSearchTerm('');
         setFilters({ status: '', star: '', productName: '' });
         setPage(0);
     };
@@ -121,10 +139,9 @@ export default function ReviewsPage() {
         <div className="min-h-screen bg-[#F1F5F9] text-[#1C2434] font-satoshi">
             <style>{`.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`}</style>
 
-            <div className="mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className=" flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div className="text-start">
                     <h2 className="text-xl font-bold text-[#1C2434]">Quản lý đánh giá</h2>
-                    <p className="text-xs text-[#64748B] mt-0.5">Theo dõi và phản hồi đánh giá sản phẩm từ khách hàng</p>
                 </div>
                 <p className="text-xs text-[#64748B]">Home &gt; Đánh giá</p>
             </div>
@@ -133,7 +150,7 @@ export default function ReviewsPage() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-3 border-b border-[#E2E8F0]">
                     <div>
                         <h2 className="text-base font-bold text-[#1C2434]">Danh sách đánh giá</h2>
-                        <p className="text-[11px] text-[#8A99AD] mt-0.5">{ratings.length} đánh giá trong trang hiện tại</p>
+                        <p className="text-start text-[11px] text-[#8A99AD] mt-0.5">{ratings.length} đánh giá trong trang hiện tại</p>
                     </div>
                     <button
                         onClick={fetchRatings}
@@ -153,7 +170,7 @@ export default function ReviewsPage() {
                         </svg>
                         <input
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)} // Thay đổi searchTerm ngay lập tức
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Tìm theo tên sản phẩm"
                             className="w-full h-9 rounded-md border border-[#E2E8F0] bg-white pl-9 pr-3 text-xs text-[#1C2434] outline-none focus:border-[#3C50E0]"
                         />
@@ -232,15 +249,33 @@ export default function ReviewsPage() {
                                             <td className="p-2.5">
                                                 {renderStars(rating.star)}
                                             </td>
+
+                                            {/* CỘT TRẠNG THÁI: Thay thế tag span cũ bằng một Select Box có tương tác */}
                                             <td className="p-2.5">
                                                 {rating.status ? (
-                                                    <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusBadgeClass[rating.status] || 'bg-slate-50 text-slate-600 border-slate-200'}`}>
-                                                        {statusLabel[rating.status] || rating.status}
-                                                    </span>
+                                                    <div className="relative inline-flex items-center">
+                                                        <select
+                                                            disabled={updatingId === rating.id}
+                                                            value={rating.status}
+                                                            onChange={(e) => handleStatusChange(rating.id, e.target.value)}
+                                                            className={`cursor-pointer appearance-none px-2.5 py-1 pr-6 rounded-full text-[10px] font-medium border outline-none transition-all focus:ring-1 ${statusBadgeClass[rating.status] || 'bg-slate-50 text-slate-600 border-slate-200'}`}
+                                                        >
+                                                            <option value="ACTIVE">{statusLabel.ACTIVE}</option>
+                                                            <option value="HIDDEN">{statusLabel.HIDDEN}</option>
+                                                        </select>
+                                                        {updatingId === rating.id ? (
+                                                            <div className="absolute right-1.5 animate-spin w-3 h-3 border border-current border-t-transparent text-slate-500 rounded-full" />
+                                                        ) : (
+                                                            <svg className="absolute right-1.5 w-3 h-3 pointer-events-none text-current opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                                            </svg>
+                                                        )}
+                                                    </div>
                                                 ) : (
                                                     <span className="text-[#8A99AD]">—</span>
                                                 )}
                                             </td>
+
                                             <td className="p-2.5 text-[#64748B] whitespace-nowrap">
                                                 {formatTime(rating.createdAt)}
                                             </td>

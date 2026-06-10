@@ -16,7 +16,7 @@ const AdminCategoryPage = () => {
     // State phân trang & tìm kiếm
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 2;
+    const itemsPerPage = 5;
 
     // Hàm gọi API lấy danh sách danh mục
     const fetchCategories = async () => {
@@ -117,7 +117,7 @@ const AdminCategoryPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 text-slate-600 font-sans">
+        <div className="min-h-screen bg-slate-50/50 p-0 md:p-8 text-slate-600 font-sans">
             <div className="max-w-7xl mx-auto space-y-6">
 
                 {/* Thêm style ẩn thanh cuộn cho trình duyệt */}
@@ -146,17 +146,12 @@ const AdminCategoryPage = () => {
 
                 {/* Bảng hiển thị dữ liệu chính */}
                 <div className="bg-white rounded-2xl border border-slate-200/80  overflow-hidden">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-3 border-b border-[#E2E8F0]">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-2 border-b border-[#E2E8F0]">
                         <div>
                             <h2 className="text-lg text-start font-bold text-[#1C2434]">Danh sách danh mục</h2>
                         </div>
                         <div className="flex items-center gap-2.5 w-full sm:w-auto">
-                            <button className="flex items-center justify-center gap-1.5 bg-white border border-[#E2E8F0] text-[#1C2434] px-3 py-1.5 rounded-md text-xs font-medium hover:bg-[#F8FAFC] transition-all">
-                                <svg className="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16v1a3 3 0 003 3h12a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Export
-                            </button>
+
                             <button
                                 onClick={() => navigate('/admin/categories/create')}
                                 className="flex items-center justify-center gap-1.5 bg-[#3C50E0] text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-opacity-90 transition-all  w-full sm:w-auto"
@@ -174,6 +169,12 @@ const AdminCategoryPage = () => {
                             </span>
                             <input type="text" placeholder="Tìm tên danh mục, mô tả..." value={searchQuery} onChange={handleSearchChange} className="w-full pl-9 pr-4 py-2 bg-slate-50 text-sm rounded-lg border border-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" />
                         </div>
+                        <button onClick={fetchCategories} className="flex items-center justify-center gap-1.5 bg-white border border-[#E2E8F0] text-[#1C2434] px-3 py-1.5 rounded-md text-xs font-medium hover:bg-[#F8FAFC] transition-all">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Tải lại
+                        </button>
 
 
                     </div>
@@ -247,7 +248,7 @@ const AdminCategoryPage = () => {
                                                     <td className="px-6 py-4 hidden sm:table-cell text-slate-500 max-w-xs truncate">{parent.description}</td>
 
                                                     {/* Thao tác CHA */}
-                                                    <td className="px-6 py-4 text-right">
+                                                    <td className=" px-6 py-4 text-right">
                                                         <div className="flex items-center justify-end gap-1.5">
                                                             <button onClick={() => handleOpenEditPage(parent.id)} className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Sửa danh mục gốc">
                                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -279,7 +280,7 @@ const AdminCategoryPage = () => {
                                                         <td className="px-6 py-3 hidden sm:table-cell text-slate-400 text-xs truncate max-w-xs">{child.description}</td>
 
                                                         {/* Thao tác CON: Chỉ có xóa */}
-                                                        <td className="px-6 py-3 text-right">
+                                                        <td className="text-center  px-6 py-3 text-right">
                                                             <div className="flex items-center justify-end gap-1.5 pr-1">
                                                                 <button onClick={() => handleDeleteCategory(child.id, child.name, false)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa danh mục con">
                                                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>

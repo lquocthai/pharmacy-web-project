@@ -201,3 +201,30 @@ $primary-color: #0055aa;
 .text-primary {
   color: $primary-color !important;
 }
+
+.search-suggestions-dropdown {
+  .suggestion-item {
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+      background-color: #f5f5f5 !important;
+    }
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #f2f2f2 25%, #e6e6e6 50%, #f2f2f2 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite linear;
+  border-radius: 4px;
+}

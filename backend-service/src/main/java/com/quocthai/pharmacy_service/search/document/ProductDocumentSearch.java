@@ -63,6 +63,10 @@ public class ProductDocumentSearch {
     @Field(type = FieldType.Nested)
     private List<ProductVariantDocument> variants;
 
+    @Field(type = FieldType.Text)
+    private List<String> symptomKeywords;
+
     @Field(type = FieldType.Boolean)
     private Boolean prescription;
+
 }

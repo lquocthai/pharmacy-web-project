@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,6 +60,14 @@ public interface OrderRepository extends JpaRepository<Order, String> {
             @Param("orderCode") String orderCode,
             @Param("email") String email);
 
+    @Query("""
+        SELECT o FROM Order o
+        WHERE o.orderCode = :orderCode
+        """)
+    Optional<Order> findByOrderCode(
+            @Param("orderCode") String orderCode,
+            @Param("email") String email);
+
     /**
      * Kiểm tra orderCode đã tồn tại chưa — dùng khi generate mã đơn hàng.
      */
@@ -89,4 +99,40 @@ public interface OrderRepository extends JpaRepository<Order, String> {
             @Param("paymentStatus") PaymentStatus paymentStatus,
             Pageable pageable
     );
+
+    // ── Dashboard stats ────────────────────────────────────────────────────
+
+    /** Đếm đơn theo trạng thái */
+    long countByStatus(OrderStatus status);
+
+    /** Đếm đơn trong ngày hôm nay */
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.createdAt >= :start AND o.createdAt < :end")
+    long countTodayOrders(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    /** Tổng doanh thu (đơn đã giao) */
+    @Query("SELECT COALESCE(SUM(o.finalAmount), 0) FROM Order o WHERE o.status = 'DELIVERED'")
+    BigDecimal sumTotalRevenue();
+
+    /** Doanh thu hôm nay (đơn đã giao) */
+    @Query("SELECT COALESCE(SUM(o.finalAmount), 0) FROM Order o WHERE o.status = 'DELIVERED' AND o.createdAt >= :start AND o.createdAt < :end")
+    BigDecimal sumTodayRevenue(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    /** Doanh thu theo ngày trong khoảng thời gian — trả về [date(LocalDate), sum] */
+    @Query("SELECT FUNCTION('DATE', o.createdAt), COALESCE(SUM(o.finalAmount), 0) FROM Order o WHERE o.status = 'DELIVERED' AND o.createdAt >= :from AND o.createdAt < :to GROUP BY FUNCTION('DATE', o.createdAt) ORDER BY FUNCTION('DATE', o.createdAt)")
+    List<Object[]> getDailyRevenue(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /** Số đơn theo ngày trong khoảng thời gian — trả về [date(LocalDate), count] */
+    @Query("SELECT FUNCTION('DATE', o.createdAt), COUNT(o) FROM Order o WHERE o.createdAt >= :from AND o.createdAt < :to GROUP BY FUNCTION('DATE', o.createdAt) ORDER BY FUNCTION('DATE', o.createdAt)")
+    List<Object[]> getDailyOrderCount(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /** Top sản phẩm bán chạy — trả về [productName, soldQty, revenue] */
+    @Query("""
+        SELECT oi.productName, SUM(oi.quantity), SUM(oi.subtotal)
+        FROM OrderItem oi
+        JOIN oi.order o
+        WHERE o.status = 'DELIVERED'
+        GROUP BY oi.productName
+        ORDER BY SUM(oi.quantity) DESC
+        """)
+    List<Object[]> getTopProducts(Pageable pageable);
 }

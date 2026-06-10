@@ -11,6 +11,7 @@ import com.quocthai.pharmacy_service.exeption.ErrorCode;
 import com.quocthai.pharmacy_service.mapper.PharmacistRatingMapper;
 import com.quocthai.pharmacy_service.repository.PharmacistRatingRepository;
 import com.quocthai.pharmacy_service.repository.ProductImageRepository;
+import com.quocthai.pharmacy_service.repository.RatingRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -34,6 +35,7 @@ public class PharmacistRatingService {
 
     PharmacistRatingRepository pharmacistRatingRepository;
     PharmacistRatingMapper pharmacistRatingMapper;
+    RatingRepository ratingRepository;
 
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('PHARMACIST')")
@@ -76,5 +78,14 @@ public class PharmacistRatingService {
 
 
         return pharmacistRatingMapper.toDetailResponse(rating);
+    }
+    @Transactional
+    @PreAuthorize("hasRole('PHARMACIST')")
+    public void updateStatus(String ratingId, RatingStatus status) {
+        // 1. Tìm rating theo ID, nếu không thấy thì throw lỗi 404 (bạn tự định nghĩa ErrorCode nhé)
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new AppException(ErrorCode.RATING_NOT_FOUND));
+        rating.setStatus(status);
+        ratingRepository.save(rating);
     }
 }

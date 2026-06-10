@@ -27,8 +27,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * REST-facing service: đọc danh sách conversation, đọc lịch sử message.
- * Không chứa logic send/claim/resolve — thuộc ChatService.
+ * REST-facing service — đọc danh sách conversation và message history.
+ *
+ * Model: Shared Inbox (Messenger/Zalo style)
+ * - Không còn status, không còn assign.
+ * - Dược sĩ thấy toàn bộ conversation, sort by lastMessageAt DESC.
+ * - User chỉ thấy conversation của mình.
  */
 @Slf4j
 @Service
@@ -42,80 +46,48 @@ public class ConversationService {
     ChatService chatService;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // USER: lịch sử conversation của chính mình
+    // USER: conversation của chính mình (1 user = 1 conversation)
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public PageResponse<ConversationResponse> getMyConversations(int page, int size) {
+    public ConversationResponse getMyConversation() {
         String email = currentEmail();
         User user = resolveUser(email);
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Conversation> result = conversationRepository
-                .findByUserIdOrderByLastMessageAtDesc(user.getId(), pageable);
-
-        return toPageResponse(result);
+        return conversationRepository.findByUserId(user.getId())
+                .map(chatService::toConversationResponse)
+                .orElse(null); // null nếu chưa có conversation
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // PHARMACIST: waiting list (PENDING) + own IN_PROGRESS
-    // ─────────────────────────────────────────────────────────────────────────
-
-    @Transactional(readOnly = true)
-    public PageResponse<ConversationResponse> getWaitingConversations(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Conversation> result = conversationRepository
-                .findByStatusOrderByLastMessageAtDesc(Conversation.ConversationStatus.PENDING, pageable);
-        return toPageResponseWithSummary(result);
-    }
-
-    @Transactional(readOnly = true)
-    public PageResponse<ConversationResponse> getConversationsByStatus(
-            Conversation.ConversationStatus status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Conversation> result = conversationRepository
-                .findByStatusOrderByLastMessageAtDesc(status, pageable);
-        return toPageResponseWithSummary(result);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // ADMIN: tất cả conversation
+    // PHARMACIST / ADMIN: Shared Inbox — toàn bộ conversations
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public PageResponse<ConversationResponse> getAllConversations(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Conversation> result = conversationRepository
-                .findAllByOrderByLastMessageAtDesc(pageable);
-        return toPageResponse(result);
+        Page<Conversation> result = conversationRepository.findAllByOrderByLastMessageAtDesc(pageable);
+        return toPageResponseWithSummary(result);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // MESSAGE HISTORY (user & pharmacist & admin)
+    // MESSAGE HISTORY — user, pharmacist, admin đều dùng chung
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public PageResponse<MessageResponse> getMessages(String conversationId, int page, int size) {
-        // Ownership/access check
         String email = currentEmail();
         User caller = resolveUser(email);
 
         Conversation conv = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new AppException(ErrorCode.CONVERSATION_NOT_FOUND));
 
-        boolean isAdmin = hasRole(caller, PredefinedRole.ADMIN_ROLE);
+        boolean isAdmin      = hasRole(caller, PredefinedRole.ADMIN_ROLE);
         boolean isPharmacist = hasRole(caller, PredefinedRole.PHARMACIST_ROLE);
-        boolean isOwner = conv.getUserId().equals(caller.getId());
-        boolean isAssignedPharmacist = caller.getId().equals(conv.getPharmacistId());
+        boolean isOwner      = conv.getUserId().equals(caller.getId());
 
+        // Chỉ owner, pharmacist, hoặc admin mới xem được
         if (!isAdmin && !isPharmacist && !isOwner) {
             throw new AppException(ErrorCode.NOT_YOUR_CONVERSATION);
-        }
-
-        // Pharmacist chỉ đọc được conversation của họ hoặc conversation PENDING/IN_PROGRESS
-        if (isPharmacist && !isAdmin && !isOwner && !isAssignedPharmacist
-                && conv.getStatus() != Conversation.ConversationStatus.PENDING) {
-            throw new AppException(ErrorCode.CONVERSATION_FORBIDDEN);
         }
 
         Pageable pageable = PageRequest.of(page, size);
@@ -153,14 +125,10 @@ public class ConversationService {
         return user.getRoles().stream().anyMatch(r -> r.getName().equals(roleName));
     }
 
-    private PageResponse<ConversationResponse> toPageResponse(Page<Conversation> page) {
-        List<ConversationResponse> content = page.getContent().stream()
-                .map(chatService::toConversationResponse)
-                .collect(Collectors.toList());
-        return buildPageResponse(page, content);
-    }
-
-    /** Thêm summary (count + lastMessage) cho waiting-list — tránh N+1 bằng cách load riêng */
+    /**
+     * Xây response kèm summary (lastMessage, messageCount) để hiển thị trong sidebar.
+     * Load từng cái để tránh N+1 — với hàng nghìn conversation nên dùng JOIN FETCH hoặc projection.
+     */
     private PageResponse<ConversationResponse> toPageResponseWithSummary(Page<Conversation> page) {
         List<ConversationResponse> content = page.getContent().stream()
                 .map(c -> {
@@ -175,11 +143,8 @@ public class ConversationService {
                     return resp;
                 })
                 .collect(Collectors.toList());
-        return buildPageResponse(page, content);
-    }
 
-    private <T> PageResponse<T> buildPageResponse(Page<?> page, List<T> content) {
-        return PageResponse.<T>builder()
+        return PageResponse.<ConversationResponse>builder()
                 .content(content)
                 .page(page.getNumber())
                 .size(page.getSize())

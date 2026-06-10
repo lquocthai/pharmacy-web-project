@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { openLoginModal, setLogout } from '../redux/slices/authSlice';
@@ -8,51 +8,96 @@ import {
     FaSearch, FaBars, FaTimes
 } from 'react-icons/fa';
 import '../assets/styles/Header.scss';
-import authService from '../services/authService';
 import LogoutModal from '../components/Auth/LogoutModal';
 import { LogOut, MapPin, Package, Pill, User } from 'lucide-react';
+import elasticSearchService from '../services/elasticSearchService.js';
 
 export default function Header() {
     const [searchValue, setSearchValue] = useState('');
     const [categories, setCategories] = useState([]);
     const [navOpen, setNavOpen] = useState(false);
-
     const [showLogout, setShowLogout] = useState(false);
 
+    // 🔥 States cho việc gợi ý tìm kiếm & loading
+    const [suggestions, setSuggestions] = useState([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // Thêm state quản lý trạng thái chờ dữ liệu API
+    const dropdownRef = useRef(null);
 
-
-    // 2. Lấy dữ liệu từ Redux Store
     const { totalItems } = useSelector((state) => state.cart);
     const cart = useSelector((state) => state.cart);
-    console.log('Cart in Header:', cart); // Debug: kiểm tra dữ liệu cart
     const { isAuthenticated, user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
     useEffect(() => {
         fetchCategories();
+
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    // 🔥 LOGIC DEBOUNCE SEARCH (0.5 giây) CÓ XỬ LÝ SKELETON LOADING
+    useEffect(() => {
+        if (!searchValue.trim()) {
+            setSuggestions([]);
+            console.log(suggestions)
+            setShowDropdown(false);
+            setIsLoading(false);
+            return;
+        }
+
+        // Ngay khi người dùng gõ tiếp ký tự, kích hoạt trạng thái loading mờ và bật dropdown
+        setIsLoading(true);
+        setShowDropdown(true);
+
+        const delayDebounceFn = setTimeout(async () => {
+            try {
+                const response = await elasticSearchService.getSuggestions(searchValue.trim(), 3);
+                setSuggestions(response.data.result || []);
+                console.log(response.data.result)
+            } catch (error) {
+                console.error('Lỗi lấy dữ liệu gợi ý:', error);
+                setSuggestions([]);
+            } finally {
+                // Kết thúc tiến trình API, tắt hiệu ứng xoay mờ để hiển thị data thật/thông báo trống
+                setIsLoading(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchValue]);
 
     const fetchCategories = async () => {
         try {
             const response = await fetch('http://localhost:8080/pharmacy/categories');
-
             const data = await response.json();
-
             setCategories(data.result || []);
         } catch (error) {
             console.error('Fetch categories error:', error);
         }
     };
-    // 3. Xử lý tìm kiếm
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (searchValue.trim()) {
-            navigate(`/products?search=${encodeURIComponent(searchValue.trim())}`);
+
+    const performSearch = (keyword) => {
+        if (keyword.trim()) {
+            navigate(`/products?search=${encodeURIComponent(keyword.trim())}`);
+            setShowDropdown(false);
             setNavOpen(false);
         }
     };
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        performSearch(searchValue);
+    };
+
     const goToDetail = (productSlug) => {
-        console.log(productSlug);
+        console.log('có gọi tới', productSlug)
         if (productSlug) {
             navigate(`/products/detail/${productSlug}`);
         }
@@ -67,11 +112,10 @@ export default function Header() {
                         <span className="d-flex align-items-center gap-2 small">
                             <FaMapMarkerAlt />
                             Trung tâm nhà thuốc quốc thái&nbsp;
-                            {/* <Link to="/about" className="text-white fw-semibold text-decoration-none">Tìm hiểu ngay</Link> */}
                         </span>
                         <span className="d-none d-md-flex align-items-center gap-4">
                             <a href="tel:18006928" className="text-white text-decoration-none small d-flex align-items-center gap-1">
-                                <FaPhoneAlt /> Tư vấn ngay: <strong>1800 6928</strong>
+                                <FaPhoneAlt /> Tư vấn ngay: <strong>1234 5678</strong>
                             </a>
                         </span>
                     </div>
@@ -87,107 +131,172 @@ export default function Header() {
                             <div className="logo-brand fw-bold " style={{ fontSize: '22px' }}>QUỐC THÁI</div>
                         </Link>
 
-                        {/* Ô tìm kiếm */}
-                        <form className="input-group header-search flex-grow-1" onSubmit={handleSearch}>
-                            <input
-                                type="text"
-                                className="form-control border-0 shadow-none py-2"
-                                placeholder="Tìm kiếm thuốc, thực phẩm chức năng..."
-                                value={searchValue}
-                                onChange={(e) => setSearchValue(e.target.value)}
-                            />
-                            <button type="button" className="btn btn-white border-0 text-secondary px-3 bg-white">
-                                <FaMicrophone />
-                            </button>
-                            <button type="submit" className="btn bg-blue-5 px-3 border-0">
-                                <FaSearch className="text-white" />
-                            </button>
-                        </form>
+                        {/* Khung Tìm kiếm + Dropdown Suggestions */}
+                        <div className="position-relative flex-grow-1 round-full px-4" ref={dropdownRef}>
+                            <form className="input-group header-search rounded-full" onSubmit={handleSearchSubmit}>
+                                <input
+                                    type="text"
+                                    className="form-control border-0 shadow-none py-2"
+                                    placeholder="Tìm kiếm thuốc, thực phẩm chức năng..."
+                                    value={searchValue}
+                                    onChange={(e) => setSearchValue(e.target.value)}
+                                    onFocus={() => searchValue.trim() && setShowDropdown(true)}
+                                />
+                                <button type="button" className="btn btn-white border-0 text-secondary px-3 bg-white">
+                                    <FaMicrophone />
+                                </button>
+                                <button type="submit" className="btn bg-blue-5 px-3 border-0">
+                                    <FaSearch className="text-white" />
+                                </button>
+                            </form>
+
+                            {/* 🔥 DROPDOWN GỢI Ý KẾT QUẢ TÌM KIẾM */}
+                            {showDropdown && (
+                                <div
+                                    className="search-suggestions-dropdown position-absolute w-100 bg-white shadow rounded mt-1 border"
+                                    style={{
+                                        zIndex: 9999,
+                                        maxHeight: '400px',
+                                        overflowY: 'auto',
+                                        top: '100%',
+                                        left: 0
+                                    }}
+                                >
+                                    {isLoading ? (
+                                        /* ── TRƯỜNG HỢP LOADING: HIỂN THỊ CÁC THANH SKELETON NHẤP NHÁY MỜ MỜ ── */
+                                        <div className="p-3 d-flex flex-column gap-3">
+                                            {/* Tiêu đề mờ */}
+                                            <div className="skeleton-line" style={{ width: '30%', height: '16px' }}></div>
+
+                                            {/* Hàng sản phẩm mẫu 1 */}
+                                            <div className="d-flex align-items-center gap-3 py-1">
+                                                <div className="skeleton-line flex-shrink-0" style={{ width: '45px', height: '45px', borderRadius: '6px' }}></div>
+                                                <div className="flex-grow-1 d-flex flex-column gap-2">
+                                                    <div className="skeleton-line" style={{ width: '85%', height: '14px' }}></div>
+                                                    <div className="skeleton-line" style={{ width: '40%', height: '12px' }}></div>
+                                                </div>
+                                            </div>
+
+                                            {/* Hàng sản phẩm mẫu 2 */}
+                                            <div className="d-flex align-items-center gap-3 py-1">
+                                                <div className="skeleton-line flex-shrink-0" style={{ width: '45px', height: '45px', borderRadius: '6px' }}></div>
+                                                <div className="flex-grow-1 d-flex flex-column gap-2">
+                                                    <div className="skeleton-line" style={{ width: '70%', height: '14px' }}></div>
+                                                    <div className="skeleton-line" style={{ width: '30%', height: '12px' }}></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : suggestions.length > 0 ? (
+                                        /* ── TRƯỜNG HỢP 1: CÓ SẢN PHẨM GỢI Ý ── */
+                                        <>
+
+                                            {suggestions.map((item) => (
+                                                <div
+                                                    key={item.id || item._id}
+                                                    className="suggestion-item d-flex align-items-center gap-3 px-3 py-2 border-bottom style-row-search"
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => {
+
+                                                        goToDetail(item.slug);
+
+                                                        setShowDropdown(false);
+                                                    }}
+                                                >
+                                                    <img
+                                                        src={item.primaryImageUrl || 'https://via.placeholder.com/45'}
+                                                        alt={item.name}
+                                                        style={{ width: '45px', height: '45px', objectFit: 'cover' }}
+                                                        className="border rounded flex-shrink-0"
+                                                    />
+                                                    <div className="flex-grow-1 min-w-0">
+                                                        <div className="text-dark fw-medium text-truncate small d-flex align-items-center gap-2">
+                                                            {item.prescription && (
+                                                                <span className="badge bg-danger text-white flex-shrink-0" style={{ fontSize: '9px', padding: '2px 4px' }}>Rx</span>
+                                                            )}
+                                                            <span className="text-dark text-truncate">{item.name}</span>
+                                                        </div>
+                                                        <div className="text-start text-primary fw-bold small mt-1">
+                                                            {item.priceDefault ? `${item.priceDefault.toLocaleString()}đ` : 'Liên hệ'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </>
+                                    ) : (
+                                        /* ── TRƯỜNG HỢP 2: KHÔNG CÓ SẢN PHẨM GỢI Ý (HIỂN THỊ CHƯA TÌM THẤY) ── */
+                                        <div className="p-3 text-dark style-no-result">
+                                            <div className="d-flex align-items-start gap-2 mb-2" style={{ fontSize: '15px' }}>
+                                                <FaSearch className="text-secondary mt-1" />
+                                                <span>
+                                                    Không tìm thấy kết quả với từ khóa <strong className="text-break">"{searchValue}"</strong>
+                                                </span>
+                                            </div>
+                                            <hr className="text-muted my-2" />
+                                            <ul className="text-start text-secondary small mb-0 ps-3" style={{ listStyleType: 'disc', lineHeight: '1.6' }}>
+                                                <li>Kiểm tra lỗi chính tả với từ khoá đã nhập</li>
+                                                <li>Thử tìm kiếm với một từ khóa khác ngắn gọn hơn</li>
+                                                <li>
+                                                    Trong trường hợp cần hỗ trợ, hãy liên hệ với chúng tôi qua tổng đài miễn phí <strong className="text-primary">1234 5678</strong>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
 
                         {/* Khu vực Account & Cart */}
                         <div className="d-none d-lg-flex align-items-center gap-2 flex-shrink-0">
                             {isAuthenticated ? (
-                                /* Khu vực User đã đăng nhập */
                                 <div className="user-profile-dropdown position-relative">
-                                    <Link
-                                        to="/profile"
-                                        className="btn d-flex align-items-center gap-2 text-white border-0 bg-transparent shadow-none p-2"
-                                    >
+                                    <Link to="/profile" className="btn d-flex align-items-center gap-2 text-white border-0 bg-transparent shadow-none p-2">
                                         <FaUserCircle size={24} />
                                         <div className="text-start">
-                                            <div className="small fw-bold lh-1">
-                                                {user?.username || 'Thành viên'}
-                                            </div>
+                                            <div className="small fw-bold lh-1">{user?.username || 'Thành viên'}</div>
                                         </div>
                                     </Link>
-
-                                    {/* Menu nổi khi hover */}
                                     <ul className="custom-dropdown-menu shadow border-0 mt-0">
                                         <li>
                                             <Link className="dropdown-item py-2 small" to="/profile">
-                                                <div className="d-flex align-items-center gap-3">
-                                                    <User size={18} />
-                                                    <span>Thông tin cá nhân</span>
-                                                </div>
+                                                <div className="d-flex align-items-center gap-3"><User size={18} /><span>Thông tin cá nhân</span></div>
                                             </Link>
                                         </li>
                                         <li>
                                             <Link className="dropdown-item py-2 small" to="/profile?tab=address">
-                                                <div className="d-flex align-items-center gap-3">
-                                                    <MapPin size={18} />
-                                                    <span>Quản lý địa chỉ</span>
-                                                </div>
+                                                <div className="d-flex align-items-center gap-3"><MapPin size={18} /><span>Quản lý địa chỉ</span></div>
                                             </Link>
                                         </li>
                                         <li>
                                             <Link className="dropdown-item py-2 small" to="/profile?tab=orders">
-                                                <div className="d-flex align-items-center gap-3">
-                                                    <Package size={18} />
-                                                    <span>Đơn hàng của tôi</span>
-                                                </div>
+                                                <div className="d-flex align-items-center gap-3"><Package size={18} /><span>Đơn hàng của tôi</span></div>
                                             </Link>
                                         </li>
                                         <li>
                                             <Link className="dropdown-item py-2 small" to="/profile?tab=prescriptions">
-                                                <div className="d-flex align-items-center gap-3">
-                                                    <Pill size={18} />
-                                                    <span>Đơn thuốc của tôi</span>
-                                                </div>
+                                                <div className="d-flex align-items-center gap-3"><Pill size={18} /><span>Đơn thuốc của tôi</span></div>
                                             </Link>
                                         </li>
                                         <li><hr className="dropdown-divider" /></li>
                                         <li>
-                                            <button
-                                                className="dropdown-item py-2 small "
-                                                onClick={() => setShowLogout(true)}
-                                            >
-                                                <div className="d-flex align-items-center gap-3">
-                                                    <LogOut size={18} />
-                                                    <span>Đăng xuất</span>
-                                                </div>
+                                            <button className="dropdown-item py-2 small" onClick={() => setShowLogout(true)}>
+                                                <div className="d-flex align-items-center gap-3"><LogOut size={18} /><span>Đăng xuất</span></div>
                                             </button>
                                         </li>
                                     </ul>
                                 </div>
                             ) : (
-                                /* Nút Đăng nhập khi chưa có auth */
-                                <button
-                                    onClick={() => dispatch(openLoginModal())}
-                                    className="btn d-flex align-items-center gap-2 text-white border-0 bg-transparent shadow-none p-2"
-                                >
+                                <button onClick={() => dispatch(openLoginModal())} className="btn d-flex align-items-center gap-2 text-white border-0 bg-transparent shadow-none p-2">
                                     <FaUserCircle size={24} />
                                     <span className="small fw-bold">Đăng nhập</span>
                                 </button>
                             )}
-                            {/* giỏ hàng */}
-                            {/* Thay đoạn Link giỏ hàng cũ bằng đoạn này */}
+
                             <div className="cart-container position-relative ms-2">
                                 <Link to="/cart" className="btn btn-cart text-white d-flex align-items-center gap-2 px-3 rounded-pill bg-blue-5">
                                     <div className="position-relative">
                                         <FaShoppingCart size={18} />
                                         {totalItems > 0 && (
-                                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-circle"
-                                                style={{ backgroundColor: '#fa8c16', fontSize: '10px', padding: '2px 5px', marginTop: '-2px' }}>
+                                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-circle" style={{ backgroundColor: '#fa8c16', fontSize: '10px', padding: '2px 5px', marginTop: '-2px' }}>
                                                 {totalItems}
                                             </span>
                                         )}
@@ -195,79 +304,52 @@ export default function Header() {
                                     <span className="small fw-bold">Giỏ hàng</span>
                                 </Link>
 
-                                {/* Danh sách sản phẩm khi hover */}
                                 {totalItems > 0 && (
-                                    <div
-                                        style={{ width: '380px', right: 0 }}
-                                        className="cart-dropdown shadow-sm border rounded p-3 bg-white position-absolute">
+                                    <div style={{ width: '380px', right: 0 }} className="cart-dropdown shadow-sm border rounded p-3 bg-white position-absolute">
                                         <h6 className="text-start mb-3 text-secondary">Giỏ hàng</h6>
                                         {cart.items.slice(0, 4).map(item => (
-                                            <div key={item.id} className="d-flex align-items-center gap-2 mb-3"
-                                                onClick={() => goToDetail(item.productSlug)}
-                                                style={{ cursor: 'pointer' }}
-                                            >
+                                            <div key={item.id} className="d-flex align-items-center gap-2 mb-3" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
                                                 <img className='border rounded' src={item.imageUrl} alt={item.productName} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
                                                 <div className="flex-grow-1" style={{ fontSize: '12px' }}>
                                                     <div className="text-truncate" style={{ maxWidth: '250px' }}>{item.productName}</div>
                                                     <div className="d-flex text-secondary" style={{ fontSize: '10px' }}>
                                                         <div className="text-primary fw-bold">{item.price.toLocaleString()}đ</div>
-                                                        <div className="text-primary fw-bold">x{item.quantity} {item.variantName}</div>
-
+                                                        <div className="text-primary fw-bold ms-2">x{item.quantity} {item.variantName}</div>
                                                     </div>
                                                 </div>
                                             </div>
                                         ))}
-                                        <div className="d-flex align-items-center justify-content-between pt-2 ">
+                                        <div className="d-flex align-items-center justify-content-between pt-2">
                                             <span className="text-start text-secondary small fw-bold">{totalItems} sản phẩm</span>
                                             <Link to="/cart" style={{ backgroundColor: 'rgb(18 80 220)' }} className="btn btn-primary btn-sm rounded-pill">Xem giỏ hàng</Link>
                                         </div>
-
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Mobile Toggle Nút này dùng navOpen */}
-                        <button
-                            className="btn text-white d-lg-none ms-auto p-1 shadow-none border-0"
-                            onClick={() => setNavOpen(!navOpen)}
-                        >
+                        {/* Mobile Toggle */}
+                        <button className="btn text-white d-lg-none ms-auto p-1 shadow-none border-0" onClick={() => setNavOpen(!navOpen)}>
                             {navOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
                         </button>
                     </div>
                 </div>
             </div>
-            {/* ── Category Navigation (Dữ liệu cứng) ── */}
+
+            {/* ── Category Navigation ── */}
             <nav className="header-nav bg-white border-bottom d-none d-lg-block">
                 <div className="container-xl">
                     <ul className="nav-list d-flex align-items-center justify-content-center m-0 p-0 list-unstyled">
                         {categories.map((category) => (
                             <li key={category.id} className="nav-item px-3">
-                                <Link
-                                    to={`/products/${category.slug}`}
-                                    className="nav-link"
-                                >
-                                    {category.name}
-
-
-                                </Link>
+                                <Link to={`/products/${category.slug}`} className="nav-link">{category.name}</Link>
                             </li>
                         ))}
 
-                        {/* Mục cuối cùng hệ thống nhà thuốc */}
-                        <li className="nav-item">
-                            <Link to="/he-thong-cua-hang" className="nav-link text-primary fw-bold">
-                                Hệ thống nhà thuốc
-                            </Link>
-                        </li>
                     </ul>
                 </div>
             </nav>
-            <LogoutModal
-                show={showLogout}
-                handleClose={() => setShowLogout(false)}
-            />
-
+            <LogoutModal show={showLogout} handleClose={() => setShowLogout(false)} />
         </header>
     );
 }

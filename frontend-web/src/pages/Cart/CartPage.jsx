@@ -6,9 +6,7 @@ import { BiChevronLeft, BiTrash } from 'react-icons/bi';
 import toast from 'react-hot-toast';
 import { setCart } from '../../redux/slices/cartSlice';
 import cartService from '../../services/cartService';
-import { size } from 'lodash';
 import cartEmpty from '../../assets/illustration-cart-empty.png';
-
 
 const CartPage = () => {
     const { id, items } = useSelector(state => state.cart);
@@ -16,6 +14,10 @@ const CartPage = () => {
     const dispatch = useDispatch();
 
     const [selectedIds, setSelectedIds] = useState([]);
+
+    // --- STATE QUẢN LÝ MODAL XÓA ---
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
 
     const totalPrice = useMemo(() => {
         return items
@@ -31,7 +33,7 @@ const CartPage = () => {
         }
     };
 
-    // 2. Logic gọi API (Giữ nguyên debounce 1s)
+    // Logic gọi API update số lượng
     const callApiUpdateQuantity = async (itemId, newQuantity) => {
         try {
             const response = await cartService.updateItem(itemId, newQuantity);
@@ -51,13 +53,10 @@ const CartPage = () => {
         const newQty = item.quantity + delta;
         if (newQty < 1) return;
 
-        // Cập nhật Redux ngay lập tức để UI nhảy số (Optimistic Update)
         const updatedItems = items.map(i =>
             i.id === item.id ? { ...i, quantity: newQty } : i
         );
         dispatch(setCart({ id, items: updatedItems }));
-
-        // Gọi API sau 1s debounce
         debouncedUpdate(item.id, newQty);
     };
 
@@ -70,11 +69,9 @@ const CartPage = () => {
             i.id === item.id ? { ...i, quantity: newQty } : i
         );
         dispatch(setCart({ id, items: updatedItems }));
-
         debouncedUpdate(item.id, newQty);
     };
 
-    // 5. Logic Checkbox & Xóa (Giữ nguyên của bạn)
     const toggleItem = (itemId) => {
         setSelectedIds(prev =>
             prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
@@ -85,15 +82,26 @@ const CartPage = () => {
         setSelectedIds(isAllSelected ? [] : items.map(item => item.id));
     };
 
-    const handleRemoveItem = async (itemId) => {
-        if (!window.confirm('Xóa sản phẩm này khỏi giỏ hàng?')) return;
+    // --- XOÁ SẢN PHẨM: BƯỚC 1 (MỞ MODAL) ---
+    const handleConfirmRemove = (itemId) => {
+        setItemToDelete(itemId); // Lưu lại ID món hàng muốn xóa
+        setIsModalOpen(true);     // Bật modal lên
+    };
+
+    // --- XOÁ SẢN PHẨM: BƯỚC 2 (GỌI API KHI CHẮC CHẮN XOÁ) ---
+    const handleRemoveItem = async () => {
+        if (!itemToDelete) return;
         try {
-            const response = await cartService.removeItem(itemId);
+            const response = await cartService.removeItem(itemToDelete);
             dispatch(setCart(response.data.result));
             toast.success('Đã xóa sản phẩm');
-            setSelectedIds(prev => prev.filter(id => id !== itemId));
+            setSelectedIds(prev => prev.filter(id => id !== itemToDelete));
         } catch (error) {
             toast.error('Xóa thất bại');
+        } finally {
+            // Reset trạng thái và đóng modal
+            setIsModalOpen(false);
+            setItemToDelete(null);
         }
     };
 
@@ -102,40 +110,26 @@ const CartPage = () => {
         navigate('/checkout', { state: { selectedIds } });
     };
 
-    // ==========================================
-    // LOGIC HIỂN THỊ GIỎ HÀNG TRỐNG (NHƯ ẢNH MẪU)
-    // ==========================================
+    // Hiển thị giỏ hàng trống
     if (!items || items.length === 0) {
         return (
             <div className="container mb-2 text-center py-1">
-                {/* Nút tiếp tục mua sắm phía trên góc trái */}
-                <button style={{ fontSize: '0.875em' }} className="btn text-decoration-none  p-0 mb-3 d-flex align-items-center shadow-none btn-link" onClick={() => navigate('/')}>
+                <button style={{ fontSize: '0.875em' }} className="btn text-decoration-none p-0 mb-3 d-flex align-items-center shadow-none btn-link" onClick={() => navigate('/')}>
                     <BiChevronLeft size={24} /> Tiếp tục mua sắm
                 </button>
 
-                {/* Nội dung thông báo giỏ hàng trống */}
                 <div className="d-flex flex-column align-items-center justify-content-center">
-                    {/* Icon giỏ hàng trống lấy từ mẫu */}
                     <div className="mb-4">
                         <img src={cartEmpty} alt="Cart is empty" className="img-fluid" style={{ maxWidth: '300px' }} />
                     </div>
-
                     <h5 className="fw-bold text-dark mb-2">Chưa có sản phẩm nào trong giỏ</h5>
                     <p className="text-muted mb-2 px-3" style={{ maxWidth: '500px' }}>
                         Cùng khám phá hàng ngàn sản phẩm tại Nhà thuốc Quốc Thái nhé!
                     </p>
-
-                    {/* Nút khám phá ngay */}
                     <button
-                        onClick={() => navigate('/')} // Điều hướng về trang chủ khi click
+                        onClick={() => navigate('/')}
                         className="btn text-white fw-bold px-4 py-2 rounded-pill shadow-sm"
-                        style={{
-                            backgroundColor: '#1250dc',
-                            border: 'none',
-                            fontSize: '15px',
-                            paddingLeft: '2rem',
-                            paddingRight: '2rem'
-                        }}
+                        style={{ backgroundColor: '#1250dc', border: 'none', fontSize: '15px', paddingLeft: '2rem', paddingRight: '2rem' }}
                     >
                         Khám phá ngay
                     </button>
@@ -145,12 +139,12 @@ const CartPage = () => {
     }
 
     return (
-        <div className="container py-1">
-            <button style={{ fontSize: '0.875em' }} className="btn text-decoration-none  p-0 mb-3 d-flex align-items-center shadow-none btn-link" onClick={() => navigate('/')}>
+        <div className="container py-1 position-relative">
+            <button style={{ fontSize: '0.875em' }} className="btn text-decoration-none p-0 mb-3 d-flex align-items-center shadow-none btn-link" onClick={() => navigate('/')}>
                 <BiChevronLeft size={24} /> Tiếp tục mua sắm
             </button>
-            <div className="row">
 
+            <div className="row">
                 <div className="col-lg-8">
                     <div className="card border-0 shadow-sm p-3" style={{ fontSize: '.875rem' }}>
                         <div className="text-center py-2 mb-2 rounded-3" style={{ backgroundColor: '#f0f7ff', color: '#0d6efd' }}>
@@ -180,7 +174,6 @@ const CartPage = () => {
                                     <img src={item.imageUrl} className="img-fluid rounded border" alt="" />
                                 </div>
                                 <div className="col-3" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
-                                    {/* Bỏ text-truncate và thêm fw-bold nếu muốn tên nổi bật như ảnh mẫu */}
                                     <p className="text-start mb-0 text-wrap" style={{ lineHeight: '1.4', wordBreak: 'break-word' }}>
                                         {item.productName}
                                     </p>
@@ -200,14 +193,15 @@ const CartPage = () => {
                                             onClick={() => handleQuantityChange(item, 1)}>+</button>
                                     </div>
                                 </div>
-                                <div className="text-end col-2 ">
+                                <div className="col-2 text-end">
                                     {(item.price * item.quantity).toLocaleString()}đ
                                 </div>
-                                <div className="text-start col-2 ">
+                                <div className="col-2 text-start">
                                     <p className="text-start mb-0 text-truncate">{item.variantName}</p>
                                 </div>
-                                <div className="text-start col-1 ">
-                                    <button className="btn text-secondary" onClick={() => handleRemoveItem(item.id)}>
+                                <div className="col-1 text-start">
+                                    {/* THAY ĐỔI: Gọi hàm handleConfirmRemove thay vì gọi thẳng hàm xóa */}
+                                    <button className="btn text-secondary" onClick={() => handleConfirmRemove(item.id)}>
                                         <BiTrash size={20} />
                                     </button>
                                 </div>
@@ -215,7 +209,6 @@ const CartPage = () => {
                         ))}
                     </div>
                 </div>
-
 
                 <div className="col-lg-4">
                     <div className="card border-0 shadow-sm p-4 sticky-top" style={{ top: '20px', zIndex: 1 }}>
@@ -231,17 +224,97 @@ const CartPage = () => {
                             disabled={selectedIds.length === 0} onClick={handleCheckout}>
                             MUA NGAY
                         </button>
-                        <div style={{ fontSize: '0.8125rem' }} className=" text-caption2 text-center indent-4 py-4" style={{ borderRadius: '50px' }}>
-                            <span style={{ fontSize: '0.8125rem' }}>Bằng việc tiến hành đặt mua hàng, bạn đồng ý với
-                            </span>
-                            <a style={{ fontSize: '0.8125rem' }} className="font-medium underline underline-offset-[3px] whitespace-nowrap" href="/chinh-sach/tos">Điều khoản dịch vụ
-                            </a>
-                            <span style={{ fontSize: '0.8125rem' }}> của Nhà thuốc Quốc Thái
-                            </span>
+                        <div className="text-center indent-4 py-4" style={{ borderRadius: '50px' }}>
+                            <span style={{ fontSize: '0.8125rem' }}>Bằng việc tiến hành đặt mua hàng, bạn đồng ý với </span>
+                            <a style={{ fontSize: '0.8125rem' }} className="font-medium underline underline-offset-[3px] whitespace-nowrap" href="/chinh-sach/tos">Điều khoản dịch vụ</a>
+                            <span style={{ fontSize: '0.8125rem' }}> của Nhà thuốc Quốc Thái</span>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* ======================================================= */}
+            {/* HTML/CSS CUSTOM DIALOG MODAL (CHẤT LƯỢNG GIỐNG 100% ẢNH MẪU) */}
+            {/* ======================================================= */}
+            {isModalOpen && (
+                <div
+                    className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                    style={{
+                        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                        zIndex: 9999,
+                        backdropFilter: 'blur(2px)'
+                    }}
+                >
+                    <div
+                        className="bg-white rounded-4 p-4 text-center position-relative shadow-lg border-0 m-3"
+                        style={{ maxWidth: '380px', width: '100%', animation: 'fadeIn 0.25s ease-out' }}
+                    >
+                        {/* Nút X đóng góc trên bên phải */}
+                        <button
+                            className="btn border-0 position-absolute end-0 top-0 p-3 text-secondary shadow-none"
+                            onClick={() => setIsModalOpen(false)}
+                            style={{ fontSize: '20px', lineHeight: '1' }}
+                        >
+                            &times;
+                        </button>
+
+                        {/* Hình ảnh Thùng rác 3D minh hoạ */}
+                        <div className="my-3 d-flex justify-content-center">
+                            <div
+                                style={{
+                                    width: '140px',
+                                    height: '140px',
+                                    backgroundImage: 'url("https://res.cloudinary.com/dwteb3kyb/image/upload/v1717812140/trash-illustration.png")', // Link ảnh backup hoặc bạn thay bằng ảnh local nếu có
+                                    backgroundSize: 'contain',
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'center'
+                                }}
+                            >
+                                {/* Nếu không dùng được link ảnh trên, đây là fallback icon vẽ bằng CSS giống hệt hình minh hoạ */}
+                                {!itemToDelete ? null : (
+                                    <div className="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
+                                        <div className="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-sm" style={{ width: '90px', height: '90px', backgroundColor: '#eef4ff' }}>
+                                            <BiTrash size={48} color="#1250dc" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Tiêu đề & Nội dung */}
+                        <h5 className="fw-bold text-dark mb-2" style={{ fontSize: '18px' }}>Thông báo</h5>
+                        <p className="text-muted px-2 mb-4" style={{ fontSize: '14px', lineHeight: '1.5' }}>
+                            Bạn chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?
+                        </p>
+
+                        {/* Nhóm Button bấm */}
+                        <div className="d-flex gap-2 justify-content-center">
+                            <button
+                                className="btn rounded-pill fw-bold border-0 px-4 py-2 flex-grow-1 shadow-none"
+                                style={{ backgroundColor: '#edf2f9', color: '#1250dc', fontSize: '14px' }}
+                                onClick={() => setIsModalOpen(false)}
+                            >
+                                Đóng
+                            </button>
+                            <button
+                                className="btn rounded-pill fw-bold text-white border-0 px-4 py-2 flex-grow-1 shadow-none"
+                                style={{ backgroundColor: '#1250dc', fontSize: '14px' }}
+                                onClick={handleRemoveItem}
+                            >
+                                Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Thêm keyframe animation nhỏ cho mượt */}
+            <style>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: scale(0.92); }
+                    to { opacity: 1; transform: scale(1); }
+                }
+            `}</style>
         </div>
     );
 };

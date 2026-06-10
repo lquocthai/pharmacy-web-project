@@ -94,8 +94,8 @@ const EditInventoryBatchPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-[#F1F5F9] p-4 md:p-6 text-[#1C2434] font-satoshi">
-            <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div className="min-h-screen bg-[#F1F5F9] p-0 md:p-6 text-[#1C2434] font-satoshi">
+            <div className=" flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div className="text-start">
                     <h2 className="text-xl font-bold text-[#1C2434]">Chỉnh sửa lô hàng</h2>
                     <p className="text-xs text-[#64748B] mt-0.5">Chỉ được sửa: HSD, NSX, ngưỡng cảnh báo</p>

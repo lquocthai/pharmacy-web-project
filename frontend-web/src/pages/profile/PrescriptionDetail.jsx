@@ -182,18 +182,7 @@ const PrescriptionDetail = () => {
                             </p>
                         </div>
 
-                        {/* Nút yêu cầu tư vấn lại (Chỉ hiện khi chưa liên lạc được hoặc đã hoàn thành) */}
-                        {(prescription.status === 'UNREACHABLE' || prescription.status === 'CONSULTED') && (
-                            <Button
-                                className="rounded-pill px-4 py-2 fw-bold text-nowrap border-0 shadow-sm transition-all text-white"
-                                style={{ backgroundColor: '#1250dc', fontSize: '0.9rem' }}
-                                onClick={() => {
-                                    toast.success('Đã gửi lại yêu cầu. Hệ thống sẽ kết nối sớm!');
-                                }}
-                            >
-                                Tư vấn lại cho tôi
-                            </Button>
-                        )}
+
                     </div>
                 </Card.Body>
             </Card>

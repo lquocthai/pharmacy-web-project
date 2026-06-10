@@ -1,5 +1,6 @@
 package com.quocthai.pharmacy_service.repository;
 
+import com.quocthai.pharmacy_service.constants.RatingStatus;
 import com.quocthai.pharmacy_service.entity.Rating;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,13 +22,16 @@ public interface RatingRepository extends JpaRepository<Rating, String> {
         SELECT r FROM Rating r
         JOIN FETCH r.user u
         WHERE r.product.id = :productId
+        AND r.status = :status
         AND (:star IS NULL OR r.star = :star)
         ORDER BY r.createdAt DESC
         """)
     Page<Rating> findByProductId(
             @Param("productId") String productId,
             @Param("star") Integer star,
-            Pageable pageable);
+            Pageable pageable,
+            RatingStatus status
+    );
 
     // ── Tính aggregate: averageRating + count theo từng sao ───────────────────
     // Trả về Object[]: [star(int), count(long)]
@@ -58,4 +62,42 @@ public interface RatingRepository extends JpaRepository<Rating, String> {
     Optional<Rating> findOwnedRating(
             @Param("ratingId") String ratingId,
             @Param("email") String email);
+
+    // ── Dashboard stats ────────────────────────────────────────────────────
+
+    /** Tổng số đánh giá */
+    long countByStatus(RatingStatus status);
+
+    /** Điểm trung bình toàn hệ thống */
+    @Query("""
+    SELECT COALESCE(AVG(r.star), 0.0)
+    FROM Rating r
+    WHERE r.status = :status
+""")
+    double getAverageRating(@Param("status") RatingStatus status);
+
+    /** Phân phối sao — trả về [star(int), count(long)] */
+    @Query("""
+    SELECT r.star, COUNT(r)
+    FROM Rating r
+    WHERE r.status = :status
+    GROUP BY r.star
+    ORDER BY r.star
+""")
+    List<Object[]> getRatingDistribution(
+            @Param("status") RatingStatus status
+    );
+
+    /** Top sản phẩm được đánh giá — trả về [productName, avgStar, count] */
+    @Query("""
+    SELECT r.product.name, AVG(r.star), COUNT(r)
+    FROM Rating r
+    WHERE r.status = :status
+    GROUP BY r.product.id, r.product.name
+    ORDER BY COUNT(r) DESC
+""")
+    List<Object[]> getTopRatedProducts(
+            @Param("status") RatingStatus status,
+            Pageable pageable
+    );
 }

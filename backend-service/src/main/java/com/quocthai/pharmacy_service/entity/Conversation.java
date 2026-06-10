@@ -6,21 +6,17 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * Cuộc hội thoại tư vấn dược sĩ.
+ * Cuộc hội thoại tư vấn dược sĩ — Shared Inbox model (Messenger/Zalo style).
  *
- * Status flow:
- *   PENDING → IN_PROGRESS (dược sĩ claim)
- *   IN_PROGRESS → RESOLVED (dược sĩ mark resolved)
- *   RESOLVED → PENDING (user nhắn lại)
- *   RESOLVED / PENDING → CLOSED (user bấm kết thúc, hoặc scheduler 7 ngày không hoạt động)
+ * Không còn status flow. Bất kỳ dược sĩ nào cũng có thể xem và trả lời.
+ * Sắp xếp theo lastMessageAt DESC.
  */
 @Entity
 @Table(
     name = "conversations",
     indexes = {
-        @Index(name = "idx_conv_user_status", columnList = "userId, status"),
-        @Index(name = "idx_conv_status",      columnList = "status"),
-        @Index(name = "idx_conv_last_msg",    columnList = "lastMessageAt")
+        @Index(name = "idx_conv_user_id",   columnList = "userId"),
+        @Index(name = "idx_conv_last_msg",  columnList = "lastMessageAt")
     }
 )
 @Getter
@@ -41,42 +37,26 @@ public class Conversation {
     /** Username hiển thị của user (snapshot tại thời điểm tạo) */
     String userDisplayName;
 
-    /** ID của dược sĩ đã nhận tư vấn — null khi PENDING */
-    String pharmacistId;
+    /** Avatar URL của user */
+    String userAvatarUrl;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    ConversationStatus status;
-
+    /** Thời gian tin nhắn cuối — dùng để sắp xếp danh sách */
     LocalDateTime lastMessageAt;
+
+    /**
+     * Số tin nhắn chưa đọc (phía dược sĩ).
+     * Tăng khi USER gửi tin, reset về 0 khi dược sĩ mở conversation.
+     */
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    int unreadCount;
 
     @Column(nullable = false, updatable = false)
     LocalDateTime createdAt;
-
-    LocalDateTime updatedAt;
-
-    /** Optimistic lock — chống 2 dược sĩ claim đồng thời */
-    @Version
-    Long version;
 
     @PrePersist
     void prePersist() {
         LocalDateTime now = LocalDateTime.now();
         if (createdAt == null) createdAt = now;
-        if (updatedAt == null) updatedAt = now;
         if (lastMessageAt == null) lastMessageAt = now;
-        if (status == null) status = ConversationStatus.PENDING;
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-    public enum ConversationStatus {
-        PENDING,
-        IN_PROGRESS,
-        RESOLVED,
-        CLOSED
     }
 }

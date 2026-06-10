@@ -118,10 +118,10 @@ const InventoryBatchListPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F1F5F9] p-4 md:p-6 text-[#1C2434] font-satoshi">
+        <div className="min-h-screen bg-[#F1F5F9] p-0 md:p-6 text-[#1C2434] font-satoshi">
             <style>{`.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`}</style>
 
-            <div className="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className=" flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <h2 className="text-xl font-bold text-[#1C2434]">Danh sách lô hàng</h2>
                 <p className="text-xs text-[#64748B]">Home &gt; Quản lý kho &gt; Lô hàng</p>
             </div>
@@ -165,13 +165,13 @@ const InventoryBatchListPage = () => {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-end">
-                        <input
+                        {/* <input
                             type="text"
                             className="bg-white border border-[#E2E8F0] rounded-md px-2 py-1.5 text-xs text-[#1C2434] placeholder-[#8A99AD] focus:outline-none focus:border-[#3C50E0] transition-all w-32"
                             placeholder="Số lô..."
                             value={batchNumberFilter}
                             onChange={(e) => { setBatchNumberFilter(e.target.value); setPage(0); }}
-                        />
+                        /> */}
                         <div className="flex items-center gap-1">
                             <input
                                 type="date"

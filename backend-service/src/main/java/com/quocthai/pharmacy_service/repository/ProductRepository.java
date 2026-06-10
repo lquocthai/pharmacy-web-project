@@ -75,6 +75,7 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     // NÂNG CẤP HÀM CHO CATEGORY CẤP 1 (CHA)
     @Query("SELECT p FROM Product p WHERE " +
             "(p.category.id = :categoryId OR p.category.parent.id = :parentId) " +
+            "AND p.active = true "+
             "AND (:manufacturer IS NULL OR :manufacturer = '' OR p.manufacturer = :manufacturer) " +
             "AND (:country IS NULL OR :country = '' OR p.country = :country) " +
             "AND (:minPrice IS NULL OR p.priceDefault >= :minPrice) " +
@@ -92,6 +93,7 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     // NÂNG CẤP HÀM CHO CATEGORY CẤP 2 (CON)
     @Query("SELECT p FROM Product p WHERE " +
             "p.category.id = :categoryId " +
+            "AND p.active = true "+
             "AND (:manufacturer IS NULL OR :manufacturer = '' OR p.manufacturer = :manufacturer) " +
             "AND (:country IS NULL OR :country = '' OR p.country = :country) " +
             "AND (:minPrice IS NULL OR p.priceDefault >= :minPrice) " +
@@ -138,4 +140,23 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     boolean existsByCategoryId(String categoryId);
 
     boolean existsByCategoryIdIn(Collection<String> categoryIds);
+
+    // full product to sync db mysql => elasticsearch
+    @Query("SELECT p FROM Product p JOIN FETCH p.category WHERE p.active = true") // Hoặc tùy điều kiện của bạn
+    List<Product> findAllBasic();
+
+    /**
+     * Load Product kèm symptoms (ElementCollection) trong 1 query
+     * — tránh LazyInitializationException khi xử lý ngoài transaction.
+     */
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.symptoms WHERE p.id = :id")
+    Optional<Product> findByIdWithSymptoms(@Param("id") String id);
+
+    // ── Dashboard stats ────────────────────────────────────────────────────
+
+    /** Tổng sản phẩm active */
+    long countByActiveTrue();
+
+    /** Tổng sản phẩm kê đơn */
+    long countByIsPrescriptionTrue();
 }

@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Send, Paperclip, RefreshCw } from 'lucide-react';
+import { X, Send, Paperclip, RefreshCw, Loader2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import chatIcon from '../../assets/chat.png';
 import chatAvatar from '../../assets/avatar-chat.png';
+import chatIcon from '../../assets/chat.png';
 import { openLoginModal } from '../../redux/slices/authSlice';
-import { toggleChat, closeChat } from '../../redux/slices/chatSlice';
+import {
+    openChat, closeChat, toggleChat,
+    setConversation, setMessages, appendMessage,
+} from '../../redux/slices/chatSlice';
 import chatService from '../../services/chat/chatService';
 import {
     connectSocket,
@@ -15,94 +18,135 @@ import {
     sendMessage,
     isConnected,
 } from '../../services/chat/chatSocket';
+import FileUploadService from '../../admin/service/fileUploadService'
 
-// ── Status badge ──────────────────────────────────────────────────────────────
-const STATUS_CONFIG = {
-    PENDING:     { label: 'Chờ dược sĩ',   cls: 'bg-amber-50 text-amber-600 border-amber-200' },
-    IN_PROGRESS: { label: 'Đang tư vấn',   cls: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
-    RESOLVED:    { label: 'Đã giải quyết', cls: 'bg-blue-50 text-blue-600 border-blue-200' },
-    CLOSED:      { label: 'Đã đóng',       cls: 'bg-gray-100 text-gray-500 border-gray-200' },
-};
-
-const StatusBadge = ({ status }) => {
-    const cfg = STATUS_CONFIG[status] || { label: status, cls: 'bg-gray-100 text-gray-500' };
-    return (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${cfg.cls}`}>
-            {cfg.label}
-        </span>
-    );
-};
-
-// ── Message bubble ────────────────────────────────────────────────────────────
-const BUBBLE_CONFIG = {
-    USER:       { align: 'ml-auto flex-row-reverse', bubble: 'bg-blue-50 border border-blue-100 text-slate-800 rounded-tr-none', nameColor: 'text-blue-500' },
-    PHARMACIST: { align: 'mr-auto',                  bubble: 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-sm', nameColor: 'text-emerald-600' },
-    BOT:        { align: 'mr-auto',                  bubble: 'bg-slate-50 border border-slate-200 text-slate-700 rounded-tl-none italic', nameColor: 'text-slate-400' },
-    ADMIN:      { align: 'mr-auto',                  bubble: 'bg-purple-50 border border-purple-100 text-slate-800 rounded-tl-none', nameColor: 'text-purple-500' },
+// ─────────────────────────────────────────────────────────────────────────────
+// Message Bubble
+// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Message Bubble (Hỗ trợ Click tự động Tải Xuống)
+// ─────────────────────────────────────────────────────────────────────────────
+const BUBBLE = {
+    USER: { wrap: 'ml-auto flex-row-reverse text-end', box: 'bg-blue-600 text-white rounded-tr-none', name: '' },
+    PHARMACIST: { wrap: 'mr-auto text-start', box: 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-sm', name: 'text-emerald-600' },
+    BOT: { wrap: 'mr-auto', box: 'bg-slate-100 border border-slate-200 text-slate-700 rounded-tl-none italic', name: 'text-slate-400' },
+    ADMIN: { wrap: 'mr-auto', box: 'bg-purple-50 border border-purple-100 text-slate-800 rounded-tl-none', name: 'text-purple-500' },
 };
 
 const MessageBubble = ({ msg }) => {
-    const cfg = BUBBLE_CONFIG[msg.senderRole] || BUBBLE_CONFIG.BOT;
-    const isUser = msg.senderRole === 'USER';
+    const isMine = msg.senderRole === 'USER';
+    const cfg = BUBBLE[msg.senderRole] || BUBBLE.BOT;
     const time = msg.createdAt
         ? new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
         : '';
 
+    // Hàm xử lý tải file an toàn, tránh bị trình duyệt chặn mở tab mới do cơ chế CORS
+    const handleDownload = async (e, fileUrl, fileName) => {
+        e.preventDefault(); // Chặn hành vi mở link mặc định của thẻ <a>
+        try {
+            toast.loading('Đang chuẩn bị tải tệp xuống...', { id: 'download-toast', duration: 1500 });
+
+            const response = await fetch(fileUrl);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = fileName || 'downloaded-file';
+
+            document.body.appendChild(link);
+            link.click();
+
+            // Dọn dẹp bộ nhớ sau khi tải xong
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+            toast.success('Tải về thành công!', { id: 'download-toast' });
+        } catch (error) {
+            console.error('Lỗi khi tải file:', error);
+            toast.error('Không thể tải file trực tiếp, đang thử mở liên kết...', { id: 'download-toast' });
+            // Cứu cánh: Nếu lỗi CORS không tải ngầm được thì mở thẳng tab mới cho user lưu thủ công
+            window.open(fileUrl, '_blank');
+        }
+    };
+
     return (
-        <div className={`flex gap-2 max-w-[85%] ${cfg.align}`}>
-            {!isUser && (
+        <div className={`flex gap-2 max-w-[85%] ${cfg.wrap}`}>
+            {!isMine && (
                 <div className="w-7 h-7 rounded-full bg-slate-200 flex-shrink-0 flex items-center justify-center text-xs overflow-hidden mt-1">
-                    {msg.senderRole === 'BOT' ? (
-                        <img src={chatAvatar} alt="bot" className="w-full h-full object-cover" />
-                    ) : (
-                        <span className="text-[10px] font-bold text-slate-600">
+                    {msg.senderRole === 'BOT'
+                        ? <img src={chatAvatar} alt="bot" className="w-full h-full object-cover" />
+                        : <span className="text-[10px] font-bold text-slate-600">
                             {msg.senderRole === 'PHARMACIST' ? 'DS' : 'AD'}
-                        </span>
-                    )}
+                        </span>}
                 </div>
             )}
             <div className="flex flex-col gap-0.5">
-                {!isUser && (
-                    <span className={`text-[10px] font-semibold ${cfg.nameColor} px-1`}>
-                        {msg.senderDisplayName || (msg.senderRole === 'BOT' ? 'Bot Nhà Thuốc' : msg.senderRole)}
+                {!isMine && msg.senderDisplayName && (
+                    <span className={`text-start text-[10px] font-semibold px-1 ${cfg.name}`}>
+                        {msg.senderDisplayName}
                     </span>
                 )}
-                <div className={`p-2.5 rounded-2xl text-[13px] leading-relaxed ${cfg.bubble}`}>
+
+                {/* Hộp thoại hiển thị nội dung tin nhắn / ảnh / file */}
+                <div className={`px-3 py-2 rounded-2xl text-[13px] leading-relaxed break-words ${cfg.box}`}>
                     {msg.messageType === 'IMAGE' && msg.fileUrl ? (
-                        <img src={msg.fileUrl} alt={msg.fileName || 'image'} className="max-w-[200px] rounded-lg" />
+                        <div className="relative group cursor-pointer">
+                            <img
+                                src={msg.fileUrl}
+                                alt={msg.fileName || 'Hình ảnh'}
+                                onClick={(e) => handleDownload(e, msg.fileUrl, msg.fileName || 'vnpay-image.png')}
+                                className="max-w-full sm:max-w-[200px] rounded-lg object-cover transition-opacity group-hover:opacity-80"
+                                title="Nhấp để tải ảnh về máy"
+                            />
+                        </div>
                     ) : msg.messageType === 'FILE' && msg.fileUrl ? (
-                        <a href={msg.fileUrl} target="_blank" rel="noreferrer" className="underline text-blue-600 text-xs">
+                        <a
+                            href={msg.fileUrl}
+                            onClick={(e) => handleDownload(e, msg.fileUrl, msg.fileName || 'attachment-file')}
+                            className={`underline text-xs flex items-center gap-1 font-medium ${isMine ? 'text-blue-100 hover:text-white' : 'text-blue-600 hover:text-blue-800'}`}
+                            title="Nhấp để tải tài liệu về máy"
+                        >
                             📎 {msg.fileName || 'File đính kèm'}
                         </a>
                     ) : (
                         msg.content
                     )}
                 </div>
-                <span className={`text-[10px] text-slate-400 px-1 ${isUser ? 'text-right' : 'text-left'}`}>{time}</span>
+                <span className={`text-[10px] text-slate-400 px-1 ${isMine ? 'text-right' : 'text-left'}`}>{time}</span>
             </div>
         </div>
     );
 };
-
-// ── Main component ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────────────────────
 export default function ChatAdvisor() {
-    const { isAuthenticated, user } = useSelector((state) => state.auth);
-    const isChatOpen = useSelector((state) => state.chat.isChatOpen);
+    const { isAuthenticated } = useSelector(s => s.auth);
+    const { isChatOpen, conversation, messages } = useSelector(s => s.chat);
     const dispatch = useDispatch();
 
-    const [messages, setMessages] = useState([]);
-    const [conversation, setConversation] = useState(null); // active conversation
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [wsReady, setWsReady] = useState(false);
     const [wsError, setWsError] = useState(false);
+    const [hasNewMessage, setHasNewMessage] = useState(false);
 
     const messagesEndRef = useRef(null);
     const subConvRef = useRef(null);
     const subErrRef = useRef(null);
-    const conversationIdRef = useRef(null); // track latest convId for WS callbacks
+    const convIdRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const isChatOpenRef = useRef(isChatOpen);
 
-    // ── Scroll ──────────────────────────────────────────────────────────────
+    useEffect(() => {
+        isChatOpenRef.current = isChatOpen;
+        if (isChatOpen) {
+            setHasNewMessage(false);
+        }
+    }, [isChatOpen]);
+
+    // ── Scroll to bottom ──────────────────────────────────────────────────────
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, []);
@@ -111,24 +155,20 @@ export default function ChatAdvisor() {
         if (isChatOpen) scrollToBottom();
     }, [messages, isChatOpen, scrollToBottom]);
 
-    // ── WS connect / disconnect ──────────────────────────────────────────────
+    // ── WebSocket connect ─────────────────────────────────────────────────────
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        const client = connectSocket({
+        connectSocket({
             onConnect: () => {
                 setWsReady(true);
                 setWsError(false);
-                // subscribe error queue
-                subErrRef.current = subscribeErrors((err) => {
+                subErrRef.current = subscribeErrors(err => {
                     toast.error(err.message || 'Lỗi kết nối');
                 });
             },
             onDisconnect: () => setWsReady(false),
-            onError: () => {
-                setWsReady(false);
-                setWsError(true);
-            },
+            onError: () => { setWsReady(false); setWsError(true); },
         });
 
         return () => {
@@ -138,27 +178,26 @@ export default function ChatAdvisor() {
         };
     }, [isAuthenticated]);
 
-    // ── Re-subscribe khi conversation thay đổi ──────────────────────────────
+    // ── Subscribe conversation topic ──────────────────────────────────────────
     useEffect(() => {
         if (!conversation?.id || !wsReady) return;
 
         subConvRef.current?.unsubscribe?.();
-        conversationIdRef.current = conversation.id;
+        convIdRef.current = conversation.id;
 
         subConvRef.current = subscribeConversation(conversation.id, (msg) => {
-            setMessages((prev) => {
-                // Tránh duplicate
-                if (prev.some((m) => m.id === msg.id)) return prev;
-                return [...prev, msg];
-            });
+            dispatch(appendMessage(msg));
+
+            // Nếu có tin nhắn mới mà ô chat đang ĐÓNG và không phải do chính USER gửi -> Bật chấm cam
+            if (!isChatOpenRef.current && msg.senderRole !== 'USER') {
+                setHasNewMessage(true);
+            }
         });
 
-        return () => {
-            subConvRef.current?.unsubscribe?.();
-        };
-    }, [conversation?.id, wsReady]);
+        return () => { subConvRef.current?.unsubscribe?.(); };
+    }, [conversation?.id, wsReady, dispatch]);
 
-    // ── Load conversation khi mở chat ────────────────────────────────────────
+    // ── Load conversation khi mở chat ─────────────────────────────────────────
     useEffect(() => {
         if (!isChatOpen || !isAuthenticated) return;
         loadMyConversation();
@@ -167,66 +206,112 @@ export default function ChatAdvisor() {
     const loadMyConversation = async () => {
         try {
             setLoading(true);
-            const res = await chatService.getMyConversations();
-            const list = res.data?.result?.content || res.data?.result || [];
-            const active = list.find(c => c.status !== 'CLOSED');
-            if (active) {
-                setConversation(active);
-                await loadMessages(active.id);
+            const res = await chatService.getMyConversation();
+            const conv = res.data?.result;
+            dispatch(setConversation(conv || null));
+
+            if (conv?.id) {
+                const msgRes = await chatService.getMessages(conv.id, 0, 50);
+                dispatch(setMessages(msgRes.data?.result?.content || []));
             } else {
-                setConversation(null);
-                setMessages([]);
+                dispatch(setMessages([]));
             }
         } catch (e) {
-            console.error(e);
+            console.error('[Chat] loadMyConversation error:', e);
         } finally {
             setLoading(false);
         }
     };
 
-    const loadMessages = async (convId, page = 0) => {
-        try {
-            const res = await chatService.getMessages(convId, page, 50);
-            const msgs = res.data?.result?.content || [];
-            setMessages(msgs);
-        } catch (e) {
-            console.error(e);
+    const checkAndReloadIfFirstMsg = () => {
+        if (!convIdRef.current) {
+            setTimeout(loadMyConversation, 1000);
         }
     };
 
-    // ── Send message ─────────────────────────────────────────────────────────
-    const handleSend = (e) => {
-        e.preventDefault();
+    // ── Send message ──────────────────────────────────────────────────────────
+    const handleSend = useCallback((e) => {
+        e?.preventDefault();
         const text = inputText.trim();
-        if (!text) return;
-        if (!wsReady) {
-            toast.error('Chưa kết nối, thử lại sau...');
-            return;
-        }
-        if (conversation?.status === 'CLOSED') {
-            toast('Cuộc trò chuyện đã đóng. Hãy bắt đầu hội thoại mới.', { icon: 'ℹ️' });
+        if (!text || !wsReady) {
+            if (!wsReady) toast.error('Đang kết nối, thử lại sau...');
             return;
         }
 
         const ok = sendMessage({
-            conversationId: conversation?.id || null,
+            conversationId: convIdRef.current || null,
             messageType: 'TEXT',
             content: text,
         });
 
-        if (ok) setInputText('');
+        if (ok) {
+            setInputText('');
+            checkAndReloadIfFirstMsg();
+        } else {
+            toast.error('Chưa kết nối WebSocket, vui lòng thử lại');
+        }
+    }, [inputText, wsReady]);
+
+    // ── Gọi API uploadImage & gửi tin nhắn chứa link file qua WS ───────────────
+    const handleFileChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!wsReady) {
+            toast.error('Chưa kết nối WebSocket, vui lòng đợi...');
+            return;
+        }
+
+        const isImage = file.type.startsWith('image/');
+        const msgType = isImage ? 'IMAGE' : 'FILE';
+
+        try {
+            setUploading(true);
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Gọi chuẩn xác hàm chatService.uploadImage của bạn
+            const res = await FileUploadService.uploadImage(formData);
+
+            // Check linh hoạt cấu trúc response trả về (bọc qua .result hoặc trực tiếp trong .data)
+            const finalData = res.data?.result || res.data;
+            // Lấy URL trả về (thường là url, fileUrl, hoặc đường dẫn chuỗi trực tiếp)
+            const fileUrl = finalData?.fileUrl || finalData?.url || finalData;
+
+            if (fileUrl && typeof fileUrl === 'string') {
+                // Upload hoàn tất -> Gửi gói tin đính kèm qua WebSocket ngay lập tức
+                const ok = sendMessage({
+                    conversationId: convIdRef.current || null,
+                    messageType: msgType,
+                    content: isImage ? 'Đã gửi một hình ảnh' : `Đã gửi tệp: ${file.name}`,
+                    fileUrl: fileUrl, // Gửi link này cho Backend nhận
+                    fileName: finalData?.fileName || file.name // Tên file hiển thị
+                });
+
+                if (ok) {
+                    checkAndReloadIfFirstMsg();
+                } else {
+                    toast.error('Lỗi gửi dữ liệu file qua WebSocket');
+                }
+            } else {
+                toast.error('Không tìm thấy đường dẫn URL của file sau khi upload');
+            }
+        } catch (error) {
+            console.error('[Chat] Upload error:', error);
+            toast.error('Upload file không thành công, vui lòng thử lại');
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = ''; // Reset input file
+        }
     };
 
-    // ── Close conversation ────────────────────────────────────────────────────
-    const handleClose = async () => {
-        if (!conversation?.id) return;
-        try {
-            await chatService.closeConversation(conversation.id);
-            setConversation(prev => prev ? { ...prev, status: 'CLOSED' } : prev);
-            toast.success('Đã kết thúc tư vấn');
-        } catch (e) {
-            toast.error(e?.response?.data?.message || 'Không thể đóng hội thoại');
+    const triggerFileInput = () => {
+        if (!wsReady) {
+            toast.error('Đang kết nối, vui lòng thử lại sau...');
+            return;
         }
+        fileInputRef.current?.click();
     };
 
     // ── Reconnect ─────────────────────────────────────────────────────────────
@@ -241,84 +326,90 @@ export default function ChatAdvisor() {
         }, 300);
     };
 
-    // ── Button click ─────────────────────────────────────────────────────────
     const handleChatButtonClick = () => {
         if (!isAuthenticated) { dispatch(openLoginModal()); return; }
         dispatch(toggleChat());
     };
 
-    const canSend = conversation?.status !== 'CLOSED' && wsReady;
-    const convStatus = conversation?.status;
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
 
     return (
         <div className="font-sans">
-            {/* ── CHAT WINDOW ──────────────────────────────────────────────────── */}
+            {/* Input chọn file ẩn để tùy biến giao diện nút Paperclip */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            />
+
+            {/* ── CHAT WINDOW ─────────────────────────────────────────────────── */}
             {isChatOpen && (
                 <div className="
                     fixed z-[9999] bg-white border border-slate-100 shadow-2xl flex flex-col overflow-hidden
                     bottom-4 right-4 left-4 top-4 rounded-2xl
-                    sm:top-auto sm:left-auto sm:bottom-28 sm:right-6 sm:w-[380px] sm:h-[540px] sm:max-h-[75vh]
+                    sm:top-auto sm:left-auto sm:bottom-28 sm:right-6 sm:w-[380px] sm:h-[580px] sm:max-h-[80vh]
                 ">
                     {/* Header */}
-                    <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                                <img src={chatAvatar} alt="avatar" className="w-full h-full object-cover" />
+                    <div className="px-3 py-2.5 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
+                        <div className="flex items-center gap-2.5">
+                            <div className="relative">
+                                <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                                    <img src={chatAvatar} alt="avatar" className="w-full h-full object-cover" />
+                                </div>
+                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border-2 border-white rounded-full" />
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-blue-600 font-bold tracking-wider uppercase leading-none">Nhà Thuốc</span>
-                                <span className="text-sm font-black text-blue-800 tracking-wide">QUỐC THÁI</span>
+                            <div>
+                                <p className="text-[11px] text-slate-500 font-medium leading-none">Nhà Thuốc Quốc Thái</p>
+                                <p className="text-sm font-bold text-slate-800 leading-tight">Tư Vấn Dược Sĩ</p>
                             </div>
-                            {convStatus && (
-                                <div className="ml-2"><StatusBadge status={convStatus} /></div>
-                            )}
                         </div>
                         <div className="flex items-center gap-1">
                             {wsError && (
-                                <button
-                                    onClick={handleReconnect}
-                                    title="Kết nối lại"
-                                    className="p-1.5 rounded-full hover:bg-slate-100 text-red-400 transition-colors"
-                                >
-                                    <RefreshCw size={15} />
+                                <button onClick={handleReconnect} title="Kết nối lại"
+                                    className="p-1.5 rounded-full hover:bg-slate-100 text-red-400 transition-colors">
+                                    <RefreshCw size={14} />
                                 </button>
                             )}
-                            {conversation && convStatus !== 'CLOSED' && (
-                                <button
-                                    onClick={handleClose}
-                                    title="Kết thúc tư vấn"
-                                    className="px-2 py-1 text-[10px] font-medium text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                                >
-                                    Kết thúc
-                                </button>
-                            )}
-                            <button
-                                onClick={() => dispatch(closeChat())}
-                                className="p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
-                            >
-                                <X size={18} />
+                            <button onClick={() => dispatch(closeChat())}
+                                className="p-2 rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
+                                <X size={17} />
                             </button>
                         </div>
                     </div>
 
-                    {/* WS Status bar */}
-                    {!wsReady && isAuthenticated && (
+                    {/* Thanh trạng thái WebSocket hoặc Trạng thái đang upload file */}
+                    {!wsReady && isAuthenticated ? (
                         <div className="px-3 py-1 bg-amber-50 border-b border-amber-100 text-[10px] text-amber-600 flex items-center gap-1.5 flex-shrink-0">
                             <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                            {wsError ? 'Mất kết nối — nhấn nút làm mới để kết nối lại' : 'Đang kết nối...'}
+                            {wsError ? 'Mất kết nối — nhấn nút làm mới để thử lại' : 'Đang kết nối...'}
                         </div>
-                    )}
+                    ) : uploading ? (
+                        <div className="px-3 py-1 bg-blue-50 border-b border-blue-100 text-[10px] text-blue-600 flex items-center gap-1.5 flex-shrink-0">
+                            <Loader2 size={11} className="animate-spin" />
+                            Đang xử lý tải lên và gửi tệp tin...
+                        </div>
+                    ) : null}
 
-                    {/* Messages */}
-                    <div className="flex-1 p-3 overflow-y-auto bg-slate-50 space-y-3">
+                    {/* Messages area */}
+                    <div className="flex-1 px-3 py-3 overflow-y-auto bg-slate-50 space-y-3">
                         {loading ? (
                             <div className="flex justify-center items-center h-full">
-                                <div className="animate-spin w-5 h-5 border-[2.5px] border-[#3C50E0] border-t-transparent rounded-full" />
+                                <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full" />
                             </div>
                         ) : messages.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-400">
-                                <img src={chatAvatar} alt="" className="w-14 h-14 opacity-40" />
-                                <p className="text-[13px]">Nhắn tin để bắt đầu tư vấn</p>
+                            <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-400">
+                                <img src={chatAvatar} alt="" className="w-16 h-16 opacity-30 rounded-full" />
+                                <div className="text-center">
+                                    <p className="text-sm font-medium text-slate-500">Xin chào!</p>
+                                    <p className="text-xs text-slate-400 mt-0.5">Nhắn tin để được dược sĩ tư vấn trực tiếp</p>
+                                </div>
                             </div>
                         ) : (
                             messages.map((msg, idx) => (
@@ -328,61 +419,52 @@ export default function ChatAdvisor() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* CLOSED notice */}
-                    {convStatus === 'CLOSED' && (
-                        <div className="px-3 py-2 bg-gray-50 border-t border-slate-100 text-center text-[11px] text-slate-500 flex-shrink-0">
-                            Hội thoại đã đóng.{' '}
-                            <button
-                                onClick={() => { setConversation(null); setMessages([]); }}
-                                className="text-blue-500 underline"
-                            >
-                                Tạo hội thoại mới
-                            </button>
-                        </div>
-                    )}
-
-                    {/* RESOLVED notice */}
-                    {convStatus === 'RESOLVED' && (
-                        <div className="px-3 py-1.5 bg-blue-50 border-t border-blue-100 text-center text-[11px] text-blue-600 flex-shrink-0">
-                            Tư vấn đã hoàn tất. Nhắn tin tiếp để mở lại hội thoại.
-                        </div>
-                    )}
-
-                    {/* Input */}
-                    {convStatus !== 'CLOSED' && (
-                        <form
-                            onSubmit={handleSend}
-                            className="p-1 bg-white border-t border-slate-100 flex items-center gap-1 flex-shrink-0"
+                    {/* Input form */}
+                    <form
+                        onSubmit={handleSend}
+                        className="flex items-center gap-1.5 px-2 py-2 bg-white border-t border-slate-100 flex-shrink-0"
+                    >
+                        <button
+                            type="button"
+                            onClick={triggerFileInput}
+                            disabled={uploading || !wsReady}
+                            className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-50 transition-colors flex-shrink-0 disabled:opacity-50"
                         >
-                            <button type="button" className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-50 transition-colors">
-                                <Paperclip size={16} />
-                            </button>
-                            <input
-                                type="text"
-                                placeholder={canSend ? 'Nhắn tin...' : 'Đang kết nối...'}
-                                value={inputText}
-                                onChange={(e) => setInputText(e.target.value)}
-                                disabled={!canSend}
-                                className="flex-1 bg-slate-100 border-0 outline-none text-[13px] px-3 py-2 rounded-full focus:ring-1 focus:ring-blue-400 disabled:opacity-50 text-slate-700"
-                            />
-                            <button
-                                type="submit"
-                                disabled={!inputText.trim() || !canSend}
-                                className="p-2 rounded-full transition-colors disabled:text-slate-300 text-blue-600 hover:bg-blue-50"
-                            >
-                                <Send size={16} />
-                            </button>
-                        </form>
-                    )}
+                            <Paperclip size={15} />
+                        </button>
+                        <input
+                            type="text"
+                            placeholder={wsReady ? 'Nhắn tin...' : 'Đang kết nối...'}
+                            value={inputText}
+                            onChange={e => setInputText(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            disabled={!wsReady || uploading}
+                            className="flex-1 bg-slate-100 border-0 outline-none text-[13px] px-3 py-2 rounded-full focus:ring-1 focus:ring-blue-400 disabled:opacity-50 text-slate-700 placeholder-slate-400"
+                        />
+                        <button
+                            type="submit"
+                            disabled={!inputText.trim() || !wsReady || uploading}
+                            className="p-2 rounded-full transition-colors disabled:text-slate-300 text-blue-600 hover:bg-blue-50 flex-shrink-0"
+                        >
+                            <Send size={16} />
+                        </button>
+                    </form>
                 </div>
             )}
 
-            {/* ── FLOATING BUTTON ──────────────────────────────────────────────── */}
+            {/* ── FLOATING BUTTON ─────────────────────────────────────────────── */}
             <div
                 onClick={handleChatButtonClick}
                 className="fixed z-[9999] cursor-pointer select-none transition-all duration-300 transform hover:scale-105 active:scale-95 drop-shadow-lg bottom-20 right-20 w-16 h-16 sm:bottom-8 sm:right-3 sm:w-20 sm:h-20"
             >
                 <img src={chatIcon} alt="Tư vấn trực tuyến" className="w-16 h-16 object-contain" />
+
+                {/* Chấm cam thông báo bounce nhảy nhẹ khi có tin nhắn mới tới */}
+                {hasNewMessage && (
+                    <span className="absolute top-0 right-0 w-4 h-4 bg-orange-500 rounded-full border-2 border-white animate-bounce shadow-md" />
+                )}
+
+                {/* Chấm vàng báo lỗi kết nối */}
                 {!wsReady && isAuthenticated && (
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-white animate-pulse" />
                 )}

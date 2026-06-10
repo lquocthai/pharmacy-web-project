@@ -167,9 +167,9 @@ const PaymentResultPage = () => {
 
                     <button
                         className="btn btn-primary px-4"
-                        onClick={() => navigate('/my-orders')}
+                        onClick={() => navigate('/profile?tab=orders')}
                     >
-                        Xem đơn hàng
+                        Xem đơn hàng của bạn
                     </button>
 
                 </div>

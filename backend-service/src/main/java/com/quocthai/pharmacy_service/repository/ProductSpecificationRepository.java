@@ -2,6 +2,7 @@ package com.quocthai.pharmacy_service.repository;
 
 import com.quocthai.pharmacy_service.entity.ProductSpecification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,12 @@ public interface ProductSpecificationRepository extends JpaRepository<ProductSpe
     // Lấy thông số theo productId và tự động sắp xếp theo thứ tự hiển thị của bạn
     @Query("SELECT ps FROM ProductSpecification ps WHERE ps.product.id = :productId ORDER BY ps.displayOrder ASC")
     List<ProductSpecification> findAllByProductIdOrderByDisplayOrder(@Param("productId") String productId);
+
+    /**
+     * Xóa toàn bộ spec của 1 sản phẩm — dùng trong updateProduct để replace toàn bộ.
+     * Dùng @Modifying + JPQL thay vì deleteAll(list) để tránh N+1 query.
+     */
+    @Modifying
+    @Query("DELETE FROM ProductSpecification ps WHERE ps.product.id = :productId")
+    void deleteAllByProductId(@Param("productId") String productId);
 }

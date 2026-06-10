@@ -1,6 +1,5 @@
 package com.quocthai.pharmacy_service.dto.response;
 
-import com.quocthai.pharmacy_service.entity.Conversation;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -16,8 +15,7 @@ public class ConversationResponse {
     String id;
     String userId;
     String userDisplayName;
-    String pharmacistId;
-    Conversation.ConversationStatus status;
+    String userAvatarUrl;
     LocalDateTime lastMessageAt;
     LocalDateTime createdAt;
 
@@ -25,4 +23,7 @@ public class ConversationResponse {
     Long messageCount;
     String lastMessageContent;
     String lastMessageSenderRole;
+
+    /** Số tin nhắn chưa đọc (phía dược sĩ) */
+    int unreadCount;
 }

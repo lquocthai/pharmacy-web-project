@@ -35,7 +35,7 @@ const HOTLINES = [
     { label: 'Góp ý, khiếu nại', branch: 'Nhánh 3' },
 ]
 
-const PAYMENTS = ['VISA', 'Mastercard', 'JCB', 'Amex', 'Napas', 'Momo', 'ZaloPay', 'VNPay', 'Apple Pay']
+const PAYMENTS = ['VNPay', 'COD']
 
 export default function Footer() {
     return (
@@ -87,12 +87,12 @@ export default function Footer() {
                                 ))}
                             </div>
 
-                            <h6 className="footer-col-title mt-3">CHỨNG NHẬN BỞI</h6>
+                            {/* <h6 className="footer-col-title mt-3">CHỨNG NHẬN BỞI</h6>
                             <div className="d-flex gap-2 justify-content-center align-items-center">
                                 <span className="cert-badge bg-danger">DMCA</span>
                                 <span className="cert-badge" style={{ background: '#1d4ed8' }}>BCT</span>
                                 <span className="cert-badge bg-dark">✓</span>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Social + QR + Payment */}

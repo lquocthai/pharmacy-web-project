@@ -92,4 +92,22 @@ public class PharmacistRatingController {
                 .result(ratingService.replyRating(ratingId, request))
                 .build();
     }
+    /**
+     * PATCH /pharmacist/ratings/{ratingId}/status
+     * Thay đổi trạng thái của đánh giá (ACTIVE / HIDDEN) — chỉ PHARMACIST.
+     *
+     * @param ratingId ID của đánh giá
+     * @param status Trạng thái mới cần cập nhật
+     */
+    @PatchMapping("/{ratingId}/status")
+    public ApiResponse<Void> updateRatingStatus(
+            @PathVariable String ratingId,
+            @RequestParam RatingStatus status
+    ) {
+        pharmacistRatingService.updateStatus(ratingId, status);
+        return ApiResponse.<Void>builder()
+                .message("Cập nhật trạng thái đánh giá thành công!")
+                .build();
+    }
+
 }

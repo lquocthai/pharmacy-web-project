@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import userAdminService from '../service/userAdminService';
 import LogoInfo from '../../assets/avatar-profile.svg';
+import BackButton from '../../components/Common/BackButton';
 
 const UserDetailAdminPage = () => {
     const { id } = useParams();
@@ -57,9 +58,8 @@ const UserDetailAdminPage = () => {
                 <div>
                     <h2 className="text-xl font-bold text-[#1C2434]">Chi tiết người dùng</h2>
                 </div>
-                <p className="text-xs text-[#64748B]">
-                    Home &gt; Quản lý người dùng &gt; Chi tiết
-                </p>
+
+                <BackButton to={'/admin/users'} />
             </div>
 
 
@@ -112,9 +112,9 @@ const UserDetailAdminPage = () => {
                     {/* Phần 1: Thông tin cá nhân cơ bản */}
                     <div style={{ borderRadius: '1rem' }} className="mb-2 bg-white  border border-[#E2E8F0] overflow-hidden">
                         <div className="p-2 border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                            <h6 className="text-start text-sm font-bold text-[#1C2434] uppercase tracking-wider">Thông tin cá nhân</h6>
+                            <h6 className="text-start text-sm font-bold text-[#1C2434] uppercase tracking-wider mb-0">Thông tin cá nhân</h6>
                         </div>
-                        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div className="text-start p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                             <div>
                                 <label className="block text-[#64748B] font-medium mb-1">Mã định danh (ID)</label>
                                 <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-2.5 rounded text-[#1C2434] font-mono select-all">
@@ -157,7 +157,7 @@ const UserDetailAdminPage = () => {
                     {/* Phần 2: Danh sách Sổ Địa Chỉ */}
                     <div style={{ borderRadius: '1rem' }} className="bg-white  border border-[#E2E8F0] overflow-hidden">
                         <div className="p-2 border-b border-[#E2E8F0] bg-[#F8FAFC] flex justify-between items-center">
-                            <h6 className="text-sm font-bold text-[#1C2434] uppercase tracking-wider">Danh sách sổ địa chỉ</h6>
+                            <h6 className="mb-0 text-sm font-bold text-[#1C2434] uppercase tracking-wider">Danh sách sổ địa chỉ</h6>
                             <span className="bg-[#E2E8F0] text-[#1C2434] font-bold text-xs px-2.5 py-0.5 rounded-full">
                                 {user.addresses ? user.addresses.length : 0}
                             </span>

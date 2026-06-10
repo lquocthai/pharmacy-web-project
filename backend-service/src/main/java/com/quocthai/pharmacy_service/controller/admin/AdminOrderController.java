@@ -5,6 +5,7 @@ import com.quocthai.pharmacy_service.dto.admin.request.UpdateOrderStatusRequest;
 import com.quocthai.pharmacy_service.dto.admin.response.AdminOrderResponse;
 import com.quocthai.pharmacy_service.dto.request.CancelOrderRequest;
 import com.quocthai.pharmacy_service.dto.response.ApiResponse;
+import com.quocthai.pharmacy_service.dto.response.OrderResponse;
 import com.quocthai.pharmacy_service.dto.response.OrderStatusHistoryResponse;
 import com.quocthai.pharmacy_service.dto.response.PageResponse;
 import com.quocthai.pharmacy_service.service.OrderService;
@@ -68,6 +69,13 @@ public class AdminOrderController {
         return ApiResponse
                 .<List<OrderStatusHistoryResponse>>builder()
                 .result(orderService.getOrderHistory(orderId))
+                .build();
+    }
+
+    @GetMapping("/{orderCode}")
+    public ApiResponse<OrderResponse> getOrderDetail(@PathVariable String orderCode) {
+        return ApiResponse.<OrderResponse>builder()
+                .result(orderService.getOrderDetailByCodeAdmin(orderCode))
                 .build();
     }
 }

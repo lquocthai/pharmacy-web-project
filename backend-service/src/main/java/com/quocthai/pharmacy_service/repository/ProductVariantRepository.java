@@ -21,6 +21,7 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     FROM ProductVariant pv
     JOIN FETCH pv.product
     WHERE pv.id IN :ids
+    AND pv.active IS TRUE
     """)
     List<ProductVariant> findAllWithProductByIds(
             @Param("ids") List<String> ids
