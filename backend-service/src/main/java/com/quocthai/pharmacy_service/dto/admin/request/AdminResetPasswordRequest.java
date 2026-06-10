@@ -1,6 +1,7 @@
 package com.quocthai.pharmacy_service.dto.admin.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -11,5 +12,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AdminResetPasswordRequest {
     @NotBlank
-    private String password;
+    @Size(min = 6, max = 10, message = "PASSWORD_INVALID")
+    String password;
 }

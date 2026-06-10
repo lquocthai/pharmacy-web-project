@@ -14,6 +14,7 @@ import com.quocthai.pharmacy_service.search.document.ProductDocumentSearch;
 import com.quocthai.pharmacy_service.search.document.ProductVariantDocument;
 import com.quocthai.pharmacy_service.search.mapper.ProductSearchMapper;
 import com.quocthai.pharmacy_service.search.repository.ProductSearchRepository;
+import com.quocthai.pharmacy_service.search.service.ProductSearchService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -54,6 +55,7 @@ public class ProductService {
     private final ProductMapper productMapper;
     private final ProductSearchRepository productSearchRepository;
     private final ProductSearchMapper productSearchMapper;
+    ProductSearchService productSearchService;
 
     @Transactional(readOnly = true)
     public PageResponse<ProductSummaryResponse> getProductsByCategory(
@@ -327,6 +329,7 @@ public class ProductService {
                                     .name(product.getName())
                                     .slug(product.getSlug())
                                     .isPrescription(product.isPrescription())
+                                    .active(product.isActive())
                                     .manufacturer(product.getManufacturer())
                                     .country(product.getCountry())
                                     .primaryImageUrl(imageMap.getOrDefault(product.getId(), ""))
@@ -546,6 +549,7 @@ public class ProductService {
                 .manufacturer(product.getManufacturer())
                 .country(product.getCountry())
                 .isPrescription(product.isPrescription())
+                .active(product.isActive())
                 .primaryImageUrl(primaryImage)
                 .categoryId(
                         product.getCategory() != null
@@ -1047,6 +1051,20 @@ public class ProductService {
         slug = slug.replaceAll("^-|-$", "");
 
         return slug;
+    }
+    @Transactional
+    public String updateActiveStatus(String id, boolean status) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        product.setActive(status);
+        productRepository.save(product);
+
+        // 3. (Quan trọng) Đồng bộ lại trạng thái mới lên Elasticsearch để trang chủ/tìm kiếm cập nhật theo
+        productSearchService.updateStatus(id,status);
+
+        // 4. Map và trả về DTO kết quả
+        return "Cập nhật trạng thái sản phẩm thành công";
     }
 
 

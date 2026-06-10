@@ -3,6 +3,20 @@
 import axiosClient from '../../configs/axiosConfig.js';
 
 const productAdminService = {
+    // =========================================================================
+    // UPDATE ACTIVE STATUS (BẬT/TẮT KINH DOANH SẢN PHẨM)
+    // =========================================================================
+    /**
+     * @param {string} id - ID của sản phẩm (UUID)
+     * @param {boolean} status - Trạng thái active mong muốn (true: bật, false: tắt)
+     */
+    updateActiveStatus: (id, status) => {
+        return axiosClient.patch(`/admin/products/${id}/active`, null, {
+            params: {
+                status: status
+            }
+        });
+    },
     getAdminProducts: (params) => {
         return axiosClient.get('/products/admin/products', {
             params
@@ -151,6 +165,7 @@ const productAdminService = {
             }
         );
     }
+
 
 };
 

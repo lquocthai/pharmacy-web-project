@@ -75,7 +75,7 @@ public class AdminUserController {
     @PatchMapping("/{userId}/reset-password")
     ApiResponse<String> resetPassword(
             @PathVariable String userId,
-            @RequestBody AdminResetPasswordRequest request
+            @RequestBody @Valid AdminResetPasswordRequest request
     ) {
         userService.resetPasswordAdmin(
                 userId,

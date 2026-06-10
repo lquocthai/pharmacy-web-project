@@ -109,12 +109,35 @@ const AdminProductPage = () => {
             const res = await productAdminService.getAdminProducts(params);
             const result = res.data?.result;
             setProducts(result?.content || []);
+            console.log(res.data?.result)
             setTotalPages(result?.totalPages || 0);
         } catch (error) {
             console.error(error);
             toast.error('Không tải được danh mục sản phẩm từ máy chủ');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // HÀM XỬ LÝ: TOGGLE TRẠNG THÁI ACTIVE (MỞ BÁN / ẨN SẢN PHẨM)
+    // ─────────────────────────────────────────────────────────────────────────
+    const handleToggleActive = async (productId, currentStatus) => {
+        try {
+            const targetStatus = !currentStatus; // Đảo trạng thái hiện tại
+            await productAdminService.updateActiveStatus(productId, targetStatus);
+
+            toast.success(targetStatus ? 'Mở bán sản phẩm thành công!' : 'Đã ẩn sản phẩm thành công!');
+
+            // Cập nhật nóng lại state trực tiếp ở client để giao diện đổi màu ngay mà không cần reload toàn bộ trang
+            setProducts(prevProducts =>
+                prevProducts.map(p => p.id === productId ? { ...p, active: targetStatus } : p)
+            );
+        } catch (error) {
+            console.error(error);
+            toast.error('Cập nhật trạng thái thất bại, vui lòng kiểm tra lại backend.');
+        } finally {
+            setActiveDropdown(null); // Đóng dropdown sau khi xử lý xong
         }
     };
 
@@ -235,15 +258,15 @@ const AdminProductPage = () => {
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Sản phẩm</th>
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Danh mục</th>
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Sản phẩm kê đơn</th>
+                                        <th className="p-2.5 uppercase tracking-wider font-bold">Trạng thái</th>
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Biến thể & Giá</th>
-                                        <th className="p-2.5 uppercase tracking-wider font-bold text-right pr-4">Actions</th>
+                                        <th className="p-2.5 uppercase tracking-wider font-bold text-right pr-4">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-xs divide-y divide-[#E2E8F0]">
-                                    {/* THAY ĐỔI: Duyệt trực tiếp danh sách mảng sản phẩm `products` trả từ API về (Vì API đã tự lọc theo keyword cho bạn rồi) */}
                                     {products.length === 0 ? (
                                         <tr>
-                                            <td colSpan="6" className="text-center p-8 text-[#64748B] font-medium">
+                                            <td colSpan="7" className="text-center p-8 text-[#64748B] font-medium">
                                                 Không có sản phẩm nào phù hợp với từ khóa tìm kiếm.
                                             </td>
                                         </tr>
@@ -286,6 +309,20 @@ const AdminProductPage = () => {
                                                             <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-50 text-[#64748B] border border-[#E2E8F0]">Không kê đơn</span>
                                                         )}
                                                     </td>
+
+                                                    {/* THÊM MỚI: Cột hiển thị trạng thái Còn bán hay Ngừng bán */}
+                                                    <td className="p-2.5">
+                                                        {product.active ? (
+                                                            <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-600 border border-green-200">
+                                                                Kinh doanh
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 border border-amber-200">
+                                                                Ngừng bán
+                                                            </span>
+                                                        )}
+                                                    </td>
+
                                                     <td className="p-2.5">
                                                         <div className="flex flex-col gap-1 max-w-[240px]">
                                                             {product.variants?.map((v) => (
@@ -326,7 +363,23 @@ const AdminProductPage = () => {
                                                             <div className="absolute right-4 top-[80%] w-32 bg-white border border-[#E2E8F0] rounded shadow-xl py-1 z-[100] text-left token-dropdown">
                                                                 <button onClick={() => navigate(`/admin/products/detail/${product.slug}`)} className="w-full px-3 py-1.5 text-xs text-[#1C2434] hover:bg-[#F8FAFC] transition-colors flex items-center gap-1.5">Chi tiết</button>
                                                                 <button onClick={() => navigate(`/admin/products/edit/${product.slug}`)} className="w-full px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors flex items-center gap-1.5">Sửa</button>
-                                                                <button className="w-full px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1.5">Xóa</button>
+
+                                                                {/* THAY ĐỔI: Chuyển nút Xóa cũ thành Nút Toggle Ẩn / Mở bán sản phẩm dựa vào trường product.active */}
+                                                                {product.active ? (
+                                                                    <button
+                                                                        onClick={() => handleToggleActive(product.id, product.active)}
+                                                                        className="w-full px-3 py-1.5 text-xs text-amber-600 hover:bg-amber-50 transition-colors flex items-center gap-1.5"
+                                                                    >
+                                                                        Ẩn sản phẩm
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => handleToggleActive(product.id, product.active)}
+                                                                        className="w-full px-3 py-1.5 text-xs text-green-600 hover:bg-green-50 transition-colors flex items-center gap-1.5"
+                                                                    >
+                                                                        Mở bán lại
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </td>

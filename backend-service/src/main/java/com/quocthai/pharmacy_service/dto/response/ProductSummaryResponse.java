@@ -16,6 +16,7 @@ public class ProductSummaryResponse {
     String name;
     String slug;
     boolean isPrescription;
+    boolean active;
     String manufacturer;
     String country;
     BigDecimal priceDefault;

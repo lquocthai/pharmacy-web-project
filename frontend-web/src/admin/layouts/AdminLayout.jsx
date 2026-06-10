@@ -280,7 +280,7 @@ const AdminLayout = () => {
                             </button>
 
                             <div className={`sidebar-expanded-only flex flex-col gap-1 overflow-hidden transition-all duration-300 ${ecommerceOpen ? 'max-h-[400px] mt-1 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                <NavLink to="/admin/products" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Sản phẩm</NavLink>
+                                <NavLink to="/admin/products" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Danh sách Sản phẩm</NavLink>
                                 <NavLink to="/admin/products/create" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Thêm sản phẩm</NavLink>
                                 {/* FIX TẠI ĐÂY: Sử dụng kiểm tra động bằng `.includes('products/edit/')` thay vì so khớp cứng */}
                                 {/* <NavLink
@@ -290,7 +290,7 @@ const AdminLayout = () => {
                                 >
                                     Chỉnh sửa sản phẩm
                                 </NavLink> */}
-                                <NavLink to="/admin/categories" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Danh mục</NavLink>
+                                <NavLink to="/admin/categories" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Danh sách danh mục</NavLink>
                                 <NavLink to="/admin/categories/create" end className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Thêm danh mục</NavLink>
 
                             </div>
@@ -340,7 +340,7 @@ const AdminLayout = () => {
 
                             <div className={`sidebar-expanded-only flex flex-col gap-1 overflow-hidden transition-all duration-300 ${inventoryOpen ? 'max-h-[500px] mt-1 opacity-100' : 'max-h-0 opacity-0'}`}>
                                 <NavLink to="/admin/inventory/dashboard" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Dashboard</NavLink>
-                                <NavLink to="/admin/inventory/batches" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Lô hàng</NavLink>
+                                <NavLink to="/admin/inventory/batches" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Danh sách lô hàng</NavLink>
                                 <NavLink to="/admin/inventory/import" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Nhập kho</NavLink>
                                 <NavLink to="/admin/inventory/transactions" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Giao dịch kho</NavLink>
                                 <NavLink to="/admin/inventory/low-stock" className={subMenuClass} style={{ color: 'unset', textDecoration: 'none' }}>Hàng Tồn thấp</NavLink>

@@ -74,12 +74,11 @@ const AdminUserPage = () => {
                 newPassword
             );
 
-            toast.success(response?.data?.message || 'Đặt lại mật khẩu thành công');
+            toast.success('Đặt lại mật khẩu thành công');
 
             setShowResetPasswordModal(false);
         } catch (error) {
             toast.error(
-                error?.response?.data?.message ||
                 'Đặt lại mật khẩu thất bại'
             );
         }
@@ -254,7 +253,7 @@ const AdminUserPage = () => {
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Thông tin liên hệ</th>
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Vai trò</th>
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Trạng thái</th>
-                                        <th className="p-2.5 uppercase tracking-wider font-bold text-right pr-4">Actions</th>
+                                        <th className="p-2.5 uppercase tracking-wider font-bold text-right pr-4">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-xs divide-y divide-[#E2E8F0]">

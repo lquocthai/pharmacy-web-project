@@ -14,7 +14,7 @@ import Banner5 from '../../../assets/Banner_H2_1_6d86dbb69f.webp';
 import SearchIcon from '../../../assets/tracuu.webp';
 import AdvidseIcon from '../../../assets/tuvanvoiduocsi_1855320b40.webp';
 import PrescriptionIcon from '../../../assets/donthuoc.webp';
-import OrderIcon from '../../../assets/48px_fe435f0cad.webp';
+import OrderIcon from '../../../assets/4_Lich_Su_Don_Hang_48x48_0f0d6dd55f.webp';
 
 const SLIDES = [
     {

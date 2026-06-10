@@ -48,7 +48,6 @@ export function HomePage() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // 🔄 Sửa đổi: Gọi API danh mục qua Service (Axios Client)
     const fetchCategories = async () => {
         setLoadingCats(true);
         try {

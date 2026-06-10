@@ -217,7 +217,7 @@ const InventoryBatchListPage = () => {
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Hạn dùng</th>
                                         <th className="p-2.5 uppercase tracking-wider font-bold">NSX</th>
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Ngưỡng cảnh báo</th>
-                                        <th className="p-2.5 uppercase tracking-wider font-bold text-right pr-4">Actions</th>
+                                        <th className="p-2.5 uppercase tracking-wider font-bold text-right pr-4">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-xs divide-y divide-[#E2E8F0]">

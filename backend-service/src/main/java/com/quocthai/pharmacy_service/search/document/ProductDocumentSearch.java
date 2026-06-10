@@ -69,4 +69,7 @@ public class ProductDocumentSearch {
     @Field(type = FieldType.Boolean)
     private Boolean prescription;
 
+    @Field(type = FieldType.Boolean)
+    private Boolean active;
+
 }

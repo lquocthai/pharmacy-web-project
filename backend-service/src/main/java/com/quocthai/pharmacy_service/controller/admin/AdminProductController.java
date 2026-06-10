@@ -74,4 +74,16 @@ public class AdminProductController {
                 )
                 .build();
     }
+    @PatchMapping("/{id}/active")
+    public ApiResponse<String> updateProductActiveStatus(
+            @PathVariable String id,
+            @RequestParam("status") boolean status
+    ) {
+        return ApiResponse.<String>builder()
+                .result(
+                        productService.updateActiveStatus(id, status)
+                )
+                .build();
+    }
+
 }

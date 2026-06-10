@@ -326,7 +326,7 @@ const AdminOrderPage = () => {
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Thanh Toán</th>
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Tổng Tiền</th>
                                         <th className="p-2.5 uppercase tracking-wider font-bold">Trạng Thái</th>
-                                        <th className="p-2.5 uppercase tracking-wider font-bold text-right pr-4">Hành động</th>
+                                        <th className="p-2.5 uppercase tracking-wider font-bold text-right pr-4">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-xs divide-y divide-[#E2E8F0]">

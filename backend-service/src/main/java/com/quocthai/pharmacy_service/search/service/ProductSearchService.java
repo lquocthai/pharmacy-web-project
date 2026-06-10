@@ -5,6 +5,7 @@ import com.quocthai.pharmacy_service.search.document.ProductDocumentSearch;
 import com.quocthai.pharmacy_service.search.dto.SearchSuggestionResponse;
 import com.quocthai.pharmacy_service.search.mapper.ProductSearchMapper;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import com.quocthai.pharmacy_service.search.repository.ProductSearchRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -28,6 +29,7 @@ public class ProductSearchService {
 
     ElasticsearchOperations elasticsearchOperations;
     ProductSearchMapper productSearchMapper;
+    ProductSearchRepository productSearchRepository;
 
     /**
      * Suggestion API: kết hợp match + fuzzy + prefix để auto-complete.
@@ -200,5 +202,10 @@ public class ProductSearchService {
                 .totalPages(totalPages)
                 .last(page >= totalPages - 1)
                 .build();
+    }
+    public void updateStatus(String productId,boolean status){
+        productSearchRepository.findById(productId).ifPresent(productSearch -> {
+            productSearch.setActive(status);
+        });
     }
 }

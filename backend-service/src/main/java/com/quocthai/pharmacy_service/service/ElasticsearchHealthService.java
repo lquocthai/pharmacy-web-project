@@ -68,9 +68,16 @@ public class ElasticsearchHealthService {
     }
     // sync data product vào elasticsearch
     @Transactional(readOnly = true)
-    @PostConstruct
+//    @PostConstruct
     public void syncAllProductsToElasticsearch() {
-
+        try {
+            System.out.println("⏳ Deleting all documents from index...");
+            productSearchRepository.deleteAll(); // Xóa sạch toàn bộ bản ghi
+            System.out.println("✨ All documents cleared completely!");
+        } catch (Exception e) {
+            System.err.println("❌ Failed to clear documents!");
+            e.printStackTrace();
+        }
         List<Product> products = productRepository.findAllBasic();
 
         List<String> productIds = products.stream()
@@ -156,6 +163,7 @@ public class ElasticsearchHealthService {
                 .country(product.getCountry())
                 .priceDefault(calculatedPriceDefault)
                 .prescription(product.isPrescription()) // Map vào trường Boolean prescription
+                .active(product.isActive())
                 .primaryImageUrl(primaryImageUrl)
                 .categoryId(categoryId)
                 .categoryName(categoryName)
