@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// ✅ KHÔNG import store hay setLogout ở đầu file để tránh Circular Dependency và lỗi đứng App
+// KHÔNG import store hay setLogout ở đầu file để tránh Circular Dependency và lỗi đứng App
 const axiosClient = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/pharmacy',
 });
@@ -17,7 +17,7 @@ axiosClient.interceptors.response.use(
         const originalRequest = error.config;
 
         if (originalRequest.url.includes('/auth/refresh')) {
-            // 🔥 Cú pháp Dynamic Import đúng trong hàm: Sử dụng hàm import() và await
+            //  Cú pháp Dynamic Import đúng trong hàm: Sử dụng hàm import() và await
             const { store } = await import('../redux/store');
             const { setLogout } = await import('../redux/slices/authSlice');
 

@@ -44,7 +44,7 @@ const InventoryDashboardPage = () => {
     return (
         <div className="min-h-screen bg-[#F1F5F9] p-0 md:p-6 text-[#1C2434] font-satoshi">
             {/* Breadcrumb */}
-            <div className="mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div className="text-start">
                     <h2 className="text-xl font-bold text-[#1C2434]">Dashboard Kho</h2>
                     <p className="text-xs text-[#64748B] mt-0.5">Tổng quan tình trạng tồn kho nhà thuốc</p>

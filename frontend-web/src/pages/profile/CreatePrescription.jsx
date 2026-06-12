@@ -289,7 +289,7 @@ const CreatePrescription = ({ }) => {
 
                         {/* Khối quy trình tư vấn */}
                         <Card className="border-0 shadow-sm rounded-4 p-4 mb-3">
-                            <h6 className="fw-bold text-dark mb-4 text-start" style={{ fontSize: '16px' }}>Quy trình tư vấn tại Long Châu</h6>
+                            <h6 className="fw-bold text-dark mb-4 text-start" style={{ fontSize: '16px' }}>Quy trình tư vấn tại Quốc Thái</h6>
 
                             {/* Các bước quy trình - Đã tối ưu căn chỉnh không lệch */}
                             <div className="position-relative text-start" style={{ paddingLeft: '2px' }}>

@@ -58,7 +58,7 @@ const AddressManager = () => {
                 // Sửa
                 const { data } = await profileService.updateAddress(editingAddress.id, formData);
                 if (data.code !== 0) throw new Error(data.message);
-                toast.success(`Cập nhật địa chỉ thành công: ${data.code}`);
+                toast.success(`Cập nhật địa chỉ thành công`);
             } else {
                 // Thêm mới
                 const { data } = await profileService.createAddress(formData);

@@ -8,15 +8,15 @@ import org.springframework.http.HttpStatusCode;
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_KEY(1001, "invalid key", HttpStatus.BAD_REQUEST),
-    USER_EXISTED(1002, "User already existed", HttpStatus.BAD_REQUEST),
-    USERNAME_INVALID(1003, "Username must be at least 3 characters", HttpStatus.BAD_REQUEST),
-    PASSWORD_INVALID(1004, "Password must be at least 6 and max 10 characters", HttpStatus.BAD_REQUEST),
+    USER_EXISTED(1002, "Tài khoản đã tồn tại", HttpStatus.BAD_REQUEST),
+    USERNAME_INVALID(1003, "Họ tên phải trên 3 kí tự", HttpStatus.BAD_REQUEST),
+    PASSWORD_INVALID(1004, "mật khẩu phải trên 6 kí tự", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID(1005, "email invalid", HttpStatus.BAD_REQUEST),
-    EMAIL_EXISTED(1006, "email already existed", HttpStatus.BAD_REQUEST),
-    USER_NOT_EXISTED(1007, "User not existed", HttpStatus.NOT_FOUND),
-    OTP_INVALID(1008, "Invalid OTP code", HttpStatus.BAD_REQUEST),
-    OTP_EXPIRED(1009, "OTP code has expired", HttpStatus.GONE),
-    CANNOT_SEND_EMAIL(1010, "Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR),
+    EMAIL_EXISTED(1006, "email này đã sử dụng", HttpStatus.BAD_REQUEST),
+    USER_NOT_EXISTED(1007, "Tài khoản không tồn tại", HttpStatus.NOT_FOUND),
+    OTP_INVALID(1008, "Mã OTP không hợp lệ", HttpStatus.BAD_REQUEST),
+    OTP_EXPIRED(1009, "Mã OTP đã hết hạn", HttpStatus.GONE),
+    CANNOT_SEND_EMAIL(1010, "Không thể gửi email", HttpStatus.INTERNAL_SERVER_ERROR),
     UNAUTHENTICATED(1011, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1012, "you do not have permission", HttpStatus.FORBIDDEN),
     TOO_MANY_REQUESTS_OTP(1013, "Bạn đã yêu cầu quá nhiều lần. Vui lòng thử lại sau 10 phút.", HttpStatus.TOO_MANY_REQUESTS),
@@ -96,6 +96,7 @@ public enum ErrorCode {
     CANNOT_UPDATE_OWN_STATUS(1083, "Không thể thay đổi trạng thái tài khoản của chính mình",HttpStatus.BAD_REQUEST),
     CANNOT_UPDATE_OWN_ROLE(1084, "Không thể thay đổi quyền của chính mình",HttpStatus.BAD_REQUEST),
     RATING_NOT_FOUND(1085, "Không tìm thấy đánh giá",HttpStatus.NOT_FOUND),
+    PRODUCT_NOT_ACTIVE(1086, "Sản phầm đã ngừng kinh doanh",HttpStatus.BAD_REQUEST),
 
     ;
 

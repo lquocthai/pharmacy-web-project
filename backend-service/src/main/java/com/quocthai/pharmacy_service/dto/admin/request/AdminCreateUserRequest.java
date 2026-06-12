@@ -28,7 +28,7 @@ public class AdminCreateUserRequest {
 
     LocalDate dob;
 
-    @Size(min = 6, max = 10, message = "PASSWORD_INVALID")
+    @Size(min = 6, message = "PASSWORD_INVALID")
     String password;
 
     String role;

@@ -57,8 +57,8 @@ const ModalShell = ({ title, children, onClose, footer }) => {
         >
             <div
                 className={`w-full max-w-3xl overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-xl transition-all duration-300 ease-out ${animate
-                        ? 'translate-y-0 opacity-100 scale-100'
-                        : '-translate-y-12 opacity-0 scale-95'
+                    ? 'translate-y-0 opacity-100 scale-100'
+                    : '-translate-y-12 opacity-0 scale-95'
                     }`}
                 onClick={(e) => e.stopPropagation()} // Ngăn chặn đóng modal khi bấm vào bên trong nội dung
             >
@@ -114,7 +114,7 @@ const DetailModal = ({ prescription, onClose, onEditStatus }) => {
                         onClick={() => onEditStatus(prescription)}
                         className="h-9 px-3 rounded-md bg-[#3C50E0] text-xs font-medium text-white hover:bg-opacity-90 transition-all"
                     >
-                        Sửa trạng thái
+                        Cập nhật
                     </button>
                 </>
             )}
@@ -196,7 +196,7 @@ const StatusModal = ({ prescription, saving, onClose, onSubmit }) => {
 
     return (
         <ModalShell
-            title="Sửa trạng thái đơn thuốc"
+            title="Cập nhật trạng thái đơn thuốc"
             onClose={saving ? undefined : onClose}
             footer={(
                 <>
@@ -498,7 +498,7 @@ const PharmacistPrescriptionPage = () => {
                                                             onClick={() => openStatusModal(prescription)}
                                                             className="px-2.5 py-1 text-[11px] font-medium border border-[#3C50E0] rounded text-[#3C50E0] bg-white hover:bg-[#EBF0FF] transition-all"
                                                         >
-                                                            Sửa trạng thái
+                                                            Cập nhật
                                                         </button>
                                                     </div>
                                                 </td>

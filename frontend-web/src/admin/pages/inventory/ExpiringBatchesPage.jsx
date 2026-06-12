@@ -52,7 +52,7 @@ const ExpiringBatchesPage = () => {
 
             <div className=" flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
-                    <h2 className="text-xl font-bold text-[#1C2434]">📅 Thuốc sắp hết hạn</h2>
+                    <h2 className="text-xl font-bold text-[#1C2434]">Thuốc sắp hết hạn</h2>
                     <p className="text-xs text-[#64748B] mt-0.5">Các lô hàng sắp hết hạn sử dụng</p>
                 </div>
                 <p className="text-xs text-[#64748B]">Home &gt; Quản lý kho &gt; Sắp hết hạn</p>

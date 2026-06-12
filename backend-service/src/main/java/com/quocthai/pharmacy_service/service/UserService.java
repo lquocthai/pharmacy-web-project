@@ -304,7 +304,7 @@ public class UserService {
         User currentUser  = userRepository.findByEmail(auth.getName()).orElseThrow(()->
                 new AppException((ErrorCode.USER_NOT_EXISTED)));
         if(userId.equals(currentUser.getId())){
-            throw new AppException(ErrorCode.CANNOT_UPDATE_OWN_STATUS);
+            throw new AppException(ErrorCode.CANNOT_UPDATE_OWN_ROLE);
         }
         if (request.getRole() != null) {
             Role role = roleRepository.findById(request.getRole())
@@ -333,7 +333,7 @@ public class UserService {
                 new AppException((ErrorCode.USER_NOT_EXISTED)));
 
         if(userId.equals(currentUser .getId())){
-            throw new AppException(ErrorCode.CANNOT_UPDATE_OWN_STATUS);
+            throw new AppException(ErrorCode.CANNOT_UPDATE_OWN_ROLE);
         }
         user.setActive(active);
         userRepository.save(user);

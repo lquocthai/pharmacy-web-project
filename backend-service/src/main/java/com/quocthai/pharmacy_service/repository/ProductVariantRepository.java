@@ -1,18 +1,20 @@
 package com.quocthai.pharmacy_service.repository;
 
 import com.quocthai.pharmacy_service.entity.ProductVariant;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, String> {
-    // Bạn có thể bổ sung tìm kiếm Variant theo mã SKU nếu sau này FE gửi mã SKU lên thay vì ID
-    Optional<ProductVariant> findBySku(String sku);
+
 
     List<ProductVariant> findAllByProductIdIn(List<String> productIds);
 
@@ -44,7 +46,15 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
         )
         ORDER BY p.name ASC, pv.variantName ASC
     """)
-    org.springframework.data.domain.Page<ProductVariant> findOutOfStockVariants(
-            @Param("today") java.time.LocalDate today,
-            org.springframework.data.domain.Pageable pageable);
+    Page<ProductVariant> findOutOfStockVariants(
+            @Param("today") LocalDate today,
+            Pageable pageable);
+    @Query("""
+    SELECT pv
+    FROM ProductVariant pv
+    JOIN FETCH pv.product p
+    WHERE pv.id = :id
+    """)
+    Optional<ProductVariant> findByIdWithProduct(String id);
+
 }

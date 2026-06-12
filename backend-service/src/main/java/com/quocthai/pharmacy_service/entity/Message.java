@@ -26,10 +26,8 @@ public class Message {
     @Column(nullable = false)
     String conversationId;
 
-    /** Null chỉ với BOT messages */
     String senderId;
 
-    /** Username / display name tại thời điểm gửi (snapshot) */
     String senderDisplayName;
 
     @Enumerated(EnumType.STRING)

@@ -143,8 +143,12 @@ import java.util.stream.Collectors;
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-            ProductVariant variant = productVariantRepository.findById(request.getVariantId())
-                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED)); // Dùng tạm Code lỗi cũ hoặc đổi thành VARIANT_NOT_EXISTED
+            ProductVariant variant = productVariantRepository.findByIdWithProduct(request.getVariantId())
+                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
+            if (!variant.getProduct().isActive()) {
+                throw new AppException(ErrorCode.PRODUCT_NOT_ACTIVE);
+            }
+
             // check stock còn hàng k
             int stock = getStock(variant.getId());
             if (stock <= 0) throw new AppException(ErrorCode.OUT_OF_STOCK);

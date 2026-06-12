@@ -94,7 +94,7 @@ const AuthModal = () => {
         } catch (error) {
             console.error('Login Error:', error);
             const errorMsg = error.response?.data?.message || 'Lỗi kết nối đến máy chủ';
-            toast.error('Đăng nhập thất bại: ' + errorMsg);
+            toast.error(errorMsg);
         } finally {
             setLoginLoading(false);
         }

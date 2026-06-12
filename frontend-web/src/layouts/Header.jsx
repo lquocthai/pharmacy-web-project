@@ -11,6 +11,7 @@ import '../assets/styles/Header.scss';
 import LogoutModal from '../components/Auth/LogoutModal';
 import { LogOut, MapPin, Package, Pill, User } from 'lucide-react';
 import elasticSearchService from '../services/elasticSearchService.js';
+import categoryService from '../services/categoryService.js';
 
 export default function Header() {
     const [searchValue, setSearchValue] = useState('');
@@ -18,7 +19,7 @@ export default function Header() {
     const [navOpen, setNavOpen] = useState(false);
     const [showLogout, setShowLogout] = useState(false);
 
-    // 🔥 States cho việc gợi ý tìm kiếm & loading
+    // States cho việc gợi ý tìm kiếm & loading
     const [suggestions, setSuggestions] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // Thêm state quản lý trạng thái chờ dữ liệu API
@@ -75,9 +76,12 @@ export default function Header() {
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('http://localhost:8080/pharmacy/categories');
-            const data = await response.json();
-            setCategories(data.result || []);
+            const response = await categoryService.getAll();
+
+            // Axios trả về dữ liệu nằm trong trường .data
+            // Dựa vào cấu hình API của bạn: response.data.result
+            setCategories(response.data?.result || []);
+            // setCategories(data.result || []);
         } catch (error) {
             console.error('Fetch categories error:', error);
         }

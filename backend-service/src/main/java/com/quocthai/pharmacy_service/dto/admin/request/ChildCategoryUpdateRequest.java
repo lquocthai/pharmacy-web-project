@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
 public class ChildCategoryUpdateRequest {
-    String id; // CỰC KỲ QUAN TRỌNG: Con nào có ID tức là sửa, con nào ID = null/rỗng tức là ADMIN THÊM MỚI
+    String id;
     String name;
     String description;
     String icon;
