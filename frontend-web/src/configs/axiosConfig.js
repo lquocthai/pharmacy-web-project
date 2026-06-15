@@ -2,8 +2,9 @@ import axios from 'axios';
 
 // KHÔNG import store hay setLogout ở đầu file để tránh Circular Dependency và lỗi đứng App
 const axiosClient = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/pharmacy',
+    baseURL: import.meta.env.VITE_API_BASE_URL,
 });
+
 
 axiosClient.interceptors.request.use((config) => {
     const accessToken = localStorage.getItem('accessToken');

@@ -252,15 +252,7 @@ const PharmacistProductPage = () => {
                             </svg>
                             Tải lại
                         </button>
-                        <button
-                            onClick={() => navigate('/admin/products/create')}
-                            className="flex items-center justify-center gap-1.5 bg-[#3C50E0] text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-opacity-90 transition-all w-full sm:w-auto"
-                        >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                            Thêm sản phẩm
-                        </button>
+
                     </div>
                 </div>
 
@@ -303,12 +295,7 @@ const PharmacistProductPage = () => {
                             ))}
                         </select>
 
-                        <button className="flex items-center gap-1.5 border border-[#E2E8F0] bg-white px-3 py-1.5 rounded-md text-xs font-medium text-[#1C2434] hover:bg-[#F8FAFC]">
-                            <svg className="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-                            </svg>
-                            Filter
-                        </button>
+
                     </div>
                 </div>
 

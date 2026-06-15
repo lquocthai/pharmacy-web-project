@@ -49,7 +49,6 @@ const SLIDES = [
     },
 ];
 
-// SỬA LỖI 1 & 2: Loại bỏ cặp ngoặc nhọn ở icon để truyền String, sửa lại ID không trùng nhau
 const CATEGORIES = [
     { id: 1, label: 'Dược sĩ tư vấn', icon: AdvidseIcon, to: '/chat' },
     { id: 2, label: 'Đơn thuốc', icon: PrescriptionIcon, to: '/prescription' },
@@ -105,13 +104,13 @@ export default function HeroBanner() {
                                     src={s.image}
                                     alt={s.headline}
                                     className="position-absolute w-100 h-100 top-0 start-0"
-                                    style={{ objectFit: 'cover', objectPosition: 'center' }}
+                                    style={{ objectFit: 'fill' }}
                                     loading={idx === 0 ? 'eager' : 'lazy'}
                                 />
 
-                                <div className="position-relative p-4 p-md-5 w-100" style={{ zIndex: 3, height: '100%' }}>
-                                    <div className="d-flex flex-column justify-content-center h-100" style={{ maxWidth: '450px' }}>
-                                        {/* <span className="badge rounded-pill px-3 py-2 mb-2 d-inline-block align-self-start" style={{ background: `${s.accentColor}18`, color: s.accentColor }}>
+                                {/* <div className="position-relative p-4 p-md-5 w-100" style={{ zIndex: 3, height: '100%' }}>
+                                    <div className="d-flex flex-column justify-content-center h-100" style={{ maxWidth: '450px' }}> */}
+                                {/* <span className="badge rounded-pill px-3 py-2 mb-2 d-inline-block align-self-start" style={{ background: `${s.accentColor}18`, color: s.accentColor }}>
                                             {s.badge}
                                         </span>
                                         <h1 className="fw-bold mb-2 text-dark fs-3 text-start" style={{ whiteSpace: 'pre-line' }}>{s.headline}</h1>
@@ -121,8 +120,8 @@ export default function HeroBanner() {
                                                 {s.cta.label}
                                             </Link>
                                         </div> */}
-                                    </div>
-                                </div>
+                                {/* </div>
+                                </div> */}
                             </div>
                         ))}
 

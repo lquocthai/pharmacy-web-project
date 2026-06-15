@@ -197,17 +197,20 @@ const CreatePrescription = ({ }) => {
                                 <Form.Control
                                     as="textarea"
                                     name="note"
-                                    placeholder="Ghi chú (không bắt buộc)"
+                                    placeholder="Ghi chú (không bắt buộc)" // Phải trùng hoặc giữ nguyên để Bootstrap kích hoạt hiệu ứng
                                     value={formData.note}
                                     onChange={handleInputChange}
-                                    style={{ height: '110px' }}
+                                    style={{ height: '110px', paddingTop: '1.625rem' }} // Thêm paddingTop để chữ không bị dính vào nhãn khi thu nhỏ
                                     className="rounded-3 border-light-subtle"
                                 />
                                 <Form.Label className="text-secondary small">
-                                    Ghi chú (không bắt buộc) <br />
-                                    <span className="text-muted opacity-75">Ví dụ: Tôi cần tư vấn thuốc về bệnh đau dạ dày</span>
+                                    Ghi chú (không bắt buộc)
                                 </Form.Label>
                             </Form.Group>
+                            {/* Đưa phần ví dụ ra ngoài label để tránh việc chữ quá dài làm lỗi giao diện floating */}
+                            <div className="text-muted opacity-75 small mt-1 x-small text-start" style={{ fontSize: '12px', paddingLeft: '4px' }}>
+                                Ví dụ: Tôi cần tư vấn thuốc về bệnh đau dạ dày
+                            </div>
                         </Card>
 
                         {/* Thanh đính kèm ảnh đơn thuốc - Click vào để chọn ảnh */}
@@ -326,7 +329,7 @@ const CreatePrescription = ({ }) => {
                                         3
                                     </span>
                                     <p className="mb-0 text-dark small" style={{ lineHeight: '1.6' }}>
-                                        Quý khách có thể tới các Nhà thuốc Long Châu gần nhất để được hỗ trợ mua hàng trực tiếp.
+                                        Quý khách có thể tới các Nhà thuốc Quốc Thái gần nhất để được hỗ trợ mua hàng trực tiếp.
                                     </p>
                                 </div>
                             </div>

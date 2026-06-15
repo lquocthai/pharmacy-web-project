@@ -300,6 +300,7 @@ const ProductFormPage = () => {
                 }
             } else {
                 const response = await productAdminService.createProduct(product);
+                console.log('sản phẩm thêm mới', product)
                 if (response.data?.code === 0) {
                     toast.success('Thêm sản phẩm thành công!');
                     navigate('/admin/products');

@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { setLogout } from '../../redux/slices/authSlice';
 import { clearCart } from '../../redux/slices/cartSlice';
 import authService from '../../services/authService';
+import UserAvatar from '../../assets/avatar-profile.svg'
 
 export default function UserDropdown() {
     const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +40,7 @@ export default function UserDropdown() {
                 {/* Avatar tròn viền nhẹ bên ảnh gốc */}
                 <div className="h-11 w-11 rounded-full p-0.5 border border-[#E2E8F0]">
                     <img
-                        src={user?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"}
+                        src={UserAvatar}
                         alt="User Avatar"
                         className="h-full w-full rounded-full object-cover"
                     />

@@ -16,17 +16,19 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+  sendgrid:
+    api-key: ${SENDGRID_API_KEY}
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: ${MAIL_USERNAME}
+#    password: ${MAIL_PASSWORD}
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
   elasticsearch:
     uris: http://localhost:9200
   data:
@@ -70,6 +72,6 @@ vnpay:
   ipn-url: http://localhost:8080/pharmacy/payments/vnpay-ipn
   api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 cloudinary:
-  cloud-name: ${CLOUD_NAME:dwteb3kyb}
-  api-key: ${API_KEY_CLOUD:647615817751268}
-  api-secret: ${API_SECRET_CLOUD:Kg991rqHI_AlBpySfMig4kEOmvE}
+  cloud-name: ${CLOUD_NAME}
+  api-key: ${API_KEY_CLOUD}
+  api-secret: ${API_SECRET_CLOUD}

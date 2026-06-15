@@ -20,7 +20,7 @@ const AuthModal = () => {
     const [loginLoading, setLoginLoading] = useState(false);
     const [registerLoading, setRegisterLoading] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
-    const [otpTimer, setOtpTimer] = useState(300);
+    const [otpTimer, setOtpTimer] = useState(60);
     const [resendTimer, setResendTimer] = useState(0);
 
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -261,6 +261,9 @@ const AuthModal = () => {
                                 <button className="btn btn-primary w-100 fw-bold" disabled={forgotLoading}>
                                     {forgotLoading ? 'ĐANG GỬI...' : 'GỬI MẬT KHẨU MỚI'}
                                 </button>
+                                <p className="text-center text-secondary mt-2 mb-0" style={{ fontSize: '12px' }}>
+                                    ⚠️ <span className="text-danger fw-semibold">Lưu ý:</span> Nếu không nhận được email, vui lòng kiểm tra kỹ trong mục <span className="fw-bold text-dark">Thư rác (Spam)</span> hoặc <span className="fw-bold text-dark">Quảng cáo</span>.
+                                </p>
                                 <p className="text-center mt-3 small">
                                     <span className="text-primary cursor-pointer" onClick={() => {
                                         setMode('LOGIN')
@@ -438,7 +441,9 @@ const AuthModal = () => {
                                         </span>
                                     )}
                                 </p>
-
+                                <p className="text-center text-secondary mt-2 mb-0" style={{ fontSize: '12px' }}>
+                                    ⚠️ <span className="text-danger fw-semibold">Lưu ý:</span> Nếu không nhận được email, vui lòng kiểm tra kỹ trong mục <span className="fw-bold text-dark">Thư rác (Spam)</span> hoặc <span className="fw-bold text-dark">Quảng cáo</span>.
+                                </p>
                                 <div className="mt-3">
                                     <span
                                         className="text-muted small cursor-pointer text-decoration-underline"

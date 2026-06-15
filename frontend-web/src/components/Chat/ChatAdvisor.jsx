@@ -18,13 +18,10 @@ import {
     sendMessage,
     isConnected,
 } from '../../services/chat/chatSocket';
-import FileUploadService from '../../admin/service/fileUploadService'
+import FileUploadService from '../../admin/service/fileUploadService';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Message Bubble
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-// Message Bubble (Hỗ trợ Click tự động Tải Xuống)
+// Message Bubble Config (Dành cho Tin nhắn Chữ và File)
 // ─────────────────────────────────────────────────────────────────────────────
 const BUBBLE = {
     USER: { wrap: 'ml-auto flex-row-reverse text-end', box: 'bg-blue-600 text-white rounded-tr-none', name: '' },
@@ -40,9 +37,9 @@ const MessageBubble = ({ msg }) => {
         ? new Date(msg.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
         : '';
 
-    // Hàm xử lý tải file an toàn, tránh bị trình duyệt chặn mở tab mới do cơ chế CORS
+    // Hàm xử lý tải file trực tiếp qua Blob tránh lỗi chặn CORS
     const handleDownload = async (e, fileUrl, fileName) => {
-        e.preventDefault(); // Chặn hành vi mở link mặc định của thẻ <a>
+        e.preventDefault();
         try {
             toast.loading('Đang chuẩn bị tải tệp xuống...', { id: 'download-toast', duration: 1500 });
 
@@ -57,18 +54,53 @@ const MessageBubble = ({ msg }) => {
             document.body.appendChild(link);
             link.click();
 
-            // Dọn dẹp bộ nhớ sau khi tải xong
             document.body.removeChild(link);
             window.URL.revokeObjectURL(blobUrl);
             toast.success('Tải về thành công!', { id: 'download-toast' });
         } catch (error) {
             console.error('Lỗi khi tải file:', error);
             toast.error('Không thể tải file trực tiếp, đang thử mở liên kết...', { id: 'download-toast' });
-            // Cứu cánh: Nếu lỗi CORS không tải ngầm được thì mở thẳng tab mới cho user lưu thủ công
             window.open(fileUrl, '_blank');
         }
     };
 
+    // ── XỬ LÝ RIÊNG CHO HÌNH ẢNH (Bỏ sạch Bong bóng, Padding, Border) ───────────
+    if (msg.messageType === 'IMAGE' && msg.fileUrl) {
+        return (
+            <div className={`flex gap-2 max-w-[85%] ${cfg.wrap}`}>
+                {!isMine && (
+                    <div className="w-7 h-7 rounded-full bg-slate-200 flex-shrink-0 flex items-center justify-center text-xs overflow-hidden mt-1">
+                        {msg.senderRole === 'BOT'
+                            ? <img src={chatAvatar} alt="bot" className="w-full h-full object-cover" />
+                            : <span className="text-[10px] font-bold text-slate-600">
+                                {msg.senderRole === 'PHARMACIST' ? 'DS' : 'AD'}
+                            </span>}
+                    </div>
+                )}
+                <div className="flex flex-col gap-0.5">
+                    {!isMine && msg.senderDisplayName && (
+                        <span className={`text-start text-[10px] font-semibold px-1 ${cfg.name}`}>
+                            {msg.senderDisplayName}
+                        </span>
+                    )}
+
+                    {/* Chỉ hiển thị duy nhất ảnh bo góc sạch sẽ */}
+                    <div className="relative group cursor-pointer overflow-hidden rounded-xl shadow-sm border border-slate-100/60">
+                        <img
+                            src={msg.fileUrl}
+                            alt={msg.fileName || 'Hình ảnh'}
+                            onClick={(e) => handleDownload(e, msg.fileUrl, msg.fileName || 'image.png')}
+                            className="w-full max-w-[220px] sm:max-w-[260px] h-auto block object-cover transition-opacity group-hover:opacity-90"
+                            title="Nhấp để tải ảnh về máy"
+                        />
+                    </div>
+                    <span className={`text-[10px] text-slate-400 px-1 ${isMine ? 'text-right' : 'text-left'}`}>{time}</span>
+                </div>
+            </div>
+        );
+    }
+
+    // ── XỬ LÝ CHO TIN NHẮN CHỮ (TEXT) VÀ FILE (Giữ nguyên bong bóng) ─────────────
     return (
         <div className={`flex gap-2 max-w-[85%] ${cfg.wrap}`}>
             {!isMine && (
@@ -87,19 +119,8 @@ const MessageBubble = ({ msg }) => {
                     </span>
                 )}
 
-                {/* Hộp thoại hiển thị nội dung tin nhắn / ảnh / file */}
                 <div className={`px-3 py-2 rounded-2xl text-[13px] leading-relaxed break-words ${cfg.box}`}>
-                    {msg.messageType === 'IMAGE' && msg.fileUrl ? (
-                        <div className="relative group cursor-pointer">
-                            <img
-                                src={msg.fileUrl}
-                                alt={msg.fileName || 'Hình ảnh'}
-                                onClick={(e) => handleDownload(e, msg.fileUrl, msg.fileName || 'vnpay-image.png')}
-                                className="max-w-full sm:max-w-[200px] rounded-lg object-cover transition-opacity group-hover:opacity-80"
-                                title="Nhấp để tải ảnh về máy"
-                            />
-                        </div>
-                    ) : msg.messageType === 'FILE' && msg.fileUrl ? (
+                    {msg.messageType === 'FILE' && msg.fileUrl ? (
                         <a
                             href={msg.fileUrl}
                             onClick={(e) => handleDownload(e, msg.fileUrl, msg.fileName || 'attachment-file')}
@@ -117,8 +138,9 @@ const MessageBubble = ({ msg }) => {
         </div>
     );
 };
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Main Component
+// Main Advisor Component
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ChatAdvisor() {
     const { isAuthenticated } = useSelector(s => s.auth);
@@ -188,7 +210,6 @@ export default function ChatAdvisor() {
         subConvRef.current = subscribeConversation(conversation.id, (msg) => {
             dispatch(appendMessage(msg));
 
-            // Nếu có tin nhắn mới mà ô chat đang ĐÓNG và không phải do chính USER gửi -> Bật chấm cam
             if (!isChatOpenRef.current && msg.senderRole !== 'USER') {
                 setHasNewMessage(true);
             }
@@ -252,7 +273,7 @@ export default function ChatAdvisor() {
         }
     }, [inputText, wsReady]);
 
-    // ── Gọi API uploadImage & gửi tin nhắn chứa link file qua WS ───────────────
+    // ── Gọi API upload & gửi qua WebSocket ──────────────────────────────────────
     const handleFileChange = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -267,26 +288,20 @@ export default function ChatAdvisor() {
 
         try {
             setUploading(true);
-
             const formData = new FormData();
             formData.append('file', file);
 
-            // Gọi chuẩn xác hàm chatService.uploadImage của bạn
             const res = await FileUploadService.uploadImage(formData);
-
-            // Check linh hoạt cấu trúc response trả về (bọc qua .result hoặc trực tiếp trong .data)
             const finalData = res.data?.result || res.data;
-            // Lấy URL trả về (thường là url, fileUrl, hoặc đường dẫn chuỗi trực tiếp)
             const fileUrl = finalData?.fileUrl || finalData?.url || finalData;
 
             if (fileUrl && typeof fileUrl === 'string') {
-                // Upload hoàn tất -> Gửi gói tin đính kèm qua WebSocket ngay lập tức
                 const ok = sendMessage({
                     conversationId: convIdRef.current || null,
                     messageType: msgType,
                     content: isImage ? 'Đã gửi một hình ảnh' : `Đã gửi tệp: ${file.name}`,
-                    fileUrl: fileUrl, // Gửi link này cho Backend nhận
-                    fileName: finalData?.fileName || file.name // Tên file hiển thị
+                    fileUrl: fileUrl,
+                    fileName: finalData?.fileName || file.name
                 });
 
                 if (ok) {
@@ -302,7 +317,7 @@ export default function ChatAdvisor() {
             toast.error('Upload file không thành công, vui lòng thử lại');
         } finally {
             setUploading(false);
-            if (fileInputRef.current) fileInputRef.current.value = ''; // Reset input file
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
@@ -340,7 +355,6 @@ export default function ChatAdvisor() {
 
     return (
         <div className="font-sans">
-            {/* Input chọn file ẩn để tùy biến giao diện nút Paperclip */}
             <input
                 type="file"
                 ref={fileInputRef}
@@ -349,7 +363,7 @@ export default function ChatAdvisor() {
                 accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             />
 
-            {/* ── CHAT WINDOW ─────────────────────────────────────────────────── */}
+            {/* ── WINDOW DISPLAY ────────────────────────────────────────────────── */}
             {isChatOpen && (
                 <div className="
                     fixed z-[9999] bg-white border border-slate-100 shadow-2xl flex flex-col overflow-hidden
@@ -384,7 +398,7 @@ export default function ChatAdvisor() {
                         </div>
                     </div>
 
-                    {/* Thanh trạng thái WebSocket hoặc Trạng thái đang upload file */}
+                    {/* Status bar */}
                     {!wsReady && isAuthenticated ? (
                         <div className="px-3 py-1 bg-amber-50 border-b border-amber-100 text-[10px] text-amber-600 flex items-center gap-1.5 flex-shrink-0">
                             <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
@@ -397,7 +411,7 @@ export default function ChatAdvisor() {
                         </div>
                     ) : null}
 
-                    {/* Messages area */}
+                    {/* Chat Area */}
                     <div className="flex-1 px-3 py-3 overflow-y-auto bg-slate-50 space-y-3">
                         {loading ? (
                             <div className="flex justify-center items-center h-full">
@@ -459,12 +473,10 @@ export default function ChatAdvisor() {
             >
                 <img src={chatIcon} alt="Tư vấn trực tuyến" className="w-16 h-16 object-contain" />
 
-                {/* Chấm cam thông báo bounce nhảy nhẹ khi có tin nhắn mới tới */}
                 {hasNewMessage && (
                     <span className="absolute top-0 right-0 w-4 h-4 bg-orange-500 rounded-full border-2 border-white animate-bounce shadow-md" />
                 )}
 
-                {/* Chấm vàng báo lỗi kết nối */}
                 {!wsReady && isAuthenticated && (
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-white animate-pulse" />
                 )}

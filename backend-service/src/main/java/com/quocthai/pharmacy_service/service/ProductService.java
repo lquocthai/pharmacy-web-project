@@ -740,7 +740,7 @@ public class ProductService {
      */
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public ProductDetailResponse updateProduct(
+    public String updateProduct(
             String id,
             UpdateProductRequest request,
             MultipartFile primaryImage,
@@ -885,55 +885,7 @@ public class ProductService {
             // Không để lỗi ES làm rollback DB transaction
             log.error("Failed to sync Elasticsearch for product id={}: {}", updated.getId(), e.getMessage());
         }
-
-        // ── 10. Build và trả về ProductDetailResponse ──
-        List<ProductImageResponse> images = productImageRepository
-                .findAllByProductId(updated.getId())
-                .stream()
-                .map(img -> ProductImageResponse.builder()
-                        .id(img.getId())
-                        .imageUrl(img.getImageUrl())
-                        .defaultImage(img.isPrimary())
-                        .build())
-                .toList();
-
-        List<ProductSpecificationResponse> specifications = productSpecificationRepository
-                .findAllByProductIdOrderByDisplayOrder(updated.getId())
-                .stream()
-                .map(spec -> ProductSpecificationResponse.builder()
-                        .specKey(spec.getSpecKey())
-                        .specValue(spec.getSpecValue())
-                        .build())
-                .toList();
-
-        List<ProductVariantResponse> variantResponses = updated.getVariants().stream()
-                .filter(ProductVariant::isActive)
-                .map(v -> ProductVariantResponse.builder()
-                        .id(v.getId())
-                        .sku(v.getSku())
-                        .variantName(v.getVariantName())
-                        .price(v.getPrice())
-                        .originalPrice(v.getOriginalPrice())
-                        .variantDefault(v.isVariantDefault())
-                        .stockQuantity(0) // admin update không cần tính kho
-                        .build())
-                .toList();
-
-        return ProductDetailResponse.builder()
-                .id(updated.getId())
-                .name(updated.getName())
-                .slug(updated.getSlug())
-                .description(updated.getDescription())
-                .isPrescription(updated.isPrescription())
-                .manufacturer(updated.getManufacturer())
-                .country(updated.getCountry())
-                .categoryId(updated.getCategory() != null ? updated.getCategory().getId() : null)
-                .categoryName(updated.getCategory() != null ? updated.getCategory().getName() : null)
-                .categorySlug(updated.getCategory() != null ? updated.getCategory().getSlug() : null)
-                .images(images)
-                .variants(variantResponses)
-                .specifications(specifications)
-                .build();
+        return "Cập nhật sản phẩm thành công";
     }
 
     // mapper qua elasticsearch

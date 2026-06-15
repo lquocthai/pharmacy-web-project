@@ -228,3 +228,96 @@ $primary-color: #0055aa;
   animation: skeleton-loading 1.5s infinite linear;
   border-radius: 4px;
 }
+
+/* ============================================================
+   RESPONSIVE ADDITIONS FOR Header.scss
+   Merge these rules into your existing Header.scss.
+   They don't replace your current styles — they only add
+   layout behaviour for the new mobile/tablet structure.
+   ============================================================ */
+
+/* --- Search bar: full width row on mobile/tablet, ---
+   --- flexible middle column on desktop (≥992px)    --- */
+.header-search-wrapper {
+  width: 100%;
+
+  @media (min-width: 992px) {
+    width: auto;
+    flex: 1 1 auto;
+  }
+}
+
+/* --- Topbar address: prevent it pushing the phone link off-screen --- */
+.topbar-address {
+  min-width: 0;
+  /* allows text-truncate to work inside a flex item */
+  max-width: 70vw;
+}
+
+@media (max-width: 575.98px) {
+  .topbar-address {
+    max-width: 55vw;
+    font-size: 11px;
+  }
+}
+
+/* --- Cart preview dropdown: never wider than the viewport --- */
+.cart-dropdown {
+  width: 380px;
+  max-width: calc(100vw - 2rem);
+}
+
+/* --- Search suggestions dropdown: shorter on small screens --- */
+.search-suggestions-dropdown {
+  max-height: 400px;
+
+  @media (max-width: 575.98px) {
+    max-height: 320px;
+  }
+}
+
+/* --- Logo: scale down on very small screens --- */
+@media (max-width: 575.98px) {
+  .header-logo .logo-retail {
+    display: none;
+  }
+
+  .header-logo .logo-name {
+    font-size: 13px !important;
+  }
+
+  .header-logo .logo-brand {
+    font-size: 17px !important;
+  }
+}
+
+/* --- Mobile / tablet dropdown menu (categories + account) --- */
+.mobile-nav-panel {
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  animation: mobileNavFadeIn 0.15s ease-out;
+}
+
+@keyframes mobileNavFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Header actions (account/cart/menu button) spacing on small screens --- */
+@media (max-width: 575.98px) {
+  .header-actions {
+    gap: 0.4rem !important;
+  }
+
+  .btn-cart span {
+    display: none;
+    /* icon-only cart button on phones */
+  }
+}

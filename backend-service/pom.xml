@@ -96,9 +96,15 @@
 			<artifactId>spring-security-crypto</artifactId>
 		</dependency>
 		<!-- email -->
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.boot</groupId>-->
+<!--			<artifactId>spring-boot-starter-mail</artifactId>-->
+<!--		</dependency>-->
+<!--		sử dụng sengrid của spring boot để không bị render chặn port stmp-->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
+			<groupId>com.sendgrid</groupId>
+			<artifactId>sendgrid-java</artifactId>
+			<version>4.10.2</version>
 		</dependency>
 		<!--redis lưu otp-->
 		<dependency>

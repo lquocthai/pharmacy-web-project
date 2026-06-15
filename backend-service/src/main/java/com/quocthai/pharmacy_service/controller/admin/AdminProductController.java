@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.AccessLevel;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/products")
 @RequiredArgsConstructor
+@Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AdminProductController {
 
@@ -62,13 +64,14 @@ public class AdminProductController {
      * @param subImages    Danh sách ảnh phụ mới cần thêm — optional
      */
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ApiResponse<ProductDetailResponse> updateProduct(
+    public ApiResponse<String> updateProduct(
             @PathVariable String id,
             @RequestPart("data") UpdateProductRequest request,
             @RequestPart(value = "primaryImage", required = false) MultipartFile primaryImage,
             @RequestPart(value = "subImages", required = false) List<MultipartFile> subImages
     ) {
-        return ApiResponse.<ProductDetailResponse>builder()
+        log.info("update",request);
+        return ApiResponse.<String>builder()
                 .result(
                         productService.updateProduct(id, request, primaryImage, subImages)
                 )

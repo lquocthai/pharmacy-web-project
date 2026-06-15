@@ -22,7 +22,7 @@ const AdminUserPage = () => {
 
     // Pagination
     const [page, setPage] = useState(0);
-    const [size] = useState(5);
+    const [size] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
 
     // Dropdown Action State
@@ -318,8 +318,7 @@ const AdminUserPage = () => {
                                                 {activeDropdown === user.id && (
                                                     <div
                                                         /* SỬA: Thay "right-1/2 translate-x-1/2" bằng "right-2" để dropdown ép sát vào lề phải ô Action, không bị thò ra ngoài màn hình */
-                                                        className={`absolute right-2 w-36 bg-white border border-[#E2E8F0] rounded shadow-xl py-1 z-[9999] text-left token-dropdown
-                                                            ${users.indexOf(user) >= users.length - 2 ? 'bottom-[100%] mb-1' : 'top-[80%]'}`}
+                                                        className={`absolute right-4 top-[80%] w-32 bg-white border border-[#E2E8F0] rounded shadow-xl py-1 z-[100] text-left token-dropdown`}
                                                     >
                                                         <button onClick={() => navigate(`/admin/users/detail/${user.id}`)} className="w-full text-start px-3 py-1.5 text-xs text-[#1C2434] hover:bg-[#F8FAFC] transition-colors">Chi tiết</button>
                                                         <button

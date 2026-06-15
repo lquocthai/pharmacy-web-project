@@ -23,7 +23,6 @@ import OrderDetail from '../pages/profile/OrderDetail';
 import AdminDashboardPage from '../admin/pages/AdminDashboardPage';
 import AdminProductPage from '../admin/pages/AdminProductPage';
 import ProductFormPage from '../admin/pages/ProductFormPage';
-import ChatBotPage from '../admin/pages/ChatBotPage';
 import AdminCategoryPage from '../admin/pages/AdminCategoryPage';
 import CreatePrescription from '../pages/profile/CreatePrescription';
 import PrescriptionDetail from '../pages/profile/PrescriptionDetail';
@@ -82,7 +81,7 @@ const ProtectedRoute = ({ children, roles = [] }) => {
     }, [isAuthenticated, dispatch]);
     // chưa login
     if (!isAuthenticated) {
-        return null;
+        return <Navigate to="/" replace />;
     }
 
     // lấy list role của user
@@ -235,10 +234,7 @@ const AdminRoutes = () => (
             path="products/detail/:slug"
             element={<AdminProductDetailPage />}
         />
-        <Route
-            path="ai-assistant"
-            element={<ChatBotPage />}
-        />
+
         <Route
             path="categories"
             element={<AdminCategoryPage />}
@@ -319,7 +315,7 @@ const PharmacistRoutes = () => (
             path="products/detail/:slug"
             element={<AdminProductDetailPage Side="PHARMACIST" />}
         />
-        <Route path="*" element={<Navigate to="/pharmacist" replace />} />
+        {/* <Route path="*" element={<Navigate to="/pharmacist" replace />} /> */}
 
     </Route>
 );

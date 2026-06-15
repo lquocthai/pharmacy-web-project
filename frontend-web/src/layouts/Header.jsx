@@ -47,7 +47,6 @@ export default function Header() {
     useEffect(() => {
         if (!searchValue.trim()) {
             setSuggestions([]);
-            console.log(suggestions)
             setShowDropdown(false);
             setIsLoading(false);
             return;
@@ -61,7 +60,6 @@ export default function Header() {
             try {
                 const response = await elasticSearchService.getSuggestions(searchValue.trim(), 3);
                 setSuggestions(response.data.result || []);
-                console.log(response.data.result)
             } catch (error) {
                 console.error('Lỗi lấy dữ liệu gợi ý:', error);
                 setSuggestions([]);
@@ -77,11 +75,7 @@ export default function Header() {
     const fetchCategories = async () => {
         try {
             const response = await categoryService.getAll();
-
-            // Axios trả về dữ liệu nằm trong trường .data
-            // Dựa vào cấu hình API của bạn: response.data.result
             setCategories(response.data?.result || []);
-            // setCategories(data.result || []);
         } catch (error) {
             console.error('Fetch categories error:', error);
         }
@@ -101,42 +95,134 @@ export default function Header() {
     };
 
     const goToDetail = (productSlug) => {
-        console.log('có gọi tới', productSlug)
         if (productSlug) {
             navigate(`/products/detail/${productSlug}`);
+            setNavOpen(false);
         }
     };
+
+    const closeMobileNav = () => setNavOpen(false);
 
     return (
         <header className="main-header">
             <div className="header-bg">
                 {/* ── Topbar ── */}
                 <div className="header-topbar py-1 text-white">
-                    <div className="container-xl d-flex align-items-center justify-content-between">
-                        <span className="d-flex align-items-center gap-2 small">
-                            <FaMapMarkerAlt />
-                            Trung tâm nhà thuốc quốc thái&nbsp;
+                    <div className="container-xl d-flex align-items-center justify-content-between gap-2">
+                        <span className="d-flex align-items-center gap-2 small topbar-address">
+                            <FaMapMarkerAlt className="flex-shrink-0" />
+                            <span className="text-truncate">Trung tâm nhà thuốc quốc thái</span>
                         </span>
-                        <span className="d-none d-md-flex align-items-center gap-4">
-                            <a href="tel:18006928" className="text-white text-decoration-none small d-flex align-items-center gap-1">
-                                <FaPhoneAlt /> Tư vấn ngay: <strong>1234 5678</strong>
-                            </a>
-                        </span>
+                        <a href="tel:18006928" className="text-white text-decoration-none small d-flex align-items-center gap-1 flex-shrink-0">
+                            <FaPhoneAlt />
+                            <span className="d-none d-md-inline">Tư vấn ngay: <strong>1234 5678</strong></span>
+                        </a>
                     </div>
                 </div>
 
                 {/* ── Main Header ── */}
-                <div className="header-main py-4">
-                    <div className="container-xl d-flex align-items-center gap-3">
+                <div className="header-main py-3 py-lg-4">
+                    <div className="container-xl d-flex align-items-center flex-wrap gap-2 gap-lg-3">
                         {/* Logo */}
-                        <Link to="/" className="header-logo text-decoration-none text-white flex-shrink-0">
+                        <Link to="/" className="header-logo text-decoration-none text-white flex-shrink-0 order-1" onClick={closeMobileNav}>
                             <div className="logo-retail" style={{ fontSize: '10px', opacity: 0.9 }}>NLU</div>
                             <div className="logo-name fw-bold" style={{ fontSize: '18px', lineHeight: 1 }}>NHÀ THUỐC</div>
                             <div className="logo-brand fw-bold " style={{ fontSize: '22px' }}>QUỐC THÁI</div>
                         </Link>
 
+                        {/* Khu vực Account & Cart & Mobile toggle */}
+                        <div className="header-actions d-flex align-items-center gap-2 ms-auto order-2 order-lg-3">
+                            {/* Account - chỉ hiện ở desktop, ở mobile/tablet chuyển vào menu */}
+                            {isAuthenticated ? (
+                                <div className="user-profile-dropdown position-relative d-none d-lg-flex">
+                                    <Link to="/profile" className="btn d-flex align-items-center gap-2 text-white border-0 bg-transparent shadow-none p-2">
+                                        <FaUserCircle size={24} />
+                                        <div className="text-start">
+                                            <div className="small fw-bold lh-1">{user?.username || 'Thành viên'}</div>
+                                        </div>
+                                    </Link>
+                                    <ul className="custom-dropdown-menu shadow border-0 mt-0">
+                                        <li>
+                                            <Link className="dropdown-item py-2 small" to="/profile">
+                                                <div className="d-flex align-items-center gap-3"><User size={18} /><span>Thông tin cá nhân</span></div>
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link className="dropdown-item py-2 small" to="/profile?tab=address">
+                                                <div className="d-flex align-items-center gap-3"><MapPin size={18} /><span>Quản lý địa chỉ</span></div>
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link className="dropdown-item py-2 small" to="/profile?tab=orders">
+                                                <div className="d-flex align-items-center gap-3"><Package size={18} /><span>Đơn hàng của tôi</span></div>
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link className="dropdown-item py-2 small" to="/profile?tab=prescriptions">
+                                                <div className="d-flex align-items-center gap-3"><Pill size={18} /><span>Đơn thuốc của tôi</span></div>
+                                            </Link>
+                                        </li>
+                                        <li><hr className="dropdown-divider" /></li>
+                                        <li>
+                                            <button className="dropdown-item py-2 small" onClick={() => setShowLogout(true)}>
+                                                <div className="d-flex align-items-center gap-3"><LogOut size={18} /><span>Đăng xuất</span></div>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            ) : (
+                                <button onClick={() => dispatch(openLoginModal())} className="btn d-none d-lg-flex align-items-center gap-2 text-white border-0 bg-transparent shadow-none p-2">
+                                    <FaUserCircle size={24} />
+                                    <span className="small fw-bold">Đăng nhập</span>
+                                </button>
+                            )}
+
+                            {/* Cart - luôn hiển thị trên mọi kích thước màn hình */}
+                            <div className="cart-container position-relative">
+                                <Link to="/cart" className="btn btn-cart text-white d-flex align-items-center gap-2 px-3 rounded-pill bg-blue-5" onClick={closeMobileNav}>
+                                    <div className="position-relative">
+                                        <FaShoppingCart size={18} />
+                                        {totalItems > 0 && (
+                                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-circle" style={{ backgroundColor: '#fa8c16', fontSize: '10px', padding: '2px 5px', marginTop: '-2px' }}>
+                                                {totalItems}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="small fw-bold d-none d-lg-inline">Giỏ hàng</span>
+                                </Link>
+
+                                {/* Cart preview dropdown - chỉ hiện ở desktop */}
+                                {totalItems > 0 && (
+                                    <div className="cart-dropdown shadow-sm border rounded p-3 bg-white position-absolute d-none d-lg-block" style={{ right: 0 }}>
+                                        <h6 className="text-start mb-3 text-secondary">Giỏ hàng</h6>
+                                        {cart.items.slice(0, 4).map(item => (
+                                            <div key={item.id} className="d-flex align-items-center gap-2 mb-3" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
+                                                <img className='border rounded' src={item.imageUrl} alt={item.productName} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
+                                                <div className="flex-grow-1" style={{ fontSize: '12px' }}>
+                                                    <div className="text-truncate" style={{ maxWidth: '250px' }}>{item.productName}</div>
+                                                    <div className="d-flex text-secondary" style={{ fontSize: '10px' }}>
+                                                        <div className="text-primary fw-bold">{item.price.toLocaleString()}đ</div>
+                                                        <div className="text-primary fw-bold ms-2">x{item.quantity} {item.variantName}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div className="d-flex align-items-center justify-content-between pt-2">
+                                            <span className="text-start text-secondary small fw-bold">{totalItems} sản phẩm</span>
+                                            <Link to="/cart" style={{ backgroundColor: 'rgb(18 80 220)' }} className="btn btn-primary btn-sm rounded-pill">Xem giỏ hàng</Link>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Mobile/Tablet menu toggle */}
+                            <button className="btn text-white d-lg-none p-1 shadow-none border-0" onClick={() => setNavOpen(!navOpen)}>
+                                {navOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
+                            </button>
+                        </div>
+
                         {/* Khung Tìm kiếm + Dropdown Suggestions */}
-                        <div className="position-relative flex-grow-1 round-full px-4" ref={dropdownRef}>
+                        <div className="header-search-wrapper position-relative round-full px-lg-4 order-3 order-lg-2" ref={dropdownRef}>
                             <form className="input-group header-search rounded-full" onSubmit={handleSearchSubmit}>
                                 <input
                                     type="text"
@@ -160,7 +246,6 @@ export default function Header() {
                                     className="search-suggestions-dropdown position-absolute w-100 bg-white shadow rounded mt-1 border"
                                     style={{
                                         zIndex: 9999,
-                                        maxHeight: '400px',
                                         overflowY: 'auto',
                                         top: '100%',
                                         left: 0
@@ -193,16 +278,13 @@ export default function Header() {
                                     ) : suggestions.length > 0 ? (
                                         /* ── TRƯỜNG HỢP 1: CÓ SẢN PHẨM GỢI Ý ── */
                                         <>
-
                                             {suggestions.map((item) => (
                                                 <div
                                                     key={item.id || item._id}
                                                     className="suggestion-item d-flex align-items-center gap-3 px-3 py-2 border-bottom style-row-search"
                                                     style={{ cursor: 'pointer' }}
                                                     onClick={() => {
-
                                                         goToDetail(item.slug);
-
                                                         setShowDropdown(false);
                                                     }}
                                                 >
@@ -248,99 +330,11 @@ export default function Header() {
                                 </div>
                             )}
                         </div>
-
-                        {/* Khu vực Account & Cart */}
-                        <div className="d-none d-lg-flex align-items-center gap-2 flex-shrink-0">
-                            {isAuthenticated ? (
-                                <div className="user-profile-dropdown position-relative">
-                                    <Link to="/profile" className="btn d-flex align-items-center gap-2 text-white border-0 bg-transparent shadow-none p-2">
-                                        <FaUserCircle size={24} />
-                                        <div className="text-start">
-                                            <div className="small fw-bold lh-1">{user?.username || 'Thành viên'}</div>
-                                        </div>
-                                    </Link>
-                                    <ul className="custom-dropdown-menu shadow border-0 mt-0">
-                                        <li>
-                                            <Link className="dropdown-item py-2 small" to="/profile">
-                                                <div className="d-flex align-items-center gap-3"><User size={18} /><span>Thông tin cá nhân</span></div>
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link className="dropdown-item py-2 small" to="/profile?tab=address">
-                                                <div className="d-flex align-items-center gap-3"><MapPin size={18} /><span>Quản lý địa chỉ</span></div>
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link className="dropdown-item py-2 small" to="/profile?tab=orders">
-                                                <div className="d-flex align-items-center gap-3"><Package size={18} /><span>Đơn hàng của tôi</span></div>
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link className="dropdown-item py-2 small" to="/profile?tab=prescriptions">
-                                                <div className="d-flex align-items-center gap-3"><Pill size={18} /><span>Đơn thuốc của tôi</span></div>
-                                            </Link>
-                                        </li>
-                                        <li><hr className="dropdown-divider" /></li>
-                                        <li>
-                                            <button className="dropdown-item py-2 small" onClick={() => setShowLogout(true)}>
-                                                <div className="d-flex align-items-center gap-3"><LogOut size={18} /><span>Đăng xuất</span></div>
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
-                            ) : (
-                                <button onClick={() => dispatch(openLoginModal())} className="btn d-flex align-items-center gap-2 text-white border-0 bg-transparent shadow-none p-2">
-                                    <FaUserCircle size={24} />
-                                    <span className="small fw-bold">Đăng nhập</span>
-                                </button>
-                            )}
-
-                            <div className="cart-container position-relative ms-2">
-                                <Link to="/cart" className="btn btn-cart text-white d-flex align-items-center gap-2 px-3 rounded-pill bg-blue-5">
-                                    <div className="position-relative">
-                                        <FaShoppingCart size={18} />
-                                        {totalItems > 0 && (
-                                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-circle" style={{ backgroundColor: '#fa8c16', fontSize: '10px', padding: '2px 5px', marginTop: '-2px' }}>
-                                                {totalItems}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <span className="small fw-bold">Giỏ hàng</span>
-                                </Link>
-
-                                {totalItems > 0 && (
-                                    <div style={{ width: '380px', right: 0 }} className="cart-dropdown shadow-sm border rounded p-3 bg-white position-absolute">
-                                        <h6 className="text-start mb-3 text-secondary">Giỏ hàng</h6>
-                                        {cart.items.slice(0, 4).map(item => (
-                                            <div key={item.id} className="d-flex align-items-center gap-2 mb-3" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
-                                                <img className='border rounded' src={item.imageUrl} alt={item.productName} style={{ width: '40px', height: '40px', objectFit: 'cover' }} />
-                                                <div className="flex-grow-1" style={{ fontSize: '12px' }}>
-                                                    <div className="text-truncate" style={{ maxWidth: '250px' }}>{item.productName}</div>
-                                                    <div className="d-flex text-secondary" style={{ fontSize: '10px' }}>
-                                                        <div className="text-primary fw-bold">{item.price.toLocaleString()}đ</div>
-                                                        <div className="text-primary fw-bold ms-2">x{item.quantity} {item.variantName}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        <div className="d-flex align-items-center justify-content-between pt-2">
-                                            <span className="text-start text-secondary small fw-bold">{totalItems} sản phẩm</span>
-                                            <Link to="/cart" style={{ backgroundColor: 'rgb(18 80 220)' }} className="btn btn-primary btn-sm rounded-pill">Xem giỏ hàng</Link>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Mobile Toggle */}
-                        <button className="btn text-white d-lg-none ms-auto p-1 shadow-none border-0" onClick={() => setNavOpen(!navOpen)}>
-                            {navOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* ── Category Navigation ── */}
+            {/* ── Category Navigation (Desktop) ── */}
             <nav className="header-nav bg-white border-bottom d-none d-lg-block">
                 <div className="container-xl">
                     <ul className="nav-list d-flex align-items-center justify-content-center m-0 p-0 list-unstyled">
@@ -349,10 +343,91 @@ export default function Header() {
                                 <Link to={`/products/${category.slug}`} className="nav-link">{category.name}</Link>
                             </li>
                         ))}
-
                     </ul>
                 </div>
             </nav>
+
+            {/* ── Mobile / Tablet menu panel ── */}
+            {navOpen && (
+                <div className="mobile-nav-panel d-lg-none bg-white border-top">
+                    <div className="container-xl py-3">
+                        {/* Tài khoản */}
+                        <div className="pb-3 mb-3 border-bottom">
+                            {isAuthenticated ? (
+                                <>
+                                    <div className="d-flex align-items-center gap-2 mb-2 text-dark fw-bold">
+                                        <FaUserCircle size={22} />
+                                        <span>{user?.username || 'Thành viên'}</span>
+                                    </div>
+                                    <ul className="list-unstyled mb-0 d-flex flex-column gap-2">
+                                        <li>
+                                            <Link to="/profile" className="d-flex align-items-center gap-2 text-dark text-decoration-none" onClick={closeMobileNav}>
+                                                <User size={18} /><span>Thông tin cá nhân</span>
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/profile?tab=address" className="d-flex align-items-center gap-2 text-dark text-decoration-none" onClick={closeMobileNav}>
+                                                <MapPin size={18} /><span>Quản lý địa chỉ</span>
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/profile?tab=orders" className="d-flex align-items-center gap-2 text-dark text-decoration-none" onClick={closeMobileNav}>
+                                                <Package size={18} /><span>Đơn hàng của tôi</span>
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/profile?tab=prescriptions" className="d-flex align-items-center gap-2 text-dark text-decoration-none" onClick={closeMobileNav}>
+                                                <Pill size={18} /><span>Đơn thuốc của tôi</span>
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <button
+                                                className="btn btn-link p-0 d-flex align-items-center gap-2 text-danger text-decoration-none"
+                                                onClick={() => { setShowLogout(true); closeMobileNav(); }}
+                                            >
+                                                <LogOut size={18} /><span>Đăng xuất</span>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </>
+                            ) : (
+                                <button
+                                    className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2"
+                                    onClick={() => { dispatch(openLoginModal()); closeMobileNav(); }}
+                                >
+                                    <FaUserCircle size={20} /> Đăng nhập / Đăng ký
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Danh mục */}
+                        <div>
+                            <h6 className="text-uppercase text-secondary small fw-bold mb-2">Danh mục sản phẩm</h6>
+                            <ul className="list-unstyled mb-0">
+                                {categories.map((category) => (
+                                    <li key={category.id}>
+                                        <Link
+                                            to={`/products/${category.slug}`}
+                                            className="d-block py-2 text-dark text-decoration-none border-bottom"
+                                            onClick={closeMobileNav}
+                                        >
+                                            {category.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Liên hệ */}
+                        <div className="mt-3 pt-3 border-top">
+                            <a href="tel:18006928" className="d-flex align-items-center gap-2 text-decoration-none text-primary fw-bold">
+                                <FaPhoneAlt /> Tư vấn ngay: 1234 5678
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <LogoutModal show={showLogout} handleClose={() => setShowLogout(false)} />
         </header>
     );

@@ -35,7 +35,7 @@ const OutOfStockPage = () => {
             <div className=" flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
                     <h2 className="text-start text-xl font-bold text-[#1C2434]">Sản phẩm hết hàng</h2>
-                    <p className="text-xs text-[#64748B] mt-0.5">Variant không còn tồn kho khả dụng nào</p>
+                    <p className="text-xs text-[#64748B] mt-0.5">Biến thể sản phẩm không còn tồn kho khả dụng nào</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <p className="text-xs text-[#64748B]">Home &gt; Quản lý kho &gt; Hết hàng</p>
@@ -51,7 +51,7 @@ const OutOfStockPage = () => {
             <div style={{ borderRadius: '1rem' }} className="bg-white border border-[#E2E8F0]">
                 <div className="p-3 border-b border-[#E2E8F0] flex items-center gap-2">
                     <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-100">
-                        {variants.length} variant hết hàng
+                        {variants.length} biến thể sản phẩm hết hàng
                     </span>
                 </div>
 
