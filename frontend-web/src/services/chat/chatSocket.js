@@ -1,26 +1,29 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CẤU HÌNH URL WEBSOCKET CHUẨN PRODUCTION
-// ─────────────────────────────────────────────────────────────────────────────
+
 const BASE_WS_URL = (() => {
+    // lấy từ biến môi trường Vercel
     const rawUrl = import.meta.env.VITE_API_BASE_URL;
 
+    // Nếu chạy dưới local không có biến này, tự động ăn vào localhost
     if (!rawUrl) {
         return 'http://localhost:8080/pharmacy/ws';
     }
 
-    // 1. Loại bỏ dấu gạch chéo ở cuối (nếu có) và cắt bỏ đoạn '/pharmacy' bị lặp
-    let cleanedUrl = rawUrl.replace(/\/$/, '').replace('/pharmacy', '');
+    try {
+        // Tự động bóc tách lấy domain chính sạch sẽ
+        const urlObj = new URL(rawUrl);
 
-    // 2. Ép buộc chuyển đổi từ http:// thành https:// để chạy mượt mà trên Vercel/Render
-    if (cleanedUrl.startsWith('http://')) {
-        cleanedUrl = cleanedUrl.replace('http://', 'https://');
+        // Tự động chuyển http thành https nếu chạy trên Vercel (Production)
+        const protocol = urlObj.protocol === 'http:' && import.meta.env.PROD ? 'https:' : urlObj.protocol;
+
+        // Trả về link WebSocket chuẩn không bao giờ bị lặp 2 lần chữ pharmacy
+        return `${protocol}//${urlObj.host}/pharmacy/ws`;
+    } catch (e) {
+        console.error('[WS] Lỗi định dạng link API:', e);
+        return 'http://localhost:8080/pharmacy/ws';
     }
-
-    // 3. Nối đuôi endpoint WebSocket chuẩn của Backend vào
-    return `${cleanedUrl}/pharmacy/ws`;
 })();
 
 let stompClient = null;

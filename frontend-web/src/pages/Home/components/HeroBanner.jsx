@@ -78,13 +78,82 @@ export default function HeroBanner() {
 
     return (
         <div className="container-xl py-3">
+            <style>
+                {`
+                    .home-hero-banner-row {
+                        align-items: stretch;
+                    }
+
+                    .home-hero-main,
+                    .home-hero-side-card {
+                        background: #eff4ff;
+                        height: clamp(280px, 30vw, 400px);
+                    }
+
+                    .home-hero-side-stack {
+                        height: clamp(280px, 30vw, 400px);
+                    }
+
+                    .home-hero-side-card {
+                        min-height: 0;
+                    }
+
+                    .home-hero-img {
+                        object-fit: cover;
+                        object-position: center;
+                        display: block;
+                    }
+
+                    .home-hero-nav {
+                        width: 36px;
+                        height: 36px;
+                        z-index: 10;
+                        border: none;
+                    }
+
+                    @media (max-width: 991.98px) {
+                        .home-hero-main {
+                            height: auto;
+                            aspect-ratio: 3.2 / 1;
+                            min-height: 180px;
+                            max-height: 320px;
+                        }
+
+                        .home-hero-side-stack {
+                            height: auto;
+                            display: grid !important;
+                            grid-template-columns: repeat(2, minmax(0, 1fr));
+                        }
+
+                        .home-hero-side-card {
+                            height: auto;
+                            aspect-ratio: 2 / 1;
+                        }
+                    }
+
+                    @media (max-width: 575.98px) {
+                        .home-hero-main {
+                            aspect-ratio: 2.35 / 1;
+                            min-height: 156px;
+                        }
+
+                        .home-hero-side-stack {
+                            grid-template-columns: 1fr;
+                        }
+
+                        .home-hero-nav {
+                            width: 32px;
+                            height: 32px;
+                        }
+                    }
+                `}
+            </style>
             {/* PHẦN 1: BANNER GRID (Slider trái + 2 Banner phải) */}
-            <div className="row g-3">
+            <div className="row g-3 home-hero-banner-row">
                 {/* Khối Slider bên trái */}
                 <div className="col-12 col-lg-8">
                     <section
-                        className="position-relative overflow-hidden rounded-4 w-100 h-100"
-                        style={{ minHeight: 320, height: '400px', background: '#EFF4FF' }}
+                        className="home-hero-main position-relative overflow-hidden rounded-4 w-100"
                         onMouseEnter={() => setIsPaused(true)}
                         onMouseLeave={() => setIsPaused(false)}
                     >
@@ -103,33 +172,18 @@ export default function HeroBanner() {
                                 <img
                                     src={s.image}
                                     alt={s.headline}
-                                    className="position-absolute w-100 h-100 top-0 start-0"
-                                    style={{ objectFit: 'fill' }}
+                                    className="home-hero-img position-absolute w-100 h-100 top-0 start-0"
                                     loading={idx === 0 ? 'eager' : 'lazy'}
                                 />
 
-                                {/* <div className="position-relative p-4 p-md-5 w-100" style={{ zIndex: 3, height: '100%' }}>
-                                    <div className="d-flex flex-column justify-content-center h-100" style={{ maxWidth: '450px' }}> */}
-                                {/* <span className="badge rounded-pill px-3 py-2 mb-2 d-inline-block align-self-start" style={{ background: `${s.accentColor}18`, color: s.accentColor }}>
-                                            {s.badge}
-                                        </span>
-                                        <h1 className="fw-bold mb-2 text-dark fs-3 text-start" style={{ whiteSpace: 'pre-line' }}>{s.headline}</h1>
-                                        <p className="text-muted small mb-3 text-start d-none d-sm-block" style={{ whiteSpace: 'pre-line' }}>{s.sub}</p>
-                                        <div className="d-flex gap-2">
-                                            <Link to={s.cta.to} className="btn btn-sm rounded-pill text-white px-3" style={{ background: s.accentColor }}>
-                                                {s.cta.label}
-                                            </Link>
-                                        </div> */}
-                                {/* </div>
-                                </div> */}
                             </div>
                         ))}
 
                         {/* Nút điều hướng mũi tên */}
-                        <button onClick={goPrev} className="position-absolute top-50 translate-middle-y btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 ms-3" style={{ left: 0, width: 36, height: 36, zIndex: 10, border: 'none' }}>
+                        <button onClick={goPrev} className="home-hero-nav position-absolute top-50 translate-middle-y btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 ms-3" style={{ left: 0 }}>
                             <FaChevronLeft size={12} color="#434655" />
                         </button>
-                        <button onClick={goNext} className="position-absolute top-50 translate-middle-y btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 me-3" style={{ right: 0, width: 36, height: 36, zIndex: 10, border: 'none' }}>
+                        <button onClick={goNext} className="home-hero-nav position-absolute top-50 translate-middle-y btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 me-3" style={{ right: 0 }}>
                             <FaChevronRight size={12} color="#434655" />
                         </button>
 
@@ -153,21 +207,21 @@ export default function HeroBanner() {
                 </div>
 
                 {/* Khối 2 ảnh nhỏ bên phải */}
-                <div className="col-12 col-lg-4 d-flex flex-column gap-3">
-                    <div className="flex-fill position-relative overflow-hidden rounded-4" style={{ height: '192px' }}>
+                <div className="home-hero-side-stack col-12 col-lg-4 d-flex flex-column gap-3">
+                    <div className="home-hero-side-card flex-fill position-relative overflow-hidden rounded-4">
                         <img
                             src={Banner4}
                             alt="Banner Phụ Trên"
-                            className="w-100 h-100"
-                            style={{ objectFit: 'cover', cursor: 'pointer' }}
+                            className="home-hero-img w-100 h-100"
+                            style={{ cursor: 'pointer' }}
                         />
                     </div>
-                    <div className="flex-fill position-relative overflow-hidden rounded-4" style={{ height: '192px' }}>
+                    <div className="home-hero-side-card flex-fill position-relative overflow-hidden rounded-4">
                         <img
                             src={Banner5}
                             alt="Banner Phụ Dưới"
-                            className="w-100 h-100"
-                            style={{ objectFit: 'cover', cursor: 'pointer' }}
+                            className="home-hero-img w-100 h-100"
+                            style={{ cursor: 'pointer' }}
                         />
                     </div>
                 </div>

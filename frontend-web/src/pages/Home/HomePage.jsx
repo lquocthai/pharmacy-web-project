@@ -127,19 +127,31 @@ export function HomePage() {
             {showScrollButton && (
                 <button
                     onClick={scrollToTop}
-                    className="btn btn-primary rounded-circle position-fixed d-flex align-items-center justify-content-center shadow-lg border-0"
+                    // 🌟 SỬA CLASS: Thêm d-none (ẩn trên mobile) và d-md-flex (hiện trên PC)
+                    className="btn btn-primary rounded-circle position-fixed d-none d-md-flex align-items-center justify-content-center shadow-lg border-0"
                     style={{
+                        // 🛠️ GIỮ NGUYÊN 100% CSS THỦ CÔNG CỦA BẠN
                         position: 'fixed',
                         bottom: '140px',
-                        right: '45px',
+                        right: '44px',
                         width: '50px',
                         height: '50px',
                         zIndex: 1050,
-                        transition: 'all 0.3s ease',
                         backgroundColor: '#2563EB',
+
+                        // 🚀 THÊM HIỆU ỨNG TRỒI LÊN / THU NHỎ KHI XUẤT HIỆN & BIẾN MẤT
+                        transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        animation: showScrollButton ? 'scrollToTopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards' : 'none',
                     }}
                     title="Lên đầu trang"
                 >
+                    {/* Nhúng đoạn style tạo hiệu ứng trồi lên/thu nhỏ trực tiếp vào đây để không cần sửa file CSS ngoài */}
+                    <style>{`
+            @keyframes scrollToTopIn {
+                0% { opacity: 0; transform: scale(0.3) translateY(40px); }
+                100% { opacity: 1; transform: scale(1) translateY(0); }
+            }
+        `}</style>
                     <FaArrowUp size={20} color="#fff" />
                 </button>
             )}
