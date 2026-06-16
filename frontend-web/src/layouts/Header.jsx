@@ -182,26 +182,8 @@ export default function Header() {
                                 <Link to="/cart" className="btn btn-cart text-white d-flex align-items-center gap-2 px-3 rounded-pill bg-blue-5" onClick={closeMobileNav}>
                                     <div className="position-relative">
                                         <FaShoppingCart size={18} />
-                                        {/* {totalItems > 0 && (
-                                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-circle" style={{ backgroundColor: '#fa8c16', fontSize: '10px', padding: '2px 5px', marginTop: '-2px' }}>
-                                                {totalItems}
-                                            </span>
-                                        )} */}
-                                        {/* Thay thế đoạn hiển thị Badge số lượng cũ bằng đoạn này */}
                                         {totalItems > 0 && (
-                                            <span
-                                                //  SỬA: Thay 'start-100 translate-middle' thành 'top-0 end-0' để ôm sát vào trong nút, không bị đẩy tràn màn hình mobile
-                                                className="position-absolute top-0 end-0 badge rounded-circle"
-                                                style={{
-                                                    backgroundColor: '#fa8c16',
-                                                    fontSize: '10px',
-                                                    padding: '2px 5px',
-                                                    // 🛠️ Tinh chỉnh vị trí thủ công dịch lên góc một chút cho đẹp mắt trên mobile
-                                                    marginTop: '-4px',
-                                                    marginRight: '-4px',
-                                                    zIndex: 2
-                                                }}
-                                            >
+                                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-circle" style={{ backgroundColor: '#fa8c16', fontSize: '10px', padding: '2px 5px', marginTop: '-2px' }}>
                                                 {totalItems}
                                             </span>
                                         )}

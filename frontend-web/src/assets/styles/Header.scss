@@ -316,8 +316,7 @@ $primary-color: #0055aa;
     gap: 0.4rem !important;
   }
 
-  .btn-cart span {
+  .btn-cart span:not(.badge) {
     display: none;
-    /* icon-only cart button on phones */
   }
 }
