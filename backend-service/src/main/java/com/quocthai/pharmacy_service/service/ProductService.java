@@ -247,7 +247,7 @@ public class ProductService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // 2. Query lấy toàn bộ sản phẩm (Sử dụng findAll mặc định của JPA)
-        Page<Product> productPage = productRepository.findAll(pageable);
+        Page<Product> productPage = productRepository.findAllActiveProducts(pageable);
 
         List<Product> products = productPage.getContent();
 
