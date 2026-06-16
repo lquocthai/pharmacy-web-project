@@ -74,10 +74,12 @@ outbound:
 vnpay:
   tmn-code: ${VNPAY_TMN_CODE}
   hash-secret: ${VNPAY_HASH_SECRET}
-  pay-url: ${PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
-  return-url: ${RETURN_URL:http://localhost:8080/pharmacy/payments/vnpay-return}
-  ipn-url: ${IPN_URL:http://localhost:8080/pharmacy/payments/vnpay-ipn}
-  api-url: ${API_URL:https://sandbox.vnpayment.vn/merchant_webapi/api/transaction}
+  pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: ${RETURN_URL}
+#  :http://localhost:8080/pharmacy/payments/vnpay-return
+  ipn-url: ${IPN_URL}
+#  :http://localhost:8080/pharmacy/payments/vnpay-ipn
+  api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 cloudinary:
   cloud-name: ${CLOUD_NAME}
   api-key: ${API_KEY_CLOUD}
