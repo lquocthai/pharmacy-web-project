@@ -35,7 +35,11 @@ axiosClient.interceptors.response.use(
                 if (!refreshToken) throw new Error("No refresh token");
 
                 // Gọi API refresh token
-                const res = await axiosClient.post('http://localhost:8080/pharmacy/auth/refresh', {
+                // Trước khi sửa:
+                // const res = await axiosClient.post('http://localhost:8080/pharmacy/auth/refresh', { ... })
+
+                // Sau khi sửa (Dùng đường dẫn tương đối, Axios sẽ tự khớp với biến VITE_API_BASE_URL):
+                const res = await axiosClient.post('/auth/refresh', {
                     refreshToken
                 });
                 const newAccessToken = res.data.result.accessToken;

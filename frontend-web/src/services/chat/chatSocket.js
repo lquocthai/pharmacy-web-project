@@ -1,9 +1,27 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
-const BASE_WS_URL = import.meta.env.VITE_API_BASE_URL
-    ? import.meta.env.VITE_API_BASE_URL.replace('/pharmacy', '') + '/pharmacy/ws'
-    : 'http://localhost:8080/pharmacy/ws';
+// ─────────────────────────────────────────────────────────────────────────────
+// CẤU HÌNH URL WEBSOCKET CHUẨN PRODUCTION
+// ─────────────────────────────────────────────────────────────────────────────
+const BASE_WS_URL = (() => {
+    const rawUrl = import.meta.env.VITE_API_BASE_URL;
+
+    if (!rawUrl) {
+        return 'http://localhost:8080/pharmacy/ws';
+    }
+
+    // 1. Loại bỏ dấu gạch chéo ở cuối (nếu có) và cắt bỏ đoạn '/pharmacy' bị lặp
+    let cleanedUrl = rawUrl.replace(/\/$/, '').replace('/pharmacy', '');
+
+    // 2. Ép buộc chuyển đổi từ http:// thành https:// để chạy mượt mà trên Vercel/Render
+    if (cleanedUrl.startsWith('http://')) {
+        cleanedUrl = cleanedUrl.replace('http://', 'https://');
+    }
+
+    // 3. Nối đuôi endpoint WebSocket chuẩn của Backend vào
+    return `${cleanedUrl}/pharmacy/ws`;
+})();
 
 let stompClient = null;
 

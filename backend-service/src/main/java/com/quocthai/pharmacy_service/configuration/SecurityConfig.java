@@ -84,8 +84,11 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.addAllowedOrigin("http://localhost:5173"); // FE React
+        config.addAllowedOrigin("https://quocthaipharmacy.vercel.app");
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
+        config.addAllowedOriginPattern("https://*-vercel.app");
+        config.addAllowedOriginPattern("https://*.vercel.app");
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
