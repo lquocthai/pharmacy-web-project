@@ -23,12 +23,6 @@ const authService = {
     resendOtp: (data) => axiosClient.post('/users/resend-otp', data),
 
     /**
-     * 4. Cập nhật thông tin người dùng
-     * URL: PUT http://localhost:8080/pharmacy/users/{userId}
-     */
-    updateUser: (userId, data) => axiosClient.put(`/users/${userId}`, data),
-
-    /**
      * 5. Đăng nhập hệ thống (Thường nằm ở AuthenticationController)
      * URL: POST http://localhost:8080/pharmacy/auth/token
      */

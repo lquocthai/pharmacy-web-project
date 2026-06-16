@@ -3,6 +3,9 @@ package com.quocthai.pharmacy_service.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,9 +15,20 @@ public class ProductSummaryResponse {
     String id;
     String name;
     String slug;
-    double price;
-    double oldPrice;
-    String unit;
+    boolean isPrescription;
+    boolean active;
     String manufacturer;
-    String primaryImageUrl; // Chỉ lấy 1 ảnh đại diện
+    String country;
+    BigDecimal priceDefault;
+
+    // Ảnh primary để hiển thị ngoài danh sách
+    String primaryImageUrl;
+
+    // Category
+    String categoryId;
+    String categoryName;
+    String categorySlug;
+
+    // Tất cả variants — FE dùng để hiển thị chọn quy cách và giá
+    List<ProductVariantResponse> variants;
 }

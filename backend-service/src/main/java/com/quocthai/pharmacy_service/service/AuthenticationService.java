@@ -22,6 +22,7 @@ import com.quocthai.pharmacy_service.entity.Role;
 import com.quocthai.pharmacy_service.entity.User;
 import com.quocthai.pharmacy_service.exeption.AppException;
 import com.quocthai.pharmacy_service.exeption.ErrorCode;
+import com.quocthai.pharmacy_service.mapper.UserMapper;
 import com.quocthai.pharmacy_service.repository.InvalidateTokenRepository;
 import com.quocthai.pharmacy_service.repository.RoleRepository;
 import com.quocthai.pharmacy_service.repository.UserRepository;
@@ -49,6 +50,7 @@ public class AuthenticationService {
     UserRepository userRepository;
     InvalidateTokenRepository invalidateTokenRepository;
     RoleRepository roleRepository;
+    UserMapper userMapper;
 
     @NonFinal
     @Value("${jwt.signerKey}")
@@ -72,7 +74,9 @@ public class AuthenticationService {
         log.info("pass: {}", request.getPassword());
         var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
+        if(!user.isActive()){
+            throw new AppException(ErrorCode.USER_LOCKED);
+        }
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
@@ -85,42 +89,11 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .user(userMapper.toUserResponse(user))
                 .authenticated(true)
                 .build();
     }
-    // refresh token
-//    public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException {
-//        try {
-//            invalidateToken(request.getAccessToken());
-//        } catch (Exception e) {
-//            log.info("Lỗi khi vô hiệu hóa Access Token cũ: {}", e.getMessage());
-//        }
-//        // 2. Kiểm tra Refresh Token (BẮT BUỘC phải dùng verifyToken vì đây là "chìa khóa" để đổi thẻ mới)
-//        // isRefresh = true để hàm verify biết đây là kiểm tra Refresh Token
-//        var signedRefreshToken = verifyToken(request.getRefreshToken(), true);
-//
-//        // 3. Vô hiệu hóa chính cái Refresh Token vừa dùng xong (Rotation)
-//        String jit = signedRefreshToken.getJWTClaimsSet().getJWTID();
-//        Date expiryTime = signedRefreshToken.getJWTClaimsSet().getExpirationTime();
-//        invalidateTokenRepository.save(
-//                InvalidateToken.builder().id(jit).expiryTime(expiryTime).build()
-//        );
-//
-//        // 4. Lấy thông tin User từ Refresh Token để cấp mới
-//        var username = signedRefreshToken.getJWTClaimsSet().getSubject();
-//        var user = userRepository.findByUsername(username)
-//                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
-//
-//        // 5. Tạo cặp Token mới tinh (Access Token và Refresh Token mới)
-//        var accessToken = generateToken(user, false);
-//        var refreshToken = generateToken(user, true);
-//
-//        return AuthenticationResponse.builder()
-//                .accessToken(accessToken)
-//                .refreshToken(refreshToken)
-//                .authenticated(true)
-//                .build();
-//    }
+
     public AuthenticationResponse refreshToken(RefreshRequest request)
             throws ParseException, JOSEException {
 
@@ -318,6 +291,7 @@ public class AuthenticationService {
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .authenticated(true)
+                    .user(userMapper.toUserResponse(user))
                     .build();
 
         } catch (Exception e) {

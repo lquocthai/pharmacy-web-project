@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -13,14 +14,14 @@ import java.util.Set;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserResponse {
-    String id;        // Nên là UUID String
+    String id;
     String username;
-    String email;     // Bổ sung thêm
+    String email;
     LocalDate dob;
-    String phone;     // Cần cho giao hàng thuốc
-    String address;
+    String phone;
     String sex;
     AuthProvider authProvider;
     String provider;
+    boolean active;
     Set<RoleResponse> roles;
 }

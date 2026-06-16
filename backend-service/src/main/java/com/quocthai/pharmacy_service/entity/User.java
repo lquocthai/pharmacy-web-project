@@ -1,6 +1,8 @@
 package com.quocthai.pharmacy_service.entity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.quocthai.pharmacy_service.constants.AuthProvider;
@@ -19,27 +21,29 @@ import lombok.experimental.FieldDefaults;
 @Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID) // random id
+    @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
-    // xu li dc concurrent khong phan biet chu hoa chu thuong
-//    @Column(
-//            name = "username",
-//            unique = true,
-//            columnDefinition = "VARCHAR(255) COLLATE utf8mb4_unicode_ci")
     String username;
     String email;
     String password;
     String phone;
-    String address;
     String sex;
     LocalDate dob;
+
     @Enumerated(EnumType.STRING)
     AuthProvider provider;
+
     @Column(name = "provider_id")
     String providerId;
-    // dùng set để giá trị nó là duy nhất k bị trùng như list
-    // tao bang user_roles co khoa chinh la user_id va roles_name
-    @ManyToMany Set<Role> roles;
+
+    @ManyToMany
+    Set<Role> roles;
+
+    // Địa chỉ tách ra bảng riêng
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    List<UserAddress> addresses = new ArrayList<>();
+
     boolean active = false;
 }

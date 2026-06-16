@@ -7,31 +7,105 @@ import org.springframework.http.HttpStatusCode;
 @Getter
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
-    // lỗi sai key trong enum
     INVALID_KEY(1001, "invalid key", HttpStatus.BAD_REQUEST),
-    USER_EXISTED(1002, "User already existed", HttpStatus.BAD_REQUEST),
-    USERNAME_INVALID(1003, "Username must be at least 3 characters", HttpStatus.BAD_REQUEST),
-    PASSWORD_INVALID(
-      1004, "Password must be at least 6 and max 10 characters", HttpStatus.BAD_REQUEST),
+    USER_EXISTED(1002, "Tài khoản đã tồn tại", HttpStatus.BAD_REQUEST),
+    USERNAME_INVALID(1003, "Họ tên phải trên 3 kí tự", HttpStatus.BAD_REQUEST),
+    PASSWORD_INVALID(1004, "mật khẩu phải trên 6 kí tự", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID(1005, "email invalid", HttpStatus.BAD_REQUEST),
-    EMAIL_EXISTED(1006, "email already existed", HttpStatus.BAD_REQUEST),
-    USER_NOT_EXISTED(1007, "User not existed", HttpStatus.NOT_FOUND),
-    OTP_INVALID(1008, "Invalid OTP code", HttpStatus.BAD_REQUEST),
-    OTP_EXPIRED(1009, "OTP code has expired", HttpStatus.GONE),
-    CANNOT_SEND_EMAIL(1010, "Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR),
-    //    này là lỗi unauthenticated 401
+    EMAIL_EXISTED(1006, "email này đã sử dụng", HttpStatus.BAD_REQUEST),
+    USER_NOT_EXISTED(1007, "Tài khoản không tồn tại", HttpStatus.NOT_FOUND),
+    OTP_INVALID(1008, "Mã OTP không hợp lệ", HttpStatus.BAD_REQUEST),
+    OTP_EXPIRED(1009, "Mã OTP đã hết hạn", HttpStatus.GONE),
+    CANNOT_SEND_EMAIL(1010, "Không thể gửi email", HttpStatus.INTERNAL_SERVER_ERROR),
     UNAUTHENTICATED(1011, "Unauthenticated", HttpStatus.UNAUTHORIZED),
-    // này là không có quyền truy cập lỗi 403
     UNAUTHORIZED(1012, "you do not have permission", HttpStatus.FORBIDDEN),
     TOO_MANY_REQUESTS_OTP(1013, "Bạn đã yêu cầu quá nhiều lần. Vui lòng thử lại sau 10 phút.", HttpStatus.TOO_MANY_REQUESTS),
     OTP_COOLDOWN(1014, "Vui lòng đợi 60 giây để gửi lại mã tiếp theo.", HttpStatus.BAD_REQUEST),
     USER_ALREADY_ACTIVE(1015, "Tài khoản này đã được kích hoạt trước đó.", HttpStatus.BAD_REQUEST),
-    INVALID_CREDENTIALS(1016, "Email hoặc mật khẩu không chính xác", HttpStatus.BAD_REQUEST);
+    INVALID_CREDENTIALS(1016, "Email hoặc mật khẩu không chính xác", HttpStatus.BAD_REQUEST),
+
+    // Cart errors
+    PRODUCT_NOT_EXISTED(1017, "Sản phẩm không tồn tại", HttpStatus.NOT_FOUND),
+    OUT_OF_STOCK(1018, "Sản phẩm đã hết hàng", HttpStatus.BAD_REQUEST),
+    INSUFFICIENT_STOCK(1019, "Số lượng tồn kho không đủ", HttpStatus.BAD_REQUEST),
+    CART_ITEM_NOT_EXISTED(1020, "Sản phẩm không có trong giỏ hàng", HttpStatus.NOT_FOUND),
+    INVALID_QUANTITY(1021, "Số lượng phải lớn hơn 0", HttpStatus.BAD_REQUEST),
+    CART_NOT_EXISTED(1022, "Giỏ hàng không tồn tại", HttpStatus.NOT_FOUND),
+
+    // Product detail errors
+    PRODUCT_SLUG_NOT_EXISTED(1023, "Sản phẩm không tồn tại", HttpStatus.NOT_FOUND),
+
+    // Rating errors
+    RATING_NOT_EXISTED(1024, "Đánh giá không tồn tại", HttpStatus.NOT_FOUND),
+    RATING_ALREADY_EXISTED(1025, "Bạn đã đánh giá sản phẩm này rồi", HttpStatus.BAD_REQUEST),
+    RATING_STAR_INVALID(1026, "Số sao phải từ 1 đến 5", HttpStatus.BAD_REQUEST),
+
+    // Address errors
+    ADDRESS_NOT_EXISTED(1027, "Địa chỉ không tồn tại", HttpStatus.NOT_FOUND),
+    ADDRESS_LIMIT_EXCEEDED(1028, "Bạn chỉ có thể lưu tối đa 10 địa chỉ", HttpStatus.BAD_REQUEST),
+    FIELD_REQUIRED(1029, "Thông tin này không được để trống", HttpStatus.BAD_REQUEST),
+    INVALID_PHONE_NUMBER(1030, "Số điện thoại không đúng định dạng", HttpStatus.BAD_REQUEST),
+
+    // Order errors
+    ORDER_NOT_EXISTED(1031, "Đơn hàng không tồn tại", HttpStatus.NOT_FOUND),
+    ORDER_CANNOT_CANCEL(1032, "Đơn hàng không thể hủy ở trạng thái hiện tại", HttpStatus.BAD_REQUEST),
+    CART_EMPTY(1033, "Giỏ hàng trống, không thể đặt hàng", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_STATUS(1034, "Chuyển trạng thái đơn hàng không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_ORDER_AMOUNT(1035,"Giá đơn hàng không hợp lệ",HttpStatus.BAD_REQUEST),
+
+    // category
+    CATEGORY_NOT_FOUND(1036,"Danh mục không tồn tại",HttpStatus.NOT_FOUND),
+
+    INVALID_PAYMENT_METHOD(1037,"Phương thức thanh toán không hợp lệ", HttpStatus.BAD_REQUEST),
+    ORDER_ALREADY_PAID(1038,"Đơn hàng đã thanh toán", HttpStatus.BAD_REQUEST),
+    ORDER_ALREADY_CANCELLED(1039, "Đơn hàng đã hủy", HttpStatus.BAD_REQUEST),
+    GENERATE_SIGNATURE_FAILURE(1040,"Tạo chữ kí thất bại", HttpStatus.BAD_REQUEST),
+    CATEGORY_NOT_EXISTED(1041,"Danh mục không tồn tại",HttpStatus.NOT_FOUND),
+    PRIMARY_IMAGE_REQUIRED(1042, "Thiếu ảnh chính",HttpStatus.BAD_REQUEST),
+
+    PRODUCT_NOT_FOUND(1043,"Sản phẩm không tồn tại",HttpStatus.NOT_FOUND),
+    PRODUCT_VARIANT_REQUIRED(1044,"Cần có biến thể",HttpStatus.BAD_REQUEST),
+    INVALID_REQUEST(1047,"Thiếu dữ liệu",HttpStatus.BAD_REQUEST),
+    PRODUCT_UNAVAILABLE(1068, "Sản phẩm không có sẵn", HttpStatus.BAD_REQUEST),
+
+    // Inventory errors
+    BATCH_NOT_FOUND(1085, "Lô hàng không tồn tại", HttpStatus.NOT_FOUND),
+    BATCH_EXPIRY_INVALID(1086, "Ngày hết hạn phải sau ngày hôm nay", HttpStatus.BAD_REQUEST),
+
+    // Chat / Conversation errors
+    CONVERSATION_NOT_FOUND(1069, "Cuộc hội thoại không tồn tại", HttpStatus.NOT_FOUND),
+    CONVERSATION_ALREADY_TAKEN(1070, "Cuộc hội thoại đã được dược sĩ khác nhận", HttpStatus.CONFLICT),
+    CONVERSATION_NOT_IN_PROGRESS(1071, "Cuộc hội thoại không ở trạng thái đang tư vấn", HttpStatus.BAD_REQUEST),
+    CONVERSATION_CLOSED(1072, "Cuộc hội thoại đã đóng, không thể gửi tin nhắn", HttpStatus.BAD_REQUEST),
+    CONVERSATION_NOT_PENDING(1087, "Cuộc hội thoại không ở trạng thái chờ", HttpStatus.BAD_REQUEST),
+    CONVERSATION_FORBIDDEN(1088, "Bạn không có quyền thực hiện thao tác này trên cuộc hội thoại", HttpStatus.FORBIDDEN),
+    NOT_YOUR_CONVERSATION(1089, "Đây không phải cuộc hội thoại của bạn", HttpStatus.FORBIDDEN),
+    PHARMACIST_NOT_ASSIGNED(1090, "Chỉ dược sĩ được phân công mới có thể gửi tin nhắn", HttpStatus.FORBIDDEN),
+    FILE_TYPE_NOT_ALLOWED(1073, "Loại file không được phép", HttpStatus.BAD_REQUEST),
+    FILE_SIZE_EXCEEDED(1074, "File vượt quá kích thước cho phép (5MB)", HttpStatus.BAD_REQUEST),
+    FILE_UPLOAD_FAILED(1075, "Upload file thất bại", HttpStatus.INTERNAL_SERVER_ERROR),
+    CATEGORY_EXISTED(1076,"Danh mục đã tồn tại",HttpStatus.BAD_REQUEST),
+    CATEGORY_HAS_PRODUCTS(1077,"Danh mục này có sản phẩm",HttpStatus.BAD_REQUEST),
+    ALREADY_EXISTS(1078, "Đã tồn tại", HttpStatus.BAD_REQUEST),
+    INVALID_PARENT_CATEGORY(1079, "Danh mục không thể làm cha của chính nó", HttpStatus.BAD_REQUEST),
+
+    PRESCRIPTION_NOT_FOUND(1080, "Không tìm thấy đơn thuốc", HttpStatus.NOT_FOUND),
+
+    USER_LOCKED(1081, "Tài khoản của bạn đã bị khóa", HttpStatus.BAD_REQUEST),
+    ROLE_NOT_FOUND(1082, "Không tìm thấy quyền này", HttpStatus.NOT_FOUND),
+    CANNOT_UPDATE_OWN_STATUS(1083, "Không thể thay đổi trạng thái tài khoản của chính mình",HttpStatus.BAD_REQUEST),
+    CANNOT_UPDATE_OWN_ROLE(1084, "Không thể thay đổi quyền của chính mình",HttpStatus.BAD_REQUEST),
+    RATING_NOT_FOUND(1085, "Không tìm thấy đánh giá",HttpStatus.NOT_FOUND),
+    PRODUCT_NOT_ACTIVE(1086, "Sản phầm đã ngừng kinh doanh",HttpStatus.BAD_REQUEST),
+
+    ;
+
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;
         this.statusCode = statusCode;
     }
+
     private final int code;
     private final String message;
     private final HttpStatusCode statusCode;

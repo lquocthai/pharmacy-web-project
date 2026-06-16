@@ -1,24 +1,77 @@
 package com.quocthai.pharmacy_service.mapper;
 
-import com.quocthai.pharmacy_service.dto.response.ProductSummaryResponse;
+import com.quocthai.pharmacy_service.dto.admin.response.ProductRespone;
+import com.quocthai.pharmacy_service.dto.response.ProductImageResponse;
+import com.quocthai.pharmacy_service.dto.response.ProductSpecificationResponse;
+import com.quocthai.pharmacy_service.dto.response.ProductVariantResponse;
 import com.quocthai.pharmacy_service.entity.Product;
+import com.quocthai.pharmacy_service.entity.ProductImage;
+import com.quocthai.pharmacy_service.entity.ProductSpecification;
+import com.quocthai.pharmacy_service.entity.ProductVariant;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
+    @Mapping(target = "categorySlug", source = "category.slug")
+    @Mapping(target = "primaryImg", expression = "java(getPrimaryImage(product))")
+    @Mapping(target = "images", source = "images")
+    @Mapping(target = "specifications", source = "specifications")
+    @Mapping(target = "variants", source = "variants")
+    ProductRespone toResponseAdmin(Product product);
 
-    /**
-     * Map Product entity → ProductSummaryResponse.
-     *
-     * primaryImageUrl: lấy imageUrl của ảnh đầu tiên trong list images
-     * (đã được filter isPrimary = true ở query, nên lấy phần tử 0 là đủ).
-     * Nếu không có ảnh nào thì trả null — tránh NullPointerException.
-     */
-    @Mapping(
-        target = "primaryImageUrl",
-        expression = "java(product.getImages() != null && !product.getImages().isEmpty() " +
-                     "? product.getImages().get(0).getImageUrl() : null)"
-    )
-    ProductSummaryResponse toSummaryResponse(Product product);
+    // =========================
+    // IMAGE
+    // =========================
+
+    ProductImageResponse toImageResponse(ProductImage image);
+
+    List<ProductImageResponse> toImageResponses(
+            List<ProductImage> images
+    );
+
+    // =========================
+    // SPECIFICATION
+    // =========================
+
+    ProductSpecificationResponse toSpecificationResponse(
+            ProductSpecification specification
+    );
+
+    List<ProductSpecificationResponse> toSpecificationResponses(
+            List<ProductSpecification> specifications
+    );
+
+    // =========================
+    // VARIANT
+    // =========================
+
+    ProductVariantResponse toVariantResponse(
+            ProductVariant variant
+    );
+
+    List<ProductVariantResponse> toVariantResponses(
+            List<ProductVariant> variants
+    );
+
+    // =========================
+    // CUSTOM METHODS
+    // =========================
+
+    default String getPrimaryImage(Product product) {
+
+        if (product.getImages() == null) {
+            return null;
+        }
+
+        return product.getImages()
+                .stream()
+                .filter(ProductImage::isPrimary)
+                .map(ProductImage::getImageUrl)
+                .findFirst()
+                .orElse(null);
+    }
+
 }

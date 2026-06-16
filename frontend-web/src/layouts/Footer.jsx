@@ -5,6 +5,9 @@ import {
 } from 'react-icons/fa'
 import { SiZalo } from 'react-icons/si'
 import '../assets/styles/Footer.scss'
+import fbLogo from '../assets/facebook_logo.svg'
+import zaloLogo from '../assets/Logo_Zalo.svg'
+
 
 const FOOTER_LINKS = {
     'VỀ CHÚNG TÔI': [
@@ -17,7 +20,7 @@ const FOOTER_LINKS = {
     'DANH MỤC': [
         'Thực phẩm chức năng', 'Dược mỹ phẩm', 'Thuốc',
         'Chăm sóc cá nhân', 'Trang thiết bị y tế',
-        'Đặt thuốc online', 'Tiêm chủng Long Châu',
+        'Đặt thuốc online'
     ],
     'TÌM HIỂU THÊM': [
         'Góc sức khỏe', 'Tra cứu thuốc', 'Tra cứu dược chất',
@@ -32,7 +35,7 @@ const HOTLINES = [
     { label: 'Góp ý, khiếu nại', branch: 'Nhánh 3' },
 ]
 
-const PAYMENTS = ['VISA', 'Mastercard', 'JCB', 'Amex', 'Napas', 'Momo', 'ZaloPay', 'VNPay', 'Apple Pay']
+const PAYMENTS = ['VNPay', 'COD']
 
 export default function Footer() {
     return (
@@ -75,7 +78,7 @@ export default function Footer() {
                             <div className="d-flex flex-column gap-2">
                                 {HOTLINES.map(h => (
                                     <div key={h.branch}>
-                                        <p className="text-muted mb-0" style={{ fontSize: 12 }}>{h.label}</p>
+                                        <p className=" text-muted mb-0" style={{ fontSize: 12 }}>{h.label}</p>
                                         <a href="tel:18006928" className="footer-hotline d-inline-flex align-items-center gap-1">
                                             <FaPhoneAlt size={10} /> 18006928
                                         </a>
@@ -84,32 +87,24 @@ export default function Footer() {
                                 ))}
                             </div>
 
-                            <h6 className="footer-col-title mt-3">CHỨNG NHẬN BỞI</h6>
-                            <div className="d-flex gap-2">
+                            {/* <h6 className="footer-col-title mt-3">CHỨNG NHẬN BỞI</h6>
+                            <div className="d-flex gap-2 justify-content-center align-items-center">
                                 <span className="cert-badge bg-danger">DMCA</span>
                                 <span className="cert-badge" style={{ background: '#1d4ed8' }}>BCT</span>
                                 <span className="cert-badge bg-dark">✓</span>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Social + QR + Payment */}
                         <div className="col-12 col-md-6 col-lg-2">
-                            <h6 className="footer-col-title">KẾT NỐI VỚI CHÚNG TÔI</h6>
+                            <h6 className="text-start footer-col-title">KẾT NỐI VỚI CHÚNG TÔI</h6>
                             <div className="d-flex gap-2 mb-3">
-                                <a href="#" className="social-btn social-btn--fb" aria-label="Facebook"><FaFacebookF /></a>
-                                <a href="#" className="social-btn social-btn--zalo" aria-label="Zalo"><SiZalo /></a>
+                                <a href="#" style={{ borderRadius: '50px' }} className="social-btn social-btn--fb" aria-label="Facebook"><img src={fbLogo} alt="Facebook" /></a>
+                                <a href="#" className="social-btn social-btn--zalo" aria-label="Zalo"><img src={zaloLogo} alt="Zalo" /></a>
                             </div>
 
-                            <h6 className="footer-col-title">
-                                <FaMobileAlt className="me-1" /> TẢI ỨNG DỤNG
-                            </h6>
-                            <div className="qr-box mb-1 d-flex align-items-center justify-content-center">
-                                <FaQrcode size={64} color="#1250dc" />
-                            </div>
-                            <p className="text-muted mb-3" style={{ fontSize: 11 }}>Quét mã để tải app</p>
-
-                            <h6 className="footer-col-title">
-                                <FaCreditCard className="me-1" /> HỖ TRỢ THANH TOÁN
+                            <h6 className="text-start footer-col-title">
+                                HỖ TRỢ THANH TOÁN
                             </h6>
                             <div className="d-flex flex-wrap gap-1">
                                 {PAYMENTS.map(m => (

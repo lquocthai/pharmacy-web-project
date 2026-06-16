@@ -2,6 +2,7 @@ package com.quocthai.pharmacy_service.controller;
 
 import com.quocthai.pharmacy_service.dto.response.ApiResponse;
 import com.quocthai.pharmacy_service.dto.response.PageResponse;
+import com.quocthai.pharmacy_service.dto.response.ProductDetailResponse;
 import com.quocthai.pharmacy_service.dto.response.ProductSummaryResponse;
 import com.quocthai.pharmacy_service.service.ProductService;
 import lombok.AccessLevel;
@@ -10,6 +11,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -19,34 +22,92 @@ public class ProductController {
 
     ProductService productService;
 
-    /**
-     * GET /products/{categorySlug}
-     *
-     * Lấy danh sách sản phẩm theo category slug với phân trang và sắp xếp.
-     *
-     * @param categorySlug slug của danh mục (vd: thuc-pham-chuc-nang)
-     * @param page         trang hiện tại, bắt đầu từ 0 (mặc định: 0)
-     * @param size         số sản phẩm mỗi trang (mặc định: 20, tối đa: 100)
-     * @param sortBy       field sort: name | price | manufacturer (mặc định: name)
-     * @param sortDir      hướng sort: asc | desc (mặc định: asc)
-     *
-     * Ví dụ: GET /products/thuc-pham-chuc-nang?page=0&size=20&sortBy=price&sortDir=asc
-     */
-    @GetMapping("/{categorySlug}")
-    ApiResponse<PageResponse<ProductSummaryResponse>> getProductsByCategory(
-            @PathVariable("categorySlug") String categorySlug,
-            @RequestParam(defaultValue = "0")  int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc")  String sortDir
-    ) {
-        log.info("GET /products/{} - page={}, size={}, sortBy={}, sortDir={}",
-                categorySlug, page, size, sortBy, sortDir);
-
-        var result = productService.getProductsByCategory(categorySlug, page, size, sortBy, sortDir);
-
-        return ApiResponse.<PageResponse<ProductSummaryResponse>>builder()
-                .result(result)
+    @GetMapping
+    public ApiResponse<PageResponse<ProductSummaryResponse>> getProducts(
+            @RequestParam String categorySlug,
+            @RequestParam(defaultValue = "0")
+            int page,
+            @RequestParam(defaultValue = "20")
+            int size,
+            @RequestParam(defaultValue = "name")
+            String sortBy,
+            @RequestParam(defaultValue = "desc")
+            String sortDir,
+            // NEW FILTERS
+            @RequestParam(required = false) String manufacturer,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice) {
+        return ApiResponse
+                .<PageResponse<ProductSummaryResponse>>builder()
+                .result(productService.getProductsByCategory(categorySlug, page, size, sortBy,
+                        sortDir,manufacturer,country,minPrice,maxPrice))
                 .build();
     }
+    @GetMapping("/all")
+    public ApiResponse<PageResponse<ProductSummaryResponse>> getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size, // Mặc định 8 sản phẩm cho trang chủ
+            @RequestParam(defaultValue = "createdAt") String sortBy, // Mặc định theo sản phẩm mới
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+        return ApiResponse
+                .<PageResponse<ProductSummaryResponse>>builder()
+                .result(productService.getAllProducts(page, size, sortBy, sortDir))
+                .build();
+    }
+
+    /**
+     * GET /products/detail/{slug}
+     * Lấy chi tiết sản phẩm theo slug — bao gồm thông tin đầy đủ + rating summary.
+     */
+    @GetMapping("/detail/{slug}")
+    ApiResponse<ProductDetailResponse> getProductDetail(@PathVariable("slug") String slug) {
+        log.info("GET /products/detail/{}", slug);
+        return ApiResponse.<ProductDetailResponse>builder()
+                .result(productService.getProductDetail(slug))
+                .build();
+    }
+
+    // cho admin==> sai hàm này rồi sửa lại
+    @GetMapping("/admin/products")
+    public ApiResponse<PageResponse<ProductSummaryResponse>> getAdminProducts(
+            @RequestParam(required = false)
+            String keyword,
+            @RequestParam(required = false)
+            String categoryId,
+            @RequestParam(defaultValue = "0")
+            int page,
+            @RequestParam(defaultValue = "10")
+            int size,
+            @RequestParam(defaultValue = "name")
+            String sortBy,
+            @RequestParam(defaultValue = "desc")
+            String sortDir
+    ) {
+
+        return ApiResponse
+                .<PageResponse<ProductSummaryResponse>>builder()
+                .result(
+                        productService.getAdminProducts(
+                                keyword,
+                                categoryId,
+                                page,
+                                size,
+                                sortBy,
+                                sortDir
+                        )
+                )
+                .build();
+    }
+
+
+    // admin lấy product detail
+    @GetMapping("admin/detail/{slug}")
+    ApiResponse<ProductDetailResponse> getProductDetailAdmin(@PathVariable("slug") String slug) {
+        return ApiResponse.<ProductDetailResponse>builder()
+                .result(productService.getProductDetailAdmin(slug))
+                .build();
+    }
+
 }

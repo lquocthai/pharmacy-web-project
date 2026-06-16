@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { closeLoginModal, setLoginSuccess } from '../../redux/slices/authSlice';
+import { fetchCart } from '../../redux/slices/cartSlice';
 import { GoogleLogin } from '@react-oauth/google';
 import authService from '../../services/authService';
 import './AuthModal.scss';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const AuthModal = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { isLoginModalOpen } = useSelector((state) => state.auth);
     const [mode, setMode] = useState('LOGIN'); // LOGIN, REGISTER, OTP
     const [email, setEmail] = useState("");
@@ -16,7 +20,7 @@ const AuthModal = () => {
     const [loginLoading, setLoginLoading] = useState(false);
     const [registerLoading, setRegisterLoading] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
-    const [otpTimer, setOtpTimer] = useState(300);
+    const [otpTimer, setOtpTimer] = useState(60);
     const [resendTimer, setResendTimer] = useState(0);
 
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -24,36 +28,25 @@ const AuthModal = () => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [resetLoading, setResetLoading] = useState(false);
     const [forgotLoading, setForgotLoading] = useState(false);
+    const [resendLoading, setResendLoading] = useState(false); // Thêm dòng này
 
     // 1. Gửi yêu cầu quên mật khẩu (Lấy OTP)
     const handleForgotPassword = async (e) => {
         e.preventDefault();
         setForgotLoading(true);
         try {
-            await authService.forgotPassword(email);
-            alert("Mã xác thực đã được gửi!");
-            setMode('OTP'); // Chuyển sang nhập OTP
+            const res = await authService.forgotPassword(email);
+            // alert("Mã xác thực đã được gửi!");
+            console.log(res.data)
+            toast.success(res?.data?.result || "Mật khẩu mới đã được gửi đến email của bạn!");
+
         } catch (error) {
-            alert(error.response?.data?.message || "Email không tồn tại");
+            // alert(error.response?.data?.message || "Email không tồn tại");
+            toast.error(error.response?.data?.message || "Email không tồn tại");
         } finally { setForgotLoading(false); }
     };
 
-    // const handleVerifyOtp = async () => {
-    //     setLoading(true);
-    //     try {
-    //         const res = await authService.verifyOtp({ email, otp: otp.join("") });
-    //         if (res.data.code === 0) {
-    //             // Nếu không có username nghĩa là đang ở luồng Quên mật khẩu
-    //             if (!username) setMode('RESET_PASSWORD');
-    //             else {
-    //                 alert("Đăng ký thành công!");
-    //                 setMode('LOGIN');
-    //             }
-    //         }
-    //     } catch (error) {
-    //         alert("Mã OTP không đúng hoặc hết hạn");
-    //     } finally { setLoading(false); }
-    // };
+
 
     const handleResetPassword = async (e) => {
         e.preventDefault();
@@ -76,27 +69,32 @@ const AuthModal = () => {
         e.preventDefault();
         setLoginLoading(true);
         try {
-            const res = await authService.login({
-                email: email,
-                password: password
-            });
-
-            // Giả sử backend trả về: { result: { token: '...', refreshToken: '...', user: {...} } }
+            const res = await authService.login({ email, password });
+            console.log(JSON.stringify(res.data, null, 2));
             const { code, result, message } = res.data;
-            console.log(result);
+
+            // Backend trả code 1000 khi thành công
             if (code === 0) {
-                // TRƯỜNG HỢP THÀNH CÔNG
-                console.log("Login Success:", result);
                 dispatch(setLoginSuccess(result));
                 dispatch(closeLoginModal());
-            } else {
-                alert(`Lỗi (${code}): ${message || "Đăng nhập không thành công"}`);
-            }
+                // redirect theo role
+                const userRoles = result?.user?.roles?.map(r => r.name) || [];
+                if (userRoles.includes('ADMIN')) {
+                    navigate('/admin');
+                } else if (userRoles.includes('PHARMACIST')) {
+                    navigate('/pharmacist');
+                } else {
+                    navigate('/');
+                }
 
+            } else {
+                // alert(`Lỗi (${code}): ${message || 'Đăng nhập không thành công'}`);
+                toast.error(`Lỗi (${code}): ${message || 'Đăng nhập không thành công'}`);
+            }
         } catch (error) {
-            console.error("Login Error:", error);
-            const errorMsg = error.response?.data?.message || "Lỗi kết nối đến máy chủ";
-            alert("Đăng nhập thất bại: " + errorMsg);
+            console.error('Login Error:', error);
+            const errorMsg = error.response?.data?.message || 'Lỗi kết nối đến máy chủ';
+            toast.error(errorMsg);
         } finally {
             setLoginLoading(false);
         }
@@ -118,12 +116,13 @@ const AuthModal = () => {
                 console.log("Register Success:", result);
                 setMode('OTP');
             } else {
-                alert(`Lỗi (${code}): ${message || "Đăng ký không thành công"}`);
+                toast.error(`Lỗi (${code}): ${message || "Đăng ký không thành công"}`);
             }
         } catch (error) {
             console.error("Register Error:", error);
             const errorMsg = error.response?.data?.message || "Lỗi kết nối đến máy chủ";
-            alert("Đăng ký thất bại: " + errorMsg);
+            // alert("Đăng ký thất bại: " + errorMsg);
+            toast.error("Đăng ký thất bại: " + errorMsg);
         } finally {
             setRegisterLoading(false);
         }
@@ -176,7 +175,8 @@ const AuthModal = () => {
     const handleVerifyOtp = async () => {
         const otpCode = otp.join("");
         if (otpCode.length < 6) {
-            alert("Vui lòng nhập đủ 6 số");
+            // alert("Vui lòng nhập đủ 6 số");
+            toast.error("Vui lòng nhập đủ 6 số");
             return;
         }
 
@@ -184,13 +184,16 @@ const AuthModal = () => {
         try {
             const res = await authService.verifyOtp({ email, otp: otpCode });
             if (res.data.code === 0) {
-                alert("Xác thực thành công! Vui lòng đăng nhập.");
+                // alert("Xác thực thành công! Vui lòng đăng nhập.");
+                toast.success("Xác thực thành công! Vui lòng đăng nhập.");
                 setMode('LOGIN');
             } else {
-                alert(res.data.message);
+                // alert(res.data.message);
+                toast.error(res.data.message);
             }
         } catch (error) {
-            alert(error.response?.data?.message || "Xác thực thất bại");
+            // alert(error.response?.data?.message || "Xác thực thất bại");
+            toast.error(error.response?.data?.message || "Xác thực thất bại");
         } finally {
             setIsVerifying(false);
         }
@@ -199,28 +202,37 @@ const AuthModal = () => {
     // Xử lý gửi lại mã
     const handleResendOtp = async () => {
         if (resendTimer > 0) return;
+        setResendLoading(true); // Bắt đầu loading khi user click
 
         try {
             const res = await authService.resendOtp({ email });
             if (res.data.code === 0) {
-                alert(res.data.result);
+                // alert(res.data.result);
+                toast.success(res.data.result);
                 setResendTimer(60); // Reset cooldown 60s
                 setOtpTimer(300);   // Reset thời gian hiệu lực 5p
                 setOtp(["", "", "", "", "", ""]); // Xóa OTP cũ
             }
         } catch (error) {
             const msg = error.response?.data?.message || "Không thể gửi lại mã";
-            alert(msg);
+            // alert(msg);
+            toast.error(msg);
+        } finally {
+            setResendLoading(false); // Tắt loading dù thành công hay thất bại
         }
     };
 
     const handleGoogleSuccess = async (response) => {
         try {
             const res = await authService.loginGoogle(response.credential);
-            dispatch(setLoginSuccess(res.data.result));
-            dispatch(closeLoginModal());
+            if (res.data.code === 0) {
+                dispatch(setLoginSuccess(res.data.result));
+                dispatch(closeLoginModal());
+                // Gọi API lấy giỏ hàng ngay sau khi login Google thành công
+                // dispatch(fetchCart());
+            }
         } catch (error) {
-            console.error("Google Login Error", error);
+            console.error('Google Login Error', error);
         }
     };
     if (!isLoginModalOpen) return null;
@@ -247,8 +259,11 @@ const AuthModal = () => {
                                 <input type="email" className="form-control mb-3" placeholder="Nhập Email của bạn"
                                     required onChange={e => setEmail(e.target.value)} />
                                 <button className="btn btn-primary w-100 fw-bold" disabled={forgotLoading}>
-                                    {forgotLoading ? 'ĐANG GỬI...' : 'GỬI MÃ XÁC THỰC'}
+                                    {forgotLoading ? 'ĐANG GỬI...' : 'GỬI MẬT KHẨU MỚI'}
                                 </button>
+                                <p className="text-center text-secondary mt-2 mb-0" style={{ fontSize: '12px' }}>
+                                    ⚠️ <span className="text-danger fw-semibold">Lưu ý:</span> Nếu không nhận được email, vui lòng kiểm tra kỹ trong mục <span className="fw-bold text-dark">Thư rác (Spam)</span> hoặc <span className="fw-bold text-dark">Quảng cáo</span>.
+                                </p>
                                 <p className="text-center mt-3 small">
                                     <span className="text-primary cursor-pointer" onClick={() => {
                                         setMode('LOGIN')
@@ -413,6 +428,10 @@ const AuthModal = () => {
                                         <span className="text-secondary fw-bold">
                                             Gửi lại sau ({resendTimer}s)
                                         </span>
+                                    ) : resendLoading ? (
+                                        <span className="text-primary fw-bold">
+                                            Đang gửi lại mã...
+                                        </span>
                                     ) : (
                                         <span
                                             className="text-primary fw-bold cursor-pointer"
@@ -422,7 +441,9 @@ const AuthModal = () => {
                                         </span>
                                     )}
                                 </p>
-
+                                <p className="text-center text-secondary mt-2 mb-0" style={{ fontSize: '12px' }}>
+                                    ⚠️ <span className="text-danger fw-semibold">Lưu ý:</span> Nếu không nhận được email, vui lòng kiểm tra kỹ trong mục <span className="fw-bold text-dark">Thư rác (Spam)</span> hoặc <span className="fw-bold text-dark">Quảng cáo</span>.
+                                </p>
                                 <div className="mt-3">
                                     <span
                                         className="text-muted small cursor-pointer text-decoration-underline"
