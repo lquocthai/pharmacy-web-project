@@ -61,7 +61,7 @@ public class PaymentController {
         String queryString = buildQueryString(params);
 
         response.sendRedirect(
-                "http://localhost:5173/payment-result?" + queryString
+                "https://quocthaipharmacy.vercel.app/payment-result?" + queryString
         );
     }
 

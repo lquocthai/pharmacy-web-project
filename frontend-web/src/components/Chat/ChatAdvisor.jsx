@@ -364,11 +364,12 @@ export default function ChatAdvisor() {
             />
 
             {/* ── WINDOW DISPLAY ────────────────────────────────────────────────── */}
+            {/* ── WINDOW DISPLAY ── */}
             {isChatOpen && (
                 <div className="
                     fixed z-[9999] bg-white border border-slate-100 shadow-2xl flex flex-col overflow-hidden
-                    bottom-4 right-4 left-4 top-4 rounded-2xl
-                    sm:top-auto sm:left-auto sm:bottom-28 sm:right-6 sm:w-[380px] sm:h-[580px] sm:max-h-[80vh]
+                    bottom-20 right-4 left-4 top-20 rounded-2xl
+                    sm:top-auto sm:left-auto sm:bottom-30 sm:right-6 sm:w-[380px] sm:h-[580px] sm:max-h-[80vh]
                 ">
                     {/* Header */}
                     <div className="px-3 py-2.5 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
@@ -469,7 +470,14 @@ export default function ChatAdvisor() {
             {/* ── FLOATING BUTTON ─────────────────────────────────────────────── */}
             <div
                 onClick={handleChatButtonClick}
-                className="fixed z-[9999] cursor-pointer select-none transition-all duration-300 transform hover:scale-105 active:scale-95 drop-shadow-lg bottom-20 right-20 w-16 h-16 sm:bottom-8 sm:right-3 sm:w-20 sm:h-20"
+                className="
+                
+                  fixed z-[9999] cursor-pointer select-none transition-all duration-300 transform hover:scale-105 active:scale-95 drop-shadow-md
+                    /*  Trên Mobile: Đẩy sát về góc phải bên dưới cực kỳ gọn gàng */
+                    bottom-4 right-4 w-14 h-14
+                    /*  Trên PC (sm trở lên): Trở lại vị trí rộng rãi như cũ */
+                    sm:bottom-8 sm:right-3 sm:w-20 sm:h-20
+                  "
             >
                 <img src={chatIcon} alt="Tư vấn trực tuyến" className="w-16 h-16 object-contain" />
 
@@ -478,7 +486,7 @@ export default function ChatAdvisor() {
                 )}
 
                 {!wsReady && isAuthenticated && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-white animate-pulse" />
+                    <div className="absolute -top-1 right-2 w-3 h-3 bg-amber-400 rounded-full border-2 border-white animate-pulse" />
                 )}
             </div>
         </div>
