@@ -46,15 +46,15 @@ public class Product {
     Category category;
 
     // Ảnh dùng chung
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,  fetch = FetchType.LAZY,orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
     List<ProductImage> images = new ArrayList<>();
 
     // Variants
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,  fetch = FetchType.LAZY,orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
     List<ProductVariant> variants = new ArrayList<>();
 
     // Specifications động
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,  fetch = FetchType.LAZY,orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,  fetch = FetchType.LAZY)
     List<ProductSpecification> specifications = new ArrayList<>();
 
     // triệu chứng — dữ liệu thuộc về Product, không cần entity riêng

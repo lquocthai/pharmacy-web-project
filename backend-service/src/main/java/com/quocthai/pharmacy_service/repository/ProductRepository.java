@@ -129,13 +129,41 @@ public interface ProductRepository extends JpaRepository<Product, String> {
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = {
-            "category",
-            "images",
-            "variants",
-            "specifications"
-    })
-    Optional<Product> findDetailById(String id);
+    // Bước 1: Fetch category và images
+    @Query("SELECT DISTINCT p FROM Product p " +
+            "LEFT JOIN FETCH p.category " +
+            "LEFT JOIN FETCH p.images " +
+            "WHERE p.id = :id")
+    Optional<Product> findDetailById(@Param("id") String id);
+
+    /**
+     * Load product kèm variants trong 1 query — dùng cho updateProduct
+     * để tránh LazyInitializationException khi duyệt variants.
+     */
+    @Query("SELECT DISTINCT p FROM Product p " +
+            "LEFT JOIN FETCH p.variants " +
+            "WHERE p.id = :id")
+    Optional<Product> findWithVariantsById(@Param("id") String id);
+
+    // Bước 2: Fetch riêng variants
+    @Query("SELECT DISTINCT p FROM Product p " +
+            "LEFT JOIN FETCH p.variants " +
+            "WHERE p.id = :id")
+    Optional<Product> fetchVariantsDetail(@Param("id") String id);
+
+    // Bước 3: Fetch riêng specifications
+    @Query("SELECT DISTINCT p FROM Product p " +
+            "LEFT JOIN FETCH p.specifications " +
+            "WHERE p.id = :id")
+    Optional<Product> fetchSpecificationsDetail(@Param("id") String id);
+
+//    @EntityGraph(attributePaths = {
+//            "category",
+//            "images",
+//            "variants",
+//            "specifications"
+//    })
+//    Optional<Product> findDetailById(String id);
 
     boolean existsByCategoryId(String categoryId);
 

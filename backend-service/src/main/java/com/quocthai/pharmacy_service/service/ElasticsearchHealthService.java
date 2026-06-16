@@ -68,7 +68,7 @@ public class ElasticsearchHealthService {
     }
     // sync data product vào elasticsearch
     @Transactional(readOnly = true)
-//    @PostConstruct
+    @PostConstruct
     public void syncAllProductsToElasticsearch() {
         try {
             System.out.println("⏳ Deleting all documents from index...");

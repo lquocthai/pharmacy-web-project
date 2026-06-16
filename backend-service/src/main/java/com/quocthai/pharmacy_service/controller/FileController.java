@@ -12,7 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -44,6 +46,27 @@ public class FileController {
         String url = cloudinaryService.uploadFile(file, "pharmacy/products");
         return ApiResponse.<FileUploadResponse>builder()
                 .result(new FileUploadResponse(url))
+                .build();
+    }
+
+    /**
+     * Upload nhiều ảnh sản phẩm cùng lúc (admin).
+     * POST /files/upload/batch
+     * Trả về danh sách URL theo đúng thứ tự file gửi lên.
+     */
+    @PostMapping("/upload/batch")
+    public ApiResponse<List<String>> uploadBatch(@RequestParam("files") List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) {
+            throw new AppException(ErrorCode.FILE_SIZE_EXCEEDED); // reuse validation path
+        }
+        List<String> urls = files.stream()
+                .map(file -> {
+                    validateFile(file);
+                    return cloudinaryService.uploadFile(file, "pharmacy/products");
+                })
+                .collect(Collectors.toList());
+        return ApiResponse.<List<String>>builder()
+                .result(urls)
                 .build();
     }
 

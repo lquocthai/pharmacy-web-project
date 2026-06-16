@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -49,7 +48,6 @@ public class ProductService {
     ProductSpecificationRepository productSpecificationRepository;
     CategoryRepository categoryRepository;
     ProductVariantRepository productVariantRepository;
-    CloudinaryService cloudinaryService;
 
     ProductMapper toResponseAdmin;
     private final ProductMapper productMapper;
@@ -631,20 +629,15 @@ public class ProductService {
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public ProductRespone createProduct(
-            CreateProductRequest request,
-            MultipartFile primaryImage,
-            List<MultipartFile> subImages
-    ) {
-        if (primaryImage == null || primaryImage.isEmpty()) {
+    public ProductRespone createProduct(CreateProductRequest request) {
+        if (request.getPrimaryImageUrl() == null || request.getPrimaryImageUrl().isBlank()) {
             throw new AppException(ErrorCode.PRIMARY_IMAGE_REQUIRED);
         }
         Category category = categoryRepository
                 .findBySlug(request.getCategorySlug())
                 .orElseThrow(() ->
                         new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-        String primaryImageUrl =
-                cloudinaryService.uploadFile(primaryImage);
+
         Product product = Product.builder()
                 .active(true)
                 .name(request.getName())
@@ -657,33 +650,27 @@ public class ProductService {
                 .build();
         productRepository.save(product);
 
+        // ── Ảnh ──
         List<ProductImage> images = new ArrayList<>();
-        ProductImage primaryImg = ProductImage.builder()
+        images.add(ProductImage.builder()
                 .product(product)
-                .imageUrl(primaryImageUrl)
+                .imageUrl(request.getPrimaryImageUrl())
                 .isPrimary(true)
-                .build();
-        images.add(primaryImg);
-        // sub images
-        if (subImages != null && !subImages.isEmpty()) {
-            List<ProductImage> subProductImages =
-                    subImages.stream()
-                            .map(file -> {
+                .build());
 
-                                String imageUrl =
-                                        cloudinaryService.uploadFile(file);
-
-                                return ProductImage.builder()
-                                        .product(product)
-                                        .imageUrl(imageUrl)
-                                        .isPrimary(false)
-                                        .build();
-                            })
-                            .toList();
-
-            images.addAll(subProductImages);
+        if (request.getSubImageUrls() != null && !request.getSubImageUrls().isEmpty()) {
+            request.getSubImageUrls().stream()
+                    .filter(url -> url != null && !url.isBlank())
+                    .map(url -> ProductImage.builder()
+                            .product(product)
+                            .imageUrl(url)
+                            .isPrimary(false)
+                            .build())
+                    .forEach(images::add);
         }
         productImageRepository.saveAll(images);
+
+        // ── Specifications ──
         List<ProductSpecification> specifications =
                 request.getSpecifications()
                         .stream()
@@ -698,6 +685,7 @@ public class ProductService {
                         .toList();
         productSpecificationRepository.saveAll(specifications);
 
+        // ── Variants ──
         List<ProductVariant> variants =
                 request.getVariants()
                         .stream()
@@ -720,7 +708,7 @@ public class ProductService {
         product.setVariants(variants);
         product.setPriceDefault();
 
-        // insert vào cả document elasticsearch
+        // sync Elasticsearch
         ProductDocumentSearch document = toDocument(product);
         productSearchRepository.save(document);
 
@@ -729,26 +717,27 @@ public class ProductService {
     /**
      * Update sản phẩm hoàn chỉnh:
      *  1. Cập nhật thông tin cơ bản
-     *  2. Xử lý ảnh (xóa ảnh cũ, upload ảnh chính mới, thêm ảnh phụ mới)
-     *  3. Upsert specifications (thêm mới nếu không có id, cập nhật nếu có id)
-     *  4. Upsert variants (thêm mới nếu không có id, cập nhật nếu có id, soft-delete ids bị xóa)
+     *  2. Xử lý ảnh: xóa ảnh cũ, cập nhật ảnh chính mới (nếu có URL mới), thêm ảnh phụ mới
+     *  3. Upsert specifications (xóa toàn bộ cũ, insert mới)
+     *  4. Upsert variants (update/insert mới, soft-delete bị xóa)
      *  5. Tính lại priceDefault
-     *  6. Sync document vào Elasticsearch
+     *  6. Sync Elasticsearch
      *
-     * Tránh N+1: dùng @EntityGraph (findDetailById) để load tất cả associations
-     * trong 1 query duy nhất khi đọc product ban đầu.
+     * Ảnh đã được upload lên Cloudinary từ FE trước khi gọi — chỉ nhận URL.
+     * Không có N+1: mỗi collection load 1 query riêng biệt, stock dùng batch map.
      */
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public String updateProduct(
-            String id,
-            UpdateProductRequest request,
-            MultipartFile primaryImage,
-            List<MultipartFile> subImages
-    ) {
-        // ── 1. Load product + tất cả associations trong 1 query (EntityGraph) ──
+    public String updateProduct(String id, UpdateProductRequest request) {
+
+        // ── 1. Load product theo 3 query riêng — tránh MultiBagFetchException ──
+        // Query 1: product + category + images
         Product product = productRepository.findDetailById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        // Query 2: variants (fetch riêng để tránh Cartesian Product)
+        productRepository.findWithVariantsById(id)
+                .ifPresent(p -> product.setVariants(p.getVariants()));
 
         // ── 2. Category ──
         Category category = categoryRepository
@@ -766,50 +755,52 @@ public class ProductService {
 
         // ── 4. Xử lý ảnh ──
 
-        // 4a. Xóa ảnh bị đánh dấu xóa từ FE
+        // 4a. Xóa ảnh phụ bị đánh dấu xóa từ FE (chỉ ID thực, bỏ local-xxx)
         if (request.getDeletedImageIds() != null && !request.getDeletedImageIds().isEmpty()) {
-            // Chỉ xóa các id hợp lệ (không phải id local tạm của FE như "local-xxx")
             List<String> realDeletedIds = request.getDeletedImageIds().stream()
                     .filter(imgId -> imgId != null && !imgId.startsWith("local-"))
                     .toList();
             if (!realDeletedIds.isEmpty()) {
-                productImageRepository.deleteAllByIdInBatch(realDeletedIds);
+                // Dùng JPQL DELETE — 1 query duy nhất, không có N+1
+                productImageRepository.deleteAllByIds(realDeletedIds);
             }
         }
 
-        // 4b. Upload ảnh chính mới nếu có
-        if (primaryImage != null && !primaryImage.isEmpty()) {
-            // Xóa ảnh chính cũ
-            productImageRepository.findDefaultImageByProductId(product.getId())
-                    .ifPresent(productImageRepository::delete);
-
-            String newPrimaryUrl = cloudinaryService.uploadFile(primaryImage);
+        // 4b. Thay ảnh chính nếu FE gửi URL mới
+        if (request.getPrimaryImageUrl() != null && !request.getPrimaryImageUrl().isBlank()) {
+            // Xóa ảnh chính cũ bằng 1 JPQL DELETE
+            productImageRepository.deletePrimaryByProductId(product.getId());
+            // Insert ảnh chính mới
             ProductImage newPrimary = ProductImage.builder()
                     .product(product)
-                    .imageUrl(newPrimaryUrl)
+                    .imageUrl(request.getPrimaryImageUrl())
                     .isPrimary(true)
                     .build();
             productImageRepository.save(newPrimary);
         }
 
-        // 4c. Upload ảnh phụ mới
-        if (subImages != null && !subImages.isEmpty()) {
-            List<ProductImage> newSubImages = subImages.stream()
-                    .filter(f -> f != null && !f.isEmpty())
-                    .map(file -> ProductImage.builder()
+        // 4c. Thêm các ảnh phụ mới (đã có URL Cloudinary)
+        if (request.getNewSubImageUrls() != null && !request.getNewSubImageUrls().isEmpty()) {
+            List<ProductImage> newSubImages = request.getNewSubImageUrls().stream()
+                    .filter(url -> url != null && !url.isBlank())
+                    .map(url -> ProductImage.builder()
                             .product(product)
-                            .imageUrl(cloudinaryService.uploadFile(file))
+                            .imageUrl(url)
                             .isPrimary(false)
                             .build())
                     .toList();
-            productImageRepository.saveAll(newSubImages);
+            if (!newSubImages.isEmpty()) {
+                productImageRepository.saveAll(newSubImages);
+            }
         }
 
         // ── 5. Upsert Specifications ──
+        // Dùng JPQL DELETE (1 query) thay vì loop delete để tránh N+1
         if (request.getSpecifications() != null) {
-            // Xóa toàn bộ spec cũ và thay bằng list mới (đơn giản, không có orphan leak vì
-            // productSpecificationRepository đã đánh orphanRemoval=true qua cascade)
             productSpecificationRepository.deleteAllByProductId(product.getId());
+            // flush để Hibernate đẩy DELETE xuống DB trước khi INSERT specs mới
+            // tránh constraint violation nếu có unique index trên (product_id, displayOrder)
+            productSpecificationRepository.flush();
 
             List<ProductSpecification> newSpecs = request.getSpecifications().stream()
                     .map(specReq -> ProductSpecification.builder()
@@ -824,15 +815,16 @@ public class ProductService {
 
         // ── 6. Upsert Variants ──
         if (request.getVariants() != null) {
-            // Build map để lookup nhanh O(1) thay vì N+1 query
+            // Build lookup map O(1) từ danh sách variants đã load ở bước 1 — tránh N+1
             Map<String, ProductVariant> existingVariantMap = product.getVariants().stream()
                     .collect(Collectors.toMap(ProductVariant::getId, v -> v));
 
             List<ProductVariant> upsertedVariants = request.getVariants().stream()
                     .map(varReq -> {
-                        if (varReq.getId() != null && existingVariantMap.containsKey(varReq.getId())) {
+                        String reqId = varReq.getId();
+                        if (reqId != null && !reqId.isBlank() && existingVariantMap.containsKey(reqId)) {
                             // Update variant đã có
-                            ProductVariant existing = existingVariantMap.get(varReq.getId());
+                            ProductVariant existing = existingVariantMap.get(reqId);
                             existing.setVariantName(varReq.getVariantName());
                             existing.setPrice(varReq.getPrice());
                             existing.setOriginalPrice(varReq.getOriginalPrice());
@@ -864,28 +856,103 @@ public class ProductService {
             productVariantRepository.saveAll(toDeactivate);
         }
 
-        // ── 7. Tính lại priceDefault từ variant mặc định ──
-        // Reload variants mới nhất sau upsert
-        List<ProductVariant> currentVariants = productVariantRepository.findAllByProductIdIn(
-                List.of(product.getId()));
-        product.setVariants(currentVariants);
-        product.setPriceDefault();
+        // ── 7. Tính lại priceDefault ──
+        // Reload variants từ DB để phản ánh đúng trạng thái sau upsert + soft-delete
+        // findAllByProductIdIn = 1 query IN cho tất cả variants của product — không N+1
+        List<ProductVariant> currentVariants =
+                productVariantRepository.findAllByProductIdIn(List.of(product.getId()));
+
+        List<ProductVariant> activeVariants = currentVariants.stream()
+                .filter(ProductVariant::isActive)
+                .toList();
+
+        BigDecimal priceDefault = activeVariants.stream()
+                .filter(ProductVariant::isVariantDefault)
+                .map(ProductVariant::getPrice)
+                .findFirst()
+                .orElse(activeVariants.isEmpty()
+                        ? BigDecimal.ZERO
+                        : activeVariants.get(0).getPrice());
+
+        product.setPriceDefault(priceDefault);
+
         productRepository.save(product);
 
-        // ── 8. Reload đầy đủ để build response và sync ES ──
-        Product updated = productRepository.findDetailById(product.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
-
-        // ── 9. Sync Elasticsearch ──
+        // ── 8. Sync Elasticsearch ──
+        // Build document từ dữ liệu đã có trong RAM, không reload lại DB
+        // Stock: dùng batch map 1 query để tránh N+1 trong toDocument
         try {
-            ProductDocumentSearch document = toDocument(updated);
+            // Lấy stockMap 1 lần cho tất cả active variants
+            List<String> variantIds = activeVariants.stream()
+                    .map(ProductVariant::getId)
+                    .toList();
+
+            Map<String, Integer> stockMap = variantIds.isEmpty()
+                    ? new HashMap<>()
+                    : inventoryBatchRepository.getStockMapByVariantIds(variantIds, LocalDate.now())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            row -> (String) row[0],
+                            row -> ((Number) row[1]).intValue()
+                    ));
+
+            // Load ảnh mới nhất từ DB để đồng bộ chính xác lên ES (1 query)
+            List<ProductImage> freshImages = productImageRepository.findAllByProductId(product.getId());
+            product.setImages(freshImages);
+
+            ProductDocumentSearch document = toDocumentWithStockMap(product, stockMap);
             productSearchRepository.save(document);
-            log.info("Elasticsearch synced for product id={}", updated.getId());
+            log.info("Elasticsearch synced for product id={}", product.getId());
         } catch (Exception e) {
-            // Không để lỗi ES làm rollback DB transaction
-            log.error("Failed to sync Elasticsearch for product id={}: {}", updated.getId(), e.getMessage());
+            // Không để lỗi ES rollback DB transaction
+            log.error("Failed to sync Elasticsearch for product id={}: {}", product.getId(), e.getMessage());
         }
+
         return "Cập nhật sản phẩm thành công";
+    }
+
+    /**
+     * Build Elasticsearch document dùng stockMap đã tính sẵn — tránh N+1 trong loop variants.
+     */
+    private ProductDocumentSearch toDocumentWithStockMap(Product product, Map<String, Integer> stockMap) {
+        ProductDocumentSearch document = new ProductDocumentSearch();
+        document.setId(product.getId());
+        document.setName(product.getName());
+        document.setDescription(product.getDescription());
+        document.setSlug(product.getSlug());
+        document.setManufacturer(product.getManufacturer());
+        document.setCountry(product.getCountry());
+        document.setPriceDefault(product.getPriceDefault());
+        document.setPrescription(product.isPrescription());
+
+        if (product.getCategory() != null) {
+            document.setCategoryId(product.getCategory().getId());
+            document.setCategoryName(product.getCategory().getName());
+            document.setCategorySlug(product.getCategory().getSlug());
+        }
+
+        String primaryImageUrl = product.getImages().stream()
+                .filter(ProductImage::isPrimary)
+                .findFirst()
+                .map(ProductImage::getImageUrl)
+                .orElse(null);
+        document.setPrimaryImageUrl(primaryImageUrl);
+
+        List<ProductVariantDocument> variants = product.getVariants().stream()
+                .map(v -> {
+                    ProductVariantDocument doc = new ProductVariantDocument();
+                    doc.setId(v.getId());
+                    doc.setSku(v.getSku());
+                    doc.setVariantName(v.getVariantName());
+                    doc.setPrice(v.getPrice());
+                    doc.setOriginalPrice(v.getOriginalPrice());
+                    doc.setVariantDefault(v.isVariantDefault());
+                    doc.setStockQuantity(stockMap.getOrDefault(v.getId(), 0));
+                    return doc;
+                })
+                .toList();
+        document.setVariants(variants);
+        return document;
     }
 
     // mapper qua elasticsearch

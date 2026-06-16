@@ -1,171 +1,69 @@
-
-
 import axiosClient from '../../configs/axiosConfig.js';
 
 const productAdminService = {
     // =========================================================================
     // UPDATE ACTIVE STATUS (BẬT/TẮT KINH DOANH SẢN PHẨM)
     // =========================================================================
-    /**
-     * @param {string} id - ID của sản phẩm (UUID)
-     * @param {boolean} status - Trạng thái active mong muốn (true: bật, false: tắt)
-     */
     updateActiveStatus: (id, status) => {
         return axiosClient.patch(`/admin/products/${id}/active`, null, {
-            params: {
-                status: status
-            }
+            params: { status }
         });
     },
+
     getAdminProducts: (params) => {
-        return axiosClient.get('/products/admin/products', {
-            params
+        return axiosClient.get('/products/admin/products', { params });
+    },
+
+    // Lấy chi tiết sản phẩm theo slug
+    getDetail: (slug) => axiosClient.get(`/products/admin/detail/${slug}`),
+
+    // =========================================================================
+    // CREATE PRODUCT
+    // Ảnh đã được upload trước — chỉ gửi URL dạng JSON thuần.
+    // =========================================================================
+    createProduct: (productData) => {
+        return axiosClient.post('/admin/products', {
+            name: productData.name,
+            categorySlug: productData.categorySlug,
+            manufacturer: productData.manufacturer,
+            country: productData.country,
+            description: productData.description,
+            prescription: productData.prescription,
+            primaryImageUrl: productData.primaryImageUrl,
+            subImageUrls: productData.subImageUrls || [],
+            specifications: productData.specifications,
+            variants: productData.variants
         });
     },
-    // Lấy chi tiết sản phẩm theo slug
-    getDetail: (slug) =>
-        axiosClient.get(`/products/admin/detail/${slug}`),
-    // =========================
-    // CREATE PRODUCT
-    // =========================
-    // =========================
+
+    // =========================================================================
     // UPDATE PRODUCT
-    updateProduct: async (id, productData) => {
-
-        const formData = new FormData();
-
-        // =========================
-        // JSON DATA
-        // =========================
-        formData.append(
-            'data',
-            new Blob(
-                [
-                    JSON.stringify({
-                        name: productData.name,
-                        categorySlug: productData.categorySlug,
-                        manufacturer: productData.manufacturer,
-                        country: productData.country,
-                        description: productData.description,
-                        prescription: productData.prescription,
-                        specifications: productData.specifications,
-                        variants: productData.variants,
-
-                        // OPTIONAL: nếu backend support delete
-                        deletedImageIds: productData.deletedImageIds || [],
-                        deletedVariantIds: productData.deletedVariantIds || []
-                    })
-                ],
-                { type: 'application/json' }
-            )
-        );
-
-        // =========================
-        // PRIMARY IMAGE
-        // =========================
-        if (productData.primaryImageFile) {
-            formData.append(
-                'primaryImage',
-                productData.primaryImageFile
-            );
-        }
-
-        // =========================
-        // SUB IMAGES
-        // =========================
-        if (productData.subImageUrls?.length > 0) {
-            productData.subImageUrls.forEach((item) => {
-                if (item.file) {
-                    formData.append('subImages', item.file);
-                }
-            });
-        }
-
-        // =========================
-        // API CALL (PUT)
-        // =========================
-        return axiosClient.put(
-            `/admin/products/${id}`,
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            }
-        );
+    // Ảnh mới đã được upload trước — chỉ gửi URL dạng JSON thuần.
+    // =========================================================================
+    updateProduct: (id, productData) => {
+        return axiosClient.put(`/admin/products/${id}`, {
+            name: productData.name,
+            categorySlug: productData.categorySlug,
+            manufacturer: productData.manufacturer,
+            country: productData.country,
+            description: productData.description,
+            prescription: productData.prescription,
+            // URL ảnh chính mới (nếu đã thay đổi), null = giữ nguyên ảnh cũ
+            primaryImageUrl: productData.newPrimaryImageUrl || null,
+            // Các URL ảnh phụ MỚI cần thêm (đã upload lên Cloudinary)
+            newSubImageUrls: productData.newSubImageUrls || [],
+            // ID các ảnh phụ cần xóa
+            deletedImageIds: (productData.deletedImageIds || []).filter(
+                (id) => id && !id.startsWith('local-')
+            ),
+            specifications: productData.specifications,
+            variants: productData.variants,
+            deletedVariantIds: productData.deletedVariantIds || []
+        });
     },
-    createProduct: async (productData) => {
-
-        const formData = new FormData();
-
-        // =========================
-        // JSON DATA
-        // =========================
-
-        formData.append(
-            'data',
-            new Blob(
-                [
-                    JSON.stringify({
-                        name: productData.name,
-                        categorySlug: productData.categorySlug,
-                        manufacturer: productData.manufacturer,
-                        country: productData.country,
-                        description: productData.description,
-                        prescription: productData.prescription,
-
-                        specifications: productData.specifications,
-
-                        variants: productData.variants
-                    })
-                ],
-                {
-                    type: 'application/json'
-                }
-            )
-        );
-
-        // =========================
-        // PRIMARY IMAGE
-        // =========================
-
-        if (productData.primaryImageFile) {
-            formData.append(
-                'primaryImage',
-                productData.primaryImageFile
-            );
-        }
-
-        // =========================
-        // SUB IMAGES
-        // =========================
-
-        if (
-            productData.subImageUrls &&
-            productData.subImageUrls.length > 0
-        ) {
-
-            productData.subImageUrls.forEach((item) => {
-
-                if (item.file) {
-                    formData.append(
-                        'subImages',
-                        item.file
-                    );
-                }
-            });
-        }
-        return axiosClient.post(
-            '/admin/products',
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            }
-        );
+    syncElasticData: () => {
+        return axiosClient.get('/admin/products/sync');
     }
-
 
 };
 
