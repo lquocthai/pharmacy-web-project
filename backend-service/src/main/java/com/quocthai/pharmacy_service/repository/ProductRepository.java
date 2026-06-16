@@ -157,13 +157,8 @@ public interface ProductRepository extends JpaRepository<Product, String> {
             "WHERE p.id = :id")
     Optional<Product> fetchSpecificationsDetail(@Param("id") String id);
 
-//    @EntityGraph(attributePaths = {
-//            "category",
-//            "images",
-//            "variants",
-//            "specifications"
-//    })
-//    Optional<Product> findDetailById(String id);
+    @Query("SELECT p FROM Product p WHERE p.active = true")
+    Page<Product> findAllActiveProducts(Pageable pageable);
 
     boolean existsByCategoryId(String categoryId);
 
