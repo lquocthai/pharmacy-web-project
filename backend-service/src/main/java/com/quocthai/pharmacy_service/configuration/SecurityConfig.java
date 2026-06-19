@@ -42,7 +42,8 @@ public class SecurityConfig {
             "/categories/**",
             "/payments/vnpay-return",
             "/payments/vnpay-ipn",
-            "/search/*"
+            "/search/*",
+            "/users/health"
     };
 
     private final CustomJwtDecoder customJwtDecoder;

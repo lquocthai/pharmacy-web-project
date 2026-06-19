@@ -219,29 +219,41 @@ const CheckoutPage = () => {
                         <p style={{ fontSize: '0.875rem' }} className="fw-bold mb-3 d-flex align-items-center"><FaShoppingCart className="me-2" /> Danh sách sản phẩm</p>
 
                         {checkoutItems.map((item, index) => (
-                            <div key={item.id} className={`py-2 ${index !== 0 ? 'border-top' : ''}`}>
-                                <div className="d-flex align-items-center justify-content-between">
-                                    {/* Khối bên trái: Ảnh + Tên */}
-                                    <div className="d-flex align-items-center flex-grow-1 " style={{ minWidth: 0 }}>
-                                        <div className="flex-shrink-0" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
-                                            <img src={item?.imageUrl} alt="" className="rounded border p-1" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
-                                        </div>
-                                        <div className="ms-3 pe-3" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer', minWidth: 0 }}>
-                                            <div className="text-start text-dark mb-1 text-wrap">
-                                                {item?.productName}
-                                            </div>
-                                        </div>
+                            <div key={item.id} className={`py-3 ${index !== 0 ? 'border-top' : ''}`}>
+                                <div className="d-flex align-items-start align-items-md-center">
+
+                                    {/* Ảnh */}
+                                    <div className="flex-shrink-0" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
+                                        <img
+                                            src={item?.imageUrl}
+                                            alt=""
+                                            className="rounded border p-1"
+                                            style={{ width: '80px', height: '80px', objectFit: 'contain' }}
+                                        />
                                     </div>
 
-                                    {/* Khối bên phải: Giá + Số lượng (Dàn hàng ngang) */}
-                                    <div className="d-flex align-items-center flex-shrink-0 ms-auto justify-content-between">
-                                        <div className="text-end me-4" style={{ minWidth: '100px' }}>
-                                            <div className="fw-bold h6 mb-0 text-nowrap">{item?.priceAtTime?.toLocaleString()}đ</div>
+                                    {/* Tên + Giá/SL */}
+                                    <div className="ms-3 flex-grow-1 d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-md-between" style={{ minWidth: 0 }}>
 
+                                        {/* Tên sản phẩm */}
+                                        <div
+                                            className="text-start text-dark fw-medium text-wrap text-break mb-2 mb-md-0 pe-md-3"
+                                            onClick={() => goToDetail(item.productSlug)}
+                                            style={{ cursor: 'pointer', fontSize: '0.9rem', lineHeight: '1.4', minWidth: 0 }}
+                                        >
+                                            {item?.productName}
                                         </div>
-                                        <div className="text-muted small text-nowrap" style={{ minWidth: '60px' }}>
-                                            x{item?.quantity} {item?.variantName || 'Hộp'}
+
+                                        {/* Giá + Số lượng */}
+                                        <div className="d-flex align-items-center flex-shrink-0 gap-4">
+                                            <div className="fw-bold h6 mb-0 text-nowrap text-primary">
+                                                {item?.priceAtTime?.toLocaleString()}đ
+                                            </div>
+                                            <div className="text-muted small text-nowrap">
+                                                x{item?.quantity} {item?.variantName || 'Hộp'}
+                                            </div>
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
