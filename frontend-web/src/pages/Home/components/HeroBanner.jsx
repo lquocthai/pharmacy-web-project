@@ -50,10 +50,10 @@ const SLIDES = [
 ];
 
 const CATEGORIES = [
-    { id: 1, label: 'Dược sĩ tư vấn', icon: AdvidseIcon, to: '/chat' },
-    { id: 2, label: 'Đơn thuốc', icon: PrescriptionIcon, to: '/prescription' },
-    { id: 3, label: 'Đơn của tôi', icon: OrderIcon, to: '/orders' },
-    { id: 4, label: 'Tìm kiếm nhanh chóng', icon: SearchIcon, to: '/search' },
+    { id: 1, label: 'Dược sĩ tư vấn', icon: AdvidseIcon, to: null },
+    { id: 2, label: 'Đơn thuốc', icon: PrescriptionIcon, to: '/profile?tab=prescriptions' },
+    { id: 3, label: 'Đơn của tôi', icon: OrderIcon, to: '/profile?tab=orders' },
+    { id: 4, label: 'Tìm kiếm nhanh chóng', icon: SearchIcon, to: null },
 ];
 
 const AUTOPLAY_DELAY = 5000;
@@ -228,19 +228,19 @@ export default function HeroBanner() {
             </div>
 
             {/* PHẦN 2: THANH DANH MỤC TÍNH NĂNG */}
-            {/* PHẦN 2: THANH DANH MỤC TÍNH NĂNG (Tách riêng biệt từng cục) */}
             <div className="row row-cols-2 row-cols-md-4 g-3 mt-4 mx-0">
-                {CATEGORIES.map((cat) => (
-                    <div key={cat.id} className="col">
-                        <Link
-                            to={cat.to}
-                            className="text-decoration-none d-flex flex-column align-items-center justify-content-center p-3 h-100 text-center bg-white border rounded-4 shadow-sm feature-item"
-                            style={{
-                                color: '#434655',
-                                transition: 'all 0.2s ease-in-out',
-                            }}
-                        >
-                            {/* Khối chứa ảnh Icon tròn/gọn gàng */}
+                {CATEGORIES.map((cat) => {
+                    const itemProps = {
+                        className: "text-decoration-none d-flex flex-column align-items-center justify-content-center p-3 h-100 text-center bg-white border rounded-4 shadow-sm feature-item",
+                        style: {
+                            color: '#434655',
+                            transition: 'all 0.2s ease-in-out',
+                            cursor: cat.to ? 'pointer' : 'default' // Đổi chuột thành bình thường nếu không click được
+                        }
+                    };
+
+                    const innerContent = (
+                        <>
                             <div
                                 className="mb-2 d-flex align-items-center justify-content-center bg-light rounded-circle"
                                 style={{ width: '56px', height: '56px', padding: '8px' }}
@@ -252,12 +252,25 @@ export default function HeroBanner() {
                                     style={{ objectFit: 'contain' }}
                                 />
                             </div>
-
-                            {/* Chữ hiển thị */}
                             <span className="small fw-semibold text-dark mt-1">{cat.label}</span>
-                        </Link>
-                    </div>
-                ))}
+                        </>
+                    );
+
+                    // CẬP NHẬT Ở ĐÂY: Nếu có đường dẫn thì dùng <Link>, không thì dùng thẻ <div> thông thường
+                    return (
+                        <div key={cat.id} className="col">
+                            {cat.to ? (
+                                <Link to={cat.to} {...itemProps}>
+                                    {innerContent}
+                                </Link>
+                            ) : (
+                                <div {...itemProps}>
+                                    {innerContent}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

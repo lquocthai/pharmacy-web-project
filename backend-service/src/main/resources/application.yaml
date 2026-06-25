@@ -6,9 +6,6 @@ spring:
   application:
     name: ${DBMS_NAME}
   datasource:
-    #        lay bien do neu khong co thi se lay default la phia sau dau :
-    #        172.17.0.2 la ip cua container mysql khi chay docker
-#    :jdbc:mysql://localhost:3306/pharmacy_service
     url: ${DBMS_CONNECTION}
     username: ${DBMS_USERNAME:root}
     password: ${DBMS_PASSWORD:root}
@@ -76,9 +73,7 @@ vnpay:
   hash-secret: ${VNPAY_HASH_SECRET}
   pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
   return-url: ${RETURN_URL}
-#  :http://localhost:8080/pharmacy/payments/vnpay-return
   ipn-url: ${IPN_URL}
-#  :http://localhost:8080/pharmacy/payments/vnpay-ipn
   api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 cloudinary:
   cloud-name: ${CLOUD_NAME}
