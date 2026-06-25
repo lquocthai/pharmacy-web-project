@@ -2,7 +2,7 @@
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy file pom.xml và tải trước các dependencies (giúp cache Docker chạy nhanh hơn)
+# Copy file pom.xml và tải trước các dependencies ( cache Docker chạy nhanh hơn)
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
@@ -11,12 +11,12 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # === STAGE 2: Chạy ứng dụng với JRE 21 tinh giản ===
-# Sử dụng Eclipse Temurin JRE 21 Alpine để dung lượng image siêu nhẹ, tiết kiệm RAM cho gói Free
+# Sử dụng Eclipse Temurin JRE 21 Alpine để dung lượng image siêu nhẹ, tiết kiệm RAM
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Copy file .jar đã build từ Stage 1 sang Stage 2
 COPY --from=build /app/target/*.jar app.jar
 
-# Render sẽ cung cấp một cổng PORT ngẫu nhiên thông qua biến môi trường $PORT
+# Render cung cấp một cổng PORT ngẫu nhiên thông qua biến môi trường $PORT
 ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT}"]
