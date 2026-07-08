@@ -208,7 +208,7 @@ export default function WaitingConversationsPage() {
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
     const subInboxRef = useRef(null);
     const subConvRef = useRef(null);
     const subErrRef = useRef(null);
@@ -219,7 +219,15 @@ export default function WaitingConversationsPage() {
 
     // ── Scroll to bottom ──────────────────────────────────────────────────────
     const scrollToBottom = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const container = messagesContainerRef.current;
+        if (!container) return;
+
+        requestAnimationFrame(() => {
+            container.scrollTo({
+                top: container.scrollHeight,
+                behavior: 'smooth',
+            });
+        });
     }, []);
 
     useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
@@ -274,7 +282,7 @@ export default function WaitingConversationsPage() {
             }
             setTotalPages(result?.totalPages || 0);
             setPage(p);
-        } catch (e) {
+        } catch {
             toast.error('Không tải được danh sách hội thoại');
         } finally {
             setLoading(false);
@@ -297,7 +305,7 @@ export default function WaitingConversationsPage() {
         try {
             const res = await chatService.getMessages(conv.id, 0, 50);
             dispatch(setMessages(res.data?.result?.content || []));
-        } catch (e) {
+        } catch {
             toast.error('Không tải được tin nhắn');
         } finally {
             setMsgLoading(false);
@@ -532,7 +540,10 @@ export default function WaitingConversationsPage() {
                             )}
 
                             {/* Messages */}
-                            <div className="flex-1 overflow-y-auto no-scrollbar p-4 bg-[#F8FAFC] space-y-3">
+                            <div
+                                ref={messagesContainerRef}
+                                className="flex-1 overflow-y-auto no-scrollbar p-4 bg-[#F8FAFC] space-y-3"
+                            >
                                 {msgLoading ? (
                                     <div className="flex justify-center items-center h-full">
                                         <div className="animate-spin w-6 h-6 border-2 border-[#3C50E0] border-t-transparent rounded-full" />
@@ -547,7 +558,6 @@ export default function WaitingConversationsPage() {
                                         <MessageBubble key={msg.id || idx} msg={msg} />
                                     ))
                                 )}
-                                <div ref={messagesEndRef} />
                             </div>
 
                             {/* Input form */}

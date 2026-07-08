@@ -55,9 +55,9 @@ public class VnPayService {
     @Value("${vnpay.hash-secret}")
     String hashSecret;
 
-    @NonFinal
-    @Value("${vnpay.ipn-url}")
-    String ipnUrl;
+//    @NonFinal
+//    @Value("${vnpay.ipn-url}")
+//    String ipnUrl;
 
     @NonFinal
     @Value("${vnpay.pay-url}")
