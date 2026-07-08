@@ -31,8 +31,8 @@ const Header = ({ onToggle, sidebarOpen, isDark, onToggleTheme }) => {
 
                 {/* RIGHT SIDE: DARK MODE, NOTIFICATION & USER PROFILE */}
                 <div className="flex items-center gap-4">
-
-
+                    {/* Component Dark Mode */}
+                    
                     {/* Component thông báo thông minh */}
                     {/* <NotificationDropdown /> */}
 
