@@ -6,7 +6,7 @@ const STEPS = [
     {
         icon: 'search',
         step: '1',
-        title: 'Search',
+        title: 'Tìm kiếm sản phẩm',
         desc: 'Tìm sản phẩm theo nhu cầu của bạn',
         color: '#2563EB',
         bg: '#EFF4FF',
@@ -14,7 +14,7 @@ const STEPS = [
     {
         icon: 'add_shopping_cart',
         step: '2',
-        title: 'Add to Cart',
+        title: 'Thêm vào giỏ hàng',
         desc: 'Chọn số lượng và thêm vào giỏ hàng',
         color: '#007D55',
         bg: '#F0FDF4',
@@ -22,7 +22,7 @@ const STEPS = [
     {
         icon: 'payments',
         step: '3',
-        title: 'Pay',
+        title: 'Thanh toán',
         desc: 'Thanh toán an toàn đa phương thức',
         color: '#B45309',
         bg: '#FFFBEB',
@@ -30,7 +30,7 @@ const STEPS = [
     {
         icon: 'local_shipping',
         step: '4',
-        title: 'Delivery',
+        title: 'Giao hàng',
         desc: 'Nhận hàng tại nhà',
         color: '#6D28D9',
         bg: '#F5F3FF',

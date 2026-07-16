@@ -51,12 +51,12 @@ export default function ProductPage() {
 
     const manufacturerOptions = [
         { label: 'Tất cả nhà sản xuất', value: 'all' },
-        { label: 'Dược Hậu Giang', value: 'Dược Hậu Giang' },
-        { label: 'Traphaco', value: 'Traphaco' },
-        { label: 'Imexpharm', value: 'Imexpharm' },
-        { label: 'Sanofi', value: 'Sanofi' },
-        { label: 'GSK', value: 'GSK' },
-        { label: 'Pfizer', value: 'Pfizer' }
+        { label: 'FUJI', value: 'FUJI' },
+        { label: 'LAVOX', value: 'LAVOX' },
+        { label: 'sachi', value: 'sachi' },
+        { label: 'La Beauty', value: 'La Beauty' },
+        { label: 'MEDICLEEN', value: 'MEDICLEEN' },
+        { label: 'Cerave', value: 'Cerave' }
     ];
 
     const countryOptions = [
@@ -64,9 +64,10 @@ export default function ProductPage() {
         { label: 'Việt Nam', value: 'Việt Nam' },
         { label: 'Pháp', value: 'Pháp' },
         { label: 'Đức', value: 'Đức' },
-        { label: 'Mỹ', value: 'Mỹ' },
+        { label: 'Hoa Kỳ', value: 'Hoa Kỳ' },
         { label: 'Nhật Bản', value: 'Nhật Bản' },
-        { label: 'Hàn Quốc', value: 'Hàn Quốc' }
+        { label: 'Hàn Quốc', value: 'Hàn Quốc' },
+        { label: 'Trung Quốc', value: 'Trung Quốc' }
     ];
 
     const getPriceRange = (priceValue = selectedPrice) => {
@@ -247,7 +248,7 @@ export default function ProductPage() {
     }
 
     return (
-        <main style={{ minHeight: '60vh', padding: '20px' }}>
+        <main style={{ minHeight: '60vh' }}>
             <div className="container min-vh-100 py-1 ">
                 {/* ── BREADCRUMB (Đường dẫn) ── */}
                 <Nav className="small mb-4 text-muted">
