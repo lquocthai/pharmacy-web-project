@@ -358,17 +358,17 @@ const AdminProductPage = () => {
                                                                 >
                                                                     <span className="truncate mr-1.5">📦 {v.variantName || 'Default'} ({v.sku})</span>
                                                                     <span className="font-bold whitespace-nowrap">
-                                                                        {v.price?.toLocaleString('vi-VN')}đ ({v.stockQuantity})
+                                                                        {v.price?.toLocaleString('vi-VN')}đ
                                                                     </span>
                                                                 </div>
                                                             ))}
-                                                            <div className="mt-0.5">
+                                                            {/* <div className="mt-0.5">
                                                                 {isOutOfStock ? (
                                                                     <span className="inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-[#FEE2E2] text-[#EF4444]">Out of Stock</span>
                                                                 ) : (
                                                                     <span className="inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-[#DCFCE7] text-[#10B981]">In Stock</span>
                                                                 )}
-                                                            </div>
+                                                            </div> */}
                                                         </div>
                                                     </td>
                                                     <td className="p-2.5 text-center text-right pr-4 relative" style={{ zIndex: activeDropdown === product.id ? 40 : 'auto' }}>
