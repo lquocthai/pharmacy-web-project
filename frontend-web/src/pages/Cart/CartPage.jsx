@@ -161,21 +161,8 @@ const CartPage = () => {
                         </div>
 
                         {items.map(item => (
-                            <div key={item.id} className="row align-items-center border-bottom py-3 mx-0">
-
-                                {/* 1. TÊN SẢN PHẨM: Trên Mobile chiếm trọn 1 hàng (col-12), PC chiếm col-md-3 */}
-                                <div
-                                    className="col-12 col-md-3 order-1 order-md-3 mb-2 mb-md-0 fw-semibold fw-md-normal"
-                                    onClick={() => goToDetail(item.productSlug)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <p className="text-start mb-0 text-wrap" style={{ lineHeight: '1.4', wordBreak: 'break-word' }}>
-                                        {item.productName}
-                                    </p>
-                                </div>
-
-                                {/* 2. CHECKBOX: Mobile chiếm col-1, PC chiếm col-md-1 */}
-                                <div className="col-1 col-md-1 p-0 order-2 order-md-1 text-center">
+                            <div key={item.id} className="row align-items-center border-bottom py-2 mx-0">
+                                <div className="col-1 p-0">
                                     <input
                                         type="checkbox"
                                         className="form-check-input"
@@ -183,50 +170,41 @@ const CartPage = () => {
                                         onChange={() => toggleItem(item.id)}
                                     />
                                 </div>
-
-                                {/* 3. ẢNH SẢN PHẨM: Mobile chiếm col-3, PC chiếm col-md-1 */}
-                                <div className="col-3 col-md-1 p-0 order-3 order-md-2" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
+                                <div className="col-1 p-0" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
                                     <img src={item.imageUrl} className="img-fluid rounded border" alt="" />
                                 </div>
-
-                                {/* 4. TĂNG GIẢM SỐ LƯỢNG: Mobile chiếm col-4, PC chiếm col-md-2 */}
-                                <div className="col-4 col-md-2 order-4 order-md-4">
-                                    <div className="input-group input-group-sm border rounded overflow-hidden">
-                                        <button
-                                            className="btn btn-light border-0 px-2"
+                                <div className="col-3" onClick={() => goToDetail(item.productSlug)} style={{ cursor: 'pointer' }}>
+                                    <p className="text-start mb-0 text-wrap" style={{ lineHeight: '1.4', wordBreak: 'break-word' }}>
+                                        {item.productName}
+                                    </p>
+                                </div>
+                                <div className="col-2">
+                                    <div className="input-group input-group-sm border rounded overflow-hidden" >
+                                        <button className="btn btn-light border-0 px-2"
                                             onClick={() => handleQuantityChange(item, -1)}
-                                            disabled={item.quantity <= 1}
-                                        >-</button>
+                                            disabled={item.quantity <= 1}>-</button>
                                         <input
                                             type="number"
-                                            className="form-control border-0 text-center bg-white shadow-none px-1"
+                                            className="form-control border-0 text-center bg-white shadow-none"
                                             value={item.quantity}
                                             onChange={(e) => handleInputChange(item, e.target.value)}
                                         />
-                                        <button
-                                            className="btn btn-light border-0 px-2"
-                                            onClick={() => handleQuantityChange(item, 1)}
-                                        >+</button>
+                                        <button className="btn btn-light border-0 px-2"
+                                            onClick={() => handleQuantityChange(item, 1)}>+</button>
                                     </div>
                                 </div>
-
-                                {/* 5. PHÂN LOẠI / VARIANT: Mobile ẩn hoặc dồn chung, PC chiếm col-md-2 */}
-                                <div className="col-4 col-md-2 order-5 order-md-6 text-start">
-                                    <p className="text-muted small mb-0 text-truncate">{item.variantName}</p>
-                                </div>
-
-                                {/* 6. THÀNH TIỀN: Mobile dồn cùng hàng dưới, PC chiếm col-md-2 */}
-                                <div className="col-3 col-md-2 order-6 order-md-5 text-end text-danger text-md-dark fw-bold fw-md-normal">
+                                <div className="col-2 text-end">
                                     {(item.price * item.quantity).toLocaleString()}đ
                                 </div>
-
-                                {/* 7. NÚT XÓA: Mobile góc phải, PC chiếm col-md-1 */}
-                                <div className="col-1 col-md-1 order-7 order-md-7 text-end text-md-start">
-                                    <button className="btn text-secondary p-0" onClick={() => handleConfirmRemove(item.id)}>
+                                <div className="col-2 text-start">
+                                    <p className="text-start mb-0 text-truncate">{item.variantName}</p>
+                                </div>
+                                <div className="col-1 text-start">
+                                    {/* THAY ĐỔI: Gọi hàm handleConfirmRemove thay vì gọi thẳng hàm xóa */}
+                                    <button className="btn text-secondary" onClick={() => handleConfirmRemove(item.id)}>
                                         <BiTrash size={20} />
                                     </button>
                                 </div>
-
                             </div>
                         ))}
                     </div>
