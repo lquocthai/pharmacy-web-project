@@ -135,7 +135,7 @@ const ProfilePage = () => {
 
                 <Row className="align-items-start">
                     {/* Sidebar */}
-                    <Col lg={3} md={4} className="mb-4 sticky-top">
+                    <Col lg={3} md={4} className="mb-4 sticky-top d-none d-md-block">
                         {/* User Card */}
                         <Card className="border-0 shadow-sm rounded-4 text-center text-white mb-3"
                             style={{
@@ -153,7 +153,7 @@ const ProfilePage = () => {
                             </Card.Body>
                         </Card>
 
-                        {/* Menu List - CODE CỨNG TỪNG ITEM */}
+                        {/* Menu List  */}
                         <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
                             <ListGroup variant="flush">
                                 {/* Thông tin cá nhân */}
