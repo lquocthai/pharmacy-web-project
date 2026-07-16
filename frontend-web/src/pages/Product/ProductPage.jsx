@@ -13,6 +13,8 @@ import { openLoginModal } from '../../redux/slices/authSlice';
 import { Nav } from 'react-bootstrap';
 import '../Product/ProductPage.scss'
 import SearchNotFoundIcon from '../../assets/illustration-not-found.svg';
+import AllProduct from '../../assets/all.png';
+
 
 export default function ProductPage() {
     const { slug } = useParams();
@@ -281,7 +283,7 @@ export default function ProductPage() {
                             >
                                 <div className="mb-2 d-flex align-items-center justify-content-center mx-auto" style={{ width: '56px', height: '56px' }}>
                                     <img
-                                        src="https://cdn.nhathuoclongchau.com.vn/unsafe/96x0/filters:quality(90):format(webp)/smalls/Dung_cu_y_te_8ae0da0bb4.png"
+                                        src={AllProduct}
                                         alt="Tất cả"
                                         style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                                     />
@@ -299,7 +301,7 @@ export default function ProductPage() {
                                 >
                                     <div className="mb-2 d-flex align-items-center justify-content-center mx-auto" style={{ width: '56px', height: '56px' }}>
                                         <img
-                                            src={child.icon || 'ád'}
+                                            src={child.icon || AllProduct}
                                             alt={child.name}
                                             style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                                         />
