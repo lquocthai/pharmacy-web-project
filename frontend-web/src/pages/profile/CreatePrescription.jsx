@@ -138,11 +138,11 @@ const CreatePrescription = ({ }) => {
     };
 
     return (
-        <div className="container">
+        <div className="container py-1">
             {/* Tiêu đề trang */}
-            <div className="d-flex align-items-center gap-2 mb-3">
-                <h6 className="fw-bold text-dark m-0 ">Cần mua thuốc</h6>
-            </div>
+            <Nav className="small mb-4 text-muted">
+                Trang chủ / Cá nhân / <span className="text-primary ms-1 fw-bold">Chi tiết đơn thuốc</span>
+            </Nav>
 
             {/* Input file ẩn hoàn toàn phục vụ việc chọn ảnh */}
             <input
