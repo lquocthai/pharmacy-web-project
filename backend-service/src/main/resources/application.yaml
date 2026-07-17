@@ -17,6 +17,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+        jdbc:
+          time_zone: Asia/Ho_Chi_Minh
   sendgrid:
     api-key: ${SENDGRID_API_KEY}
 #  mail:
